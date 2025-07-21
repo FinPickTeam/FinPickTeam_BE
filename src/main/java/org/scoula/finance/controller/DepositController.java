@@ -23,11 +23,11 @@ public class DepositController {
     @GetMapping("/depositlist")
     public ResponseEntity<List<DepositDetailDto>> getDepositList() {return ResponseEntity.ok(depositService.getAllDepositDetails());}
 
-    @GetMapping("/recommend")
-    public ResponseEntity<List<DepositRecommendationDto>> recommend(@RequestParam int userId, @RequestParam int amount, @RequestParam int period){
-
-        //유저 투자 정보 받기
-
-        return ResponseEntity.ok(depositService.getAllDepositRecommendations(userId, amount, period));
-    }
+//    @GetMapping("/recommend")
+//    public ResponseEntity<List<DepositRecommendationDto>> recommend(@RequestParam int userId, @RequestParam int amount, @RequestParam int period){
+//
+//        //유저 투자 정보 받기
+//
+//        return ResponseEntity.ok(depositService.getAllDepositRecommendations(userId, amount, period));
+//    }
 }

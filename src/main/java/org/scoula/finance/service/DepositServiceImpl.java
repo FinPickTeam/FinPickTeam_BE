@@ -20,7 +20,8 @@ public class DepositServiceImpl implements DepositService {
         return depositMapper.selectAllDeposits();
     }
 
-    @Override
-    public List<DepositRecommendationDto> getAllDepositRecommendations(int userId, int amount, int period) {
-    }
+//    @Override
+//    public List<DepositRecommendationDto> getAllDepositRecommendations(int userId, int amount, int period) {
+//        return
+//    }
 }
