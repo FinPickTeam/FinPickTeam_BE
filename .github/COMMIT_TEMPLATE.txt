@@ -1,0 +1,12 @@
+# <type>: <제목>
+# 제목은 50자 이내, 끝에 마침표 금지
+
+# 본문:
+# 한 줄 비우고 작성
+# 무엇을, 왜 했는지 상세히 설명 (필요 시)
+
+# 꼬릿말(Footer):
+# 관련 이슈 번호, 참고 링크 등 (예: Closes #12)
+
+# type 예시:
+# feat, fix, docs, style, refactor, test, chore
