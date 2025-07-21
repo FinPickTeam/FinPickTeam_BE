@@ -25,3 +25,30 @@ chmod +x .github/hooks/commit-msg
 ```터미널에서 실행
 bash .github/hooks/setup.sh
 ```
+
+---
+## commit 메시지 작성시 참고
+### 1. 에디터 설정
+```터미널에서 실행
+#  에디터를 nano로 변경
+
+git config --global core.editor "nano"
+```
+
+### 2. 내용 작성
+```터미널에서 실행
+#  예시
+
+feat: 회원가입 API 추가
+
+기본 회원가입 기능 구현 및 유효성 검사 추가
+
+Closes #14
+
+```
+
+### 3. 저장하고 종료
+```
+- 저장 : Ctrl + O
+- 종료 : Ctrl + X
+```

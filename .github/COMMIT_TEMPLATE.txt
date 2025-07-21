@@ -8,5 +8,11 @@
 # 꼬릿말(Footer):
 # 관련 이슈 번호, 참고 링크 등 (예: Closes #12)
 
-# type 예시:
-# feat, fix, docs, style, refactor, test, chore
+# ---------- type 예시 ----------
+# feat     : 새로운 기능 추가
+# fix      : 버그 수정
+# docs     : 문서 변경 (README 등)
+# style    : 코드 스타일 변경 (세미콜론, 공백 등)
+# refactor : 코드 리팩토링 (기능 변화 없음)
+# test     : 테스트 코드 추가/수정
+# chore    : 기타 변경사항 (빌드 설정, 패키지 등)
