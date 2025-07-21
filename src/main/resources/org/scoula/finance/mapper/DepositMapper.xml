@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.finance.mapper.DepositMapper">
+
+<!--    매핑-->
+    <resultMap id="DepositDetailMap" type="org.scoula.finance.dto.DepositDetailDto">
+        <result property="depositBankName" column="deposit_bank_name"/>
+        <result property="depositProductName" column="deposit_product_name"/>
+        <result property="depositContractPeriod" column="deposit_contract_period"/>
+        <result property="depositSubscriptionAmount" column="deposit_subscription_amount"/>
+        <result property="depositBasicRate" column="deposit_basic_rate"/>
+        <result property="depositMaxRate" column="deposit_max_rate"/>
+        <result property="depositPreferentialRate" column="deposit_preferential_rate"/>
+        <result property="depositProductFeatures" column="deposit_product_features"/>
+        <result property="depositSummary" column="deposit_summary"/>
+        <result property="depositLink" column="deposit_link"/>
+    </resultMap>
+
+    <resultMap id="DepositDetailMap" type="org.scoula.finance.dto.DepositRecommendationDto">
+        <result property="depositBankName" column="deposit_bank_name"/>
+        <result property="depositProductName" column="deposit_product_name"/>
+        <result property="depositContractPeriod" column="deposit_contract_period"/>
+        <result property="depositSubscriptionAmount" column="deposit_subscription_amount"/>
+        <result property="depositBasicRate" column="deposit_basic_rate"/>
+        <result property="depositMaxRate" column="deposit_max_rate"/>
+        <result property="depositPreferentialRate" column="deposit_preferential_rate"/>
+        <result property="depositProductFeatures" column="deposit_product_features"/>
+        <result property="depositSummary" column="deposit_summary"/>
+        <result property="depositLink" column="deposit_link"/>
+    </resultMap>
+<!--    sql     -->
+<!--    예금 목록 리스트   -->
+    <select id="getAllDepositDetails" resultMap="DepositDetailMap">
+        SELECT dl.*
+        FROM deposit_list dl
+    </select>
+</mapper>
