@@ -18,10 +18,10 @@ import java.io.IOException;
 @Component
 public class AuthenticationErrorFilter extends OncePerRequestFilter {
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
         try {
-            super.doFilter(request, response, filterChain);
+            filterChain.doFilter(request, response);
         } catch (ExpiredJwtException e) {
             JsonResponse.sendError(response, HttpStatus.UNAUTHORIZED, "토큰의 유효시간이 지났습니다.");
         } catch (UnsupportedJwtException | MalformedJwtException | SignatureException e) {
