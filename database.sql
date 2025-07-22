@@ -196,7 +196,7 @@ DROP TABLE IF EXISTS `deposit_list`;
 CREATE TABLE `deposit_list` (
                                 `id` INT NOT NULL AUTO_INCREMENT,
                                 `deposit_bank_name` VARCHAR(255) NOT NULL,
-                                `deposit_productName` VARCHAR(255) NOT NULL,
+                                `deposit_product_name` VARCHAR(255) NOT NULL,
                                 `deposit_contract_period` VARCHAR(50) NOT NULL,
                                 `deposit_subscription_amount` VARCHAR(50) NOT NULL,
                                 `deposit_basic_rate` FLOAT(10,2) NOT NULL,

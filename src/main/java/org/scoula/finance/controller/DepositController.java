@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -20,14 +21,16 @@ import java.util.List;
 public class DepositController {
     private final DepositService depositService;
 
+//    예금 목록 조회
     @GetMapping("/depositlist")
     public ResponseEntity<List<DepositDetailDto>> getDepositList() {return ResponseEntity.ok(depositService.getAllDepositDetails());}
 
-//    @GetMapping("/recommend")
-//    public ResponseEntity<List<DepositRecommendationDto>> recommend(@RequestParam int userId, @RequestParam int amount, @RequestParam int period){
-//
-//        //유저 투자 정보 받기
-//
-//        return ResponseEntity.ok(depositService.getAllDepositRecommendations(userId, amount, period));
-//    }
+//    예금 추천
+    @GetMapping("/recommend")
+    public ResponseEntity<List<Map<String, Object>>> recommend(@RequestParam int userId, @RequestParam int amount, @RequestParam int period){
+
+        //유저 투자 성향 정보 받기
+
+        return ResponseEntity.ok(depositService.getAllDepositRecommendations(amount, period));
+    }
 }
