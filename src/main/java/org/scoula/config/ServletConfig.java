@@ -14,6 +14,8 @@ import java.util.List;
 @ComponentScan(basePackages = {
         "org.scoula.exception",
         "org.scoula.controller",
+        "org.scoula.finance.controller",
+        "org.scoula.finance.service",
         "org.scoula.user.controller",
         "org.scoula.user.exception",
 })
