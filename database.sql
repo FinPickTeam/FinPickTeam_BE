@@ -20,6 +20,9 @@ ALTER TABLE `user`
 ALTER TABLE `user`
     ADD COLUMN `is_verified` BOOLEAN NOT NULL DEFAULT 0 AFTER `last_pw_change_at`;
 
+ALTER TABLE `user`
+    ADD COLUMN `is_active` BOOLEAN DEFAULT TRUE;
+
 
 -- 2. 유저 상태 (닉네임, 레벨)
 DROP TABLE IF EXISTS `user_status`;

@@ -22,11 +22,13 @@ import javax.sql.DataSource;
 @Configuration
 @PropertySource("classpath:application.properties")
 @MapperScan(basePackages = {
-        "org.scoula.member.mapper",
+        "org.scoula.user.mapper",
 })
 @ComponentScan(basePackages = {
-        "org.scoula.member.service",
-        "org.scoula.member.util",
+        "org.scoula.security",
+        "org.scoula.user.service",
+        "org.scoula.common.redis",
+        "org.scoula.common.*" // 공통 유틸이나 예외 추가할 여지
 })
 @EnableTransactionManagement
 public class RootConfig {
