@@ -2,6 +2,8 @@ package org.scoula.finance.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
+import org.scoula.finance.dto.DepositFilterDto;
+import org.scoula.finance.dto.DepositListDto;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.finance.dto.DepositDetailDto;
@@ -30,10 +32,23 @@ public class DepositServiceImpl implements DepositService {
     @Value("${openai.api-url}")
     private String apiUrl;
 
-    // 예금 목록 조회
+    //예금 전체 조회
     @Override
-    public List<DepositDetailDto> getAllDepositDetails() {
-        return depositMapper.selectAllDeposits();
+    public List<DepositListDto> getDeposits(DepositFilterDto filter){
+        if (isEmpty(filter)) {
+            // 전체 조회 기본 정렬
+            return depositMapper.selectAllDeposits();
+        } else {
+            // 조건부 조회
+            return depositMapper.selectDepositsWithFilter(filter);
+        }
+    }
+
+
+    // 예금 상세 조회
+    @Override
+    public DepositDetailDto selectDepositByProductName(String depositProductName) {
+        return depositMapper.selectDepositByProductName(depositProductName);
     }
 
     // 예금 추천
@@ -70,7 +85,7 @@ public class DepositServiceImpl implements DepositService {
                 String productName = node.path("productName").asText().trim();
                 String reason = node.path("reason").asText().trim();
 
-                List<DepositRecommendationDto> matched = depositMapper.selectDepositByProductName(productName);
+                List<DepositRecommendationDto> matched = depositMapper.selectDepositsByProductName(productName);
 
                 for (DepositRecommendationDto dto : matched) {
                     Map<String, Object> entry = new HashMap<>();
@@ -85,6 +100,13 @@ public class DepositServiceImpl implements DepositService {
         }
 
         return resultList;
+    }
+// 필터 사용했는지 확인
+    private boolean isEmpty(DepositFilterDto dto) {
+        return dto.getBankName() == null &&
+                dto.getContractPeriodMonth() == null &&
+                dto.getMinSubscriptionAmount() == null &&
+                dto.getRateOrder() == null;
     }
 
 //    계약 기간 확인
