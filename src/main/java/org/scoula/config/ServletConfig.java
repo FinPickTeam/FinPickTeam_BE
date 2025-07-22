@@ -7,8 +7,6 @@ import org.springframework.http.converter.json.MappingJackson2HttpMessageConvert
 import org.springframework.web.multipart.MultipartResolver;
 import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.*;
-import org.springframework.web.servlet.view.InternalResourceViewResolver;
-import org.springframework.web.servlet.view.JstlView;
 
 import java.util.List;
 
@@ -18,10 +16,8 @@ import java.util.List;
         "org.scoula.controller",
         "org.scoula.finance.controller",
         "org.scoula.finance.service",
-        "org.scoula.member.controller",
-        "org.scoula.member.service",
-        "org.scoula.member.exception",
-        "org.scoula.member.exception.auth"
+        "org.scoula.user.controller",
+        "org.scoula.user.exception",
 })
 public class ServletConfig implements WebMvcConfigurer {
 

@@ -12,6 +12,6 @@
     <typeAliases>
         <!-- 도메인 객체 별칭 설정 -->
         <package name="org.scoula.security.account.domain" />
-        <package name="org.scoula.board.domain" />
+        <package name="org.scoula.user.domain" />
     </typeAliases>
 </configuration>
