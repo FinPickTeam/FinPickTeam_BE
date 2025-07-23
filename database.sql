@@ -255,6 +255,17 @@ CREATE TABLE `wishlist` (
                             FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 
+-- 키움증권 rest api 접근 토큰
+DROP TABLE IF EXISTS `user_kiwoom_access_token`;
+CREATE TABLE `user_kiwoom_access_token` (
+                                            `id`       BIGINT       NOT NULL,
+                                            `user_account` VARCHAR(255) NOT NULL,
+                                            `stock_access_token` VARCHAR(255) NOT NULL,
+                                            `stock_token_expires_dt` VARCHAR(255) NOT NULL,
+                                            PRIMARY KEY (`id`),
+                                            FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+);
+
 -- CHALLENGE
 -- 1. 챌린지 카테고리 (예: 소비 줄이기, 저축 늘리기 등)
 DROP TABLE IF EXISTS `challenge_category`;

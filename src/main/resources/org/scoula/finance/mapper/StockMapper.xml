@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.finance.mapper.StockMapper">
+
+
+    <!-- 상세 정보 매핑 -->
+    <resultMap id="StockAccessTokenMap" type="org.scoula.finance.dto.stock.StockAccessTokenDto">
+        <result property="id" column="id"/>
+        <result property="stockAccessToken" column="stock_access_token"/>
+        <result property="stockTokenExpiresDt" column="stock_token_expires_dt"/>
+    </resultMap>
+
+    <insert id="saveOrUpdateToken" parameterType="org.scoula.finance.dto.stock.StockAccessTokenDto">
+        INSERT INTO user_kiwoom_access_token(
+                                             id,
+                                             user_account,
+                                             stock_access_token,
+                                             stock_token_expires_dt
+        ) VALUES (
+                  #{id},
+                  #{stockAccount},
+                  #{stockAccessToken},
+                  #{stockTokenExpiresDt}
+                         )
+        ON DUPLICATE KEY UPDATE
+            user_account = VALUES(user_account),
+            stock_access_token = VALUES(stock_access_token),
+            stock_token_expires_dt = VALUES(stock_token_expires_dt)
+    </insert>
+
+    <select id="getUserAccount" parameterType="org.scoula.finance.dto.stock.StockAccountDto" resultType="string">
+        SELECT user_account
+        FROM user_kiwoom_access_token
+        WHERE id = #{id}
+    </select>
+    
+    <select id="getUserToken" parameterType="org.scoula.finance.dto.stock.StockAccessTokenDto" resultType="string">
+        SELECT stock_access_token
+        FROM user_kiwoom_access_token
+        WHERE id = #{id}
+    </select>
+    
+</mapper>

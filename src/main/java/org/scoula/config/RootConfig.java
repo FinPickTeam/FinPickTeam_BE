@@ -29,7 +29,7 @@ import javax.sql.DataSource;
         "org.scoula.security",
         "org.scoula.user.service",
         "org.scoula.common.redis",
-        "org.scoula.common.*" // 공통 유틸이나 예외 추가할 여지
+        "org.scoula.common.*", // 공통 유틸이나 예외 추가할 여지
         "org.scoula.finance.controller",
         "org.scoula.finance.service",
 
