@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.finance.dto.stock.StockAccessTokenDto;
 import org.scoula.finance.dto.stock.StockAccountDto;
+import org.scoula.finance.dto.stock.StockDetailDto;
+import org.scoula.finance.dto.stock.StockListDto;
 import org.scoula.finance.mapper.StockMapper;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -19,13 +21,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
-
-import java.util.Scanner;
-import java.util.Arrays;
 
 @Slf4j
 @Service
@@ -42,12 +41,9 @@ public class StockServiceImpl implements StockService {
     @Override
     public StockAccessTokenDto issueAndSaveToken(Long id){
         try{
-            //요청할 API URL
-            String host = "https://mockapi.kiwoom.com";
             String endpoint = "/oauth2/token";
-            String urlString = host + endpoint;
 
-            URL url = new URL(urlString);
+            URL url = new URL(createUrl(endpoint));
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
             // Header 데이터 설정
@@ -93,11 +89,9 @@ public class StockServiceImpl implements StockService {
         String userAccount =  stockMapper.getUserAccount(id);
 
         try{
-            String host = "https://mockapi.kiwoom.com";
             String endpoint = "/api/dostk/acnt";
-            String urlString = host + endpoint;
 
-            URL url = new URL(urlString);
+            URL url = new URL(createUrl(endpoint));
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
             String token = stockMapper.getUserToken(id);
@@ -134,6 +128,76 @@ public class StockServiceImpl implements StockService {
             return null;
         }
     }
+
+    @Override
+    public List<StockListDto> getStockList(Long id){
+
+    }
+
+
+    // 주식 상세 정보 조회
+    @Override
+    public StockDetailDto getStockDetail(Long id, String stockCode){
+        String endpoint = "/api/dostk/stkinfo";
+
+        try{
+            URL url = new URL(createUrl(endpoint));
+
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+            String token = stockMapper.getUserToken(id);
+
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
+            connection.setRequestProperty("authorization", "Bearer " + token);
+            connection.setRequestProperty("api-id", "ka10001");
+            connection.setDoOutput(true);
+
+            String jsonData = String.format("{\"stk_cd\" : \"%s\"}", stockCode);
+
+            try (OutputStream os = connection.getOutputStream()) {
+                os.write(jsonData.getBytes(StandardCharsets.UTF_8));
+            }
+
+            StringBuilder response = new StringBuilder();
+            try (Scanner scanner = new Scanner(connection.getInputStream(), StandardCharsets.UTF_8)) {
+                while (scanner.hasNextLine()) {
+                    response.append(scanner.nextLine());
+                }
+            }
+
+            System.out.println("응답 본문 = " + response.toString());
+
+            JsonNode root = objectMapper.readTree(response.toString());
+
+            StockDetailDto stockDetailDto = new StockDetailDto();
+            stockDetailDto.setId(id.intValue());
+            stockDetailDto.setStockCode(stockCode);
+            stockDetailDto.setStockName(root.path("stk_nm").asText());
+            stockDetailDto.setStockPrice(root.path("cur_prc").asText());
+            stockDetailDto.setStockPredictedPrice(root.path("pred_pre").asText());
+            stockDetailDto.setStockChangeRate(root.path("flu_rt").asText());
+            stockDetailDto.setStockYearHigh(root.path("oyr_hgst").asText());
+            stockDetailDto.setStockYearLow(root.path("oyr_lwst").asText());
+            stockDetailDto.setStockFaceValue(root.path("fav").asText());
+            stockDetailDto.setStockMarketCap(root.path("mac").asText());
+            stockDetailDto.setStockSalesAmount(root.path("cup_nga").asText());
+            stockDetailDto.setStockPer(root.path("per").asText());
+
+            return stockDetailDto;
+
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return null;
+        }
+    }
+
+
+    public String createUrl(String endpoint) {
+        String host = "https://mockapi.kiwoom.com";
+        return host + endpoint;
+    }
+
 
     public String createJsonData() throws JsonProcessingException {
         Map<String, String> payload = new HashMap<>();
