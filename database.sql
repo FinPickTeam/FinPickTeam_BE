@@ -166,6 +166,7 @@ CREATE TABLE `transaction` (
                                `type` ENUM('INCOME', 'EXPENSE') NOT NULL,
                                `amount` DECIMAL(10,2) NOT NULL,
                                `memo` TEXT,
+                               `analysis` VARCHAR(255),
                                PRIMARY KEY (`id`),
                                FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
                                FOREIGN KEY (`account_id`) REFERENCES `account`(`id`) ON DELETE CASCADE

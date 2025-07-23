@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.transactions.mapper.TransactionMapper">
+
+    <select id="findByUserId" resultType="org.scoula.transactions.dto.TransactionDTO">
+        SELECT id, place, category, type, amount, date
+        FROM transaction
+        WHERE user_id = #{userId}
+        ORDER BY date DESC
+    </select>
+
+    <select id="findByAccountId" resultType="org.scoula.transactions.dto.TransactionDTO">
+        SELECT id, place, category, type, amount, date
+        FROM transaction
+        WHERE account_id = #{accountId}
+        ORDER BY date DESC
+    </select>
+
+    <select id="findById" resultType="org.scoula.transactions.dto.TransactionDetailDTO">
+        SELECT
+            t.id,
+            t.user_id,
+            t.place,
+            t.category,
+            t.type,
+            t.amount,
+            t.date,
+            t.memo,
+            t.analysis AS analysisText,
+            a.bank_name AS accountName,
+            a.account_number AS accountNumber
+        FROM transaction t
+                 JOIN account a ON t.account_id = a.id
+        WHERE t.id = #{id}
+    </select>
+
+    <update id="updateAnalysisText">
+        UPDATE transaction
+        SET analysis = #{analysisText}
+        WHERE id = #{id}
+    </update>
+
+    <select id="findRecentTransactionsByUser" resultType="org.scoula.transactions.domain.Transaction">
+        SELECT *
+        FROM transaction
+        WHERE user_id = #{userId}
+          AND date >= #{fromDate}
+    </select>
+</mapper>
+
+

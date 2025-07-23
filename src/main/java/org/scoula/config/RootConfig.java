@@ -23,6 +23,7 @@ import javax.sql.DataSource;
 @PropertySource("classpath:application.properties")
 @MapperScan(basePackages = {
         "org.scoula.member.mapper",
+        "org.scoula.transactions.mapper",
 })
 @ComponentScan(basePackages = {
         "org.scoula.member.service",

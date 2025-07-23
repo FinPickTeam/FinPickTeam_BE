@@ -19,7 +19,8 @@ import java.util.List;
         "org.scoula.member.controller",
         "org.scoula.member.service",
         "org.scoula.member.exception",
-        "org.scoula.member.exception.auth"
+        "org.scoula.member.exception.auth",
+        "org.scoula.transactions"
 })
 public class ServletConfig implements WebMvcConfigurer {
 
