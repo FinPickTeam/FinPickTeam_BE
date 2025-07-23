@@ -5,6 +5,8 @@ import org.scoula.transactions.domain.Transaction;
 import org.scoula.transactions.dto.TransactionDTO;
 import org.scoula.transactions.dto.TransactionDetailDTO;
 import org.scoula.transactions.exception.TransactionNotFoundException;
+import org.scoula.transactions.exception.UserNotFoundException;
+import org.scoula.transactions.exception.AccountNotFoundException;
 import org.scoula.transactions.mapper.TransactionMapper;
 import org.scoula.transactions.util.RuleBasedAnalyzer;
 import org.springframework.stereotype.Service;
@@ -19,18 +21,26 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public List<TransactionDTO> getTransactionsByUserId(Long userId) {
-        return transactionMapper.findByUserId(userId);
+        List<TransactionDTO> transactions = transactionMapper.findByUserId(userId);
+        if (transactions == null || transactions.isEmpty()) {
+            throw new UserNotFoundException(userId);
+        }
+        return transactions;
     }
 
     @Override
     public List<TransactionDTO> getTransactionsByAccountId(Long accountId) {
-        return transactionMapper.findByAccountId(accountId); // 추가
+        List<TransactionDTO> transactions = transactionMapper.findByAccountId(accountId);
+        if (transactions == null || transactions.isEmpty()) {
+            throw new AccountNotFoundException(accountId);
+        }
+        return transactions;
     }
 
     @Override
     public TransactionDetailDTO getTransactionDetail(Long id) {
         TransactionDetailDTO dto = transactionMapper.findById(id);
-        if (dto == null) throw new TransactionNotFoundException("거래를 찾을 수 없습니다.");
+        if (dto == null) throw new TransactionNotFoundException(id);
 
         if (dto.getAnalysisText() == null || dto.getAnalysisText().isEmpty()) {
             List<Transaction> recent = transactionMapper.findRecentTransactionsByUser(
@@ -41,9 +51,6 @@ public class TransactionServiceImpl implements TransactionService {
             dto.setAnalysisText(analysis);
         }
 
-
         return dto;
     }
-
-
 }
