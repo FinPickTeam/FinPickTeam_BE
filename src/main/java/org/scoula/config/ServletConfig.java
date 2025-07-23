@@ -18,6 +18,7 @@ import java.util.List;
         "org.scoula.finance.service",
         "org.scoula.user.controller",
         "org.scoula.user.exception",
+        "org.scoula.transactions.controller",
 })
 public class ServletConfig implements WebMvcConfigurer {
 
