@@ -1,12 +1,11 @@
 package org.scoula.config;
 
 import lombok.extern.log4j.Log4j2;
+import org.scoula.common.redis.RedisConfig;
 import org.scoula.security.config.SecurityConfig;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
-import javax.servlet.Filter;
 import javax.servlet.MultipartConfigElement;
 import javax.servlet.ServletRegistration;
 

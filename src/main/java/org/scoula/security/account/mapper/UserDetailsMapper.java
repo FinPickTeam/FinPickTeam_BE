@@ -1,7 +1,7 @@
 package org.scoula.security.account.mapper;
 
-import org.scoula.security.account.domain.MemberVO;
+import org.scoula.user.domain.User;
 
 public interface UserDetailsMapper {
-    public MemberVO get(String username);
+    User get(String email); // 이메일로 유저를 찾음
 }

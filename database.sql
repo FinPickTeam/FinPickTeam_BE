@@ -20,6 +20,9 @@ ALTER TABLE `user`
 ALTER TABLE `user`
     ADD COLUMN `is_verified` BOOLEAN NOT NULL DEFAULT 0 AFTER `last_pw_change_at`;
 
+ALTER TABLE `user`
+    ADD COLUMN `is_active` BOOLEAN DEFAULT TRUE;
+
 
 -- 2. 유저 상태 (닉네임, 레벨)
 DROP TABLE IF EXISTS `user_status`;
@@ -196,11 +199,15 @@ CREATE TABLE `monthreport` (
 DROP TABLE IF EXISTS `deposit_list`;
 CREATE TABLE `deposit_list` (
                                 `id` INT NOT NULL AUTO_INCREMENT,
-                                `deposit_name` VARCHAR(255) NOT NULL,
-                                `bank_name` VARCHAR(255) NOT NULL,
-                                `interest_rate` FLOAT(10,2) NOT NULL,
-                                `period_month` INT NOT NULL,
-                                `description` TEXT NOT NULL,
+                                `deposit_bank_name` VARCHAR(255) NOT NULL,
+                                `deposit_product_name` VARCHAR(255) NOT NULL,
+                                `deposit_contract_period` VARCHAR(50) NOT NULL,
+                                `deposit_subscription_amount` VARCHAR(50) NOT NULL,
+                                `deposit_basic_rate` FLOAT(10,2) NOT NULL,
+                                `deposit_max_rate` FLOAT(10,2) NOT NULL,
+                                `deposit_preferential_rate` TEXT NULL,
+                                `deposit_product_features` TEXT NULL,
+                                `deposit_summary` VARCHAR(255) NOT NULL,
                                 `deposit_link` VARCHAR(255) NOT NULL,
                                 PRIMARY KEY (`id`)
 );
