@@ -25,7 +25,8 @@ import javax.sql.DataSource;
         "org.scoula.user.mapper",
         "org.scoula.finance.mapper",
         "org.scoula.transactions.mapper",
-        "org.scoula.survey.mapper"
+        "org.scoula.survey.mapper",
+        "org.scoula.quiz.mapper"
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",
@@ -38,6 +39,8 @@ import javax.sql.DataSource;
         "org.scoula.transactions.util",
         "org.scoula.transactions.exception",
         "org.scoula.survey.service",
+        "org.scoula.quiz.service",
+        "org.scoula.quiz.exception"
 })
 @EnableTransactionManagement
 public class RootConfig {
