@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -101,7 +102,7 @@ public StockAccountDto getAccountReturnRate(Long id) {
 
     //주식 리스트 조회
     @Override
-    public List<StockListDto> getStockList(Long userId) {
+    public List<StockListDto> getStockList(Long userId, String market, String sortName, String sortPrice) {
         List<StockListDataDto> basicList = stockMapper.getStockList();
         List<StockListDto> finalList = new ArrayList<>();
         String token = stockMapper.getUserToken(userId);
@@ -122,9 +123,12 @@ public StockAccountDto getAccountReturnRate(Long id) {
                 dto.setStockName(data.getStockName());
                 dto.setStockMarketType(data.getStockMarketType());
                 dto.setStockSummary(data.getStockSummary());
-                dto.setStockPrice(root.path("cur_prc").asText());
                 dto.setStockPredictedPrice(root.path("pred_pre").asText());
                 dto.setStockChangeRate(root.path("flu_rt").asText());
+                // 가격 부호 제거
+                String curPriceRaw = root.path("cur_prc").asText();
+                String curPrice = curPriceRaw.replace("[^0-9]", "");
+                dto.setStockPrice(curPrice);
 
                 // 3. 차트 데이터 호출
                 String chartJson = stockMapper.getChartCache(stockCode);
@@ -135,6 +139,26 @@ public StockAccountDto getAccountReturnRate(Long id) {
             } catch (Exception e) {
                 log.warn("stock parsing failed for code {}: {}", stockCode, e.getMessage());
             }
+        }
+        //  마켓 필터 (KOSPI or KOSDAQ)
+        if (market != null && !market.isBlank()) {
+            finalList = finalList.stream()
+                    .filter(dto -> market.equalsIgnoreCase(dto.getStockMarketType()))
+                    .collect(Collectors.toList());
+        }
+
+        // 이름 정렬
+        if ("asc".equalsIgnoreCase(sortName)) {
+            finalList.sort(Comparator.comparing(StockListDto::getStockName));
+        } else if ("desc".equalsIgnoreCase(sortName)) {
+            finalList.sort(Comparator.comparing(StockListDto::getStockName).reversed());
+        }
+
+        // 가격 정렬
+        if ("asc".equalsIgnoreCase(sortPrice)) {
+            finalList.sort(Comparator.comparingInt(dto -> Integer.parseInt(dto.getStockPrice())));
+        } else if ("desc".equalsIgnoreCase(sortPrice)) {
+            finalList.sort(Comparator.comparingInt((StockListDto dto) -> Integer.parseInt(dto.getStockPrice())).reversed());
         }
 
         return finalList;
@@ -194,7 +218,6 @@ public StockAccountDto getAccountReturnRate(Long id) {
             dto.setId(id.intValue());
             dto.setStockCode(stockCode);
             dto.setStockName(root.path("stk_nm").asText());
-            dto.setStockPrice(root.path("cur_prc").asText());
             dto.setStockPredictedPrice(root.path("pred_pre").asText());
             dto.setStockChangeRate(root.path("flu_rt").asText());
             dto.setStockYearHigh(root.path("oyr_hgst").asText());
@@ -203,6 +226,11 @@ public StockAccountDto getAccountReturnRate(Long id) {
             dto.setStockMarketCap(root.path("mac").asText());
             dto.setStockSalesAmount(root.path("cup_nga").asText());
             dto.setStockPer(root.path("per").asText());
+
+            // 가격 부호 제거
+            String curPriceRaw = root.path("cur_prc").asText();
+            String curPrice = curPriceRaw.replace("[^0-9]", "");
+            dto.setStockPrice(curPrice);
 
             return dto;
 
