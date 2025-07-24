@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @NoArgsConstructor
-public class StockDailyPriceDto {
-    private String date;
-    private String currentPrice;
+public class StockPricePointDto {
+    private String dt;
+    private String cur_prc;
 }

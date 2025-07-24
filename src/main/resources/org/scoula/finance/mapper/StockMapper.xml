@@ -42,5 +42,32 @@
         FROM user_kiwoom_access_token
         WHERE id = #{id}
     </select>
+
+    <select id="getStockList" resultType="org.scoula.finance.dto.stock.StockListDataDto">
+        SELECT
+            stock_code AS stockCode,
+            stock_name AS stockName,
+            market_type AS stockMarketType,
+            stock_summary AS stockSummary
+        FROM stock_list
+    </select>
+
+    <insert id="saveChartCache" parameterType="org.scoula.finance.dto.stock.StockChartDataDto">
+        INSERT INTO stock_chart_cache (stock_code, json_data, base_date)
+        VALUES (#{stockCode}, #{jsonData}, #{baseDate})
+            ON DUPLICATE KEY UPDATE
+                                 json_data = #{jsonData},
+                                 base_date = #{baseDate}
+    </insert>
     
+    <select id="getStockCodeList" resultType="string">
+        SELECT stock_code
+        FROM stock_list
+    </select>
+
+    <select id="getChartCache" resultType="string">
+        SELECT json_data
+        FROM stock_chart_cache
+        WHERE stock_code = #{stockCode}
+    </select>
 </mapper>

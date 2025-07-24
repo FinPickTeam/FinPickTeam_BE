@@ -2,15 +2,19 @@ package org.scoula.finance.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.scoula.common.dto.CommonResponseDTO;
 import org.scoula.finance.dto.stock.StockAccessTokenDto;
 import org.scoula.finance.dto.stock.StockAccountDto;
 import org.scoula.finance.dto.stock.StockDetailDto;
+import org.scoula.finance.dto.stock.StockListDto;
 import org.scoula.finance.service.stock.StockService;
 import org.scoula.user.domain.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -32,6 +36,22 @@ public class StockController {
         return ResponseEntity.ok(stockService.getAccountReturnRate(userId));
     }
 
+    // 주식 목록 가져오기 (필터 포함)
+    @GetMapping("/stocks")
+    public ResponseEntity<List<StockListDto>> getAllStocks(@RequestParam Long id,
+                                                           @RequestParam(required = false) String market,
+                                                           @RequestParam(required = false) String sortName,
+                                                           @RequestParam(required = false) String sortPrice
+                                                           ){
+        return ResponseEntity.ok(stockService.getStockList(id, market, sortName, sortPrice));
+    }
+
+    // 차트 데이터 저장
+    @PutMapping("/chart_data")
+    public CommonResponseDTO<String> updateChatData(@RequestParam Long id){
+        stockService.fetchAndCacheChartData(id);
+        return CommonResponseDTO.success("차트 업데이트에 성공했습니다.", null);
+    }
     //주식 상세 정보 가져오기
     @GetMapping("stocks/{stockCode}")
     public ResponseEntity<StockDetailDto> getStockDetail(

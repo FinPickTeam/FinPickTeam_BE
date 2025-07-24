@@ -12,8 +12,9 @@ import java.util.List;
 public class StockListDto {
     private String stockCode;
     private String stockName;
-    private List<StockDailyPriceDto> stockChartData;
+    private String stockChartData;
     private String stockPrice;
+    private String stockMarketType;
     private String stockPredictedPrice;
     private String stockChangeRate;
     private String stockSummary;
