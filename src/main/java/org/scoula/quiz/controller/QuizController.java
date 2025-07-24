@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.common.dto.CommonResponseDTO;
 import org.scoula.quiz.dto.QuizDTO;
+import org.scoula.quiz.dto.QuizHistoryDTO;
 import org.scoula.quiz.service.QuizService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,5 +25,12 @@ public class QuizController {
     public ResponseEntity<CommonResponseDTO<QuizDTO>> getQuiz(@RequestParam Long userId) {
         QuizDTO todaysQuiz = quizService.getQuiz(userId);
         return ResponseEntity.ok(CommonResponseDTO.success("퀴즈 조회 성공", todaysQuiz));
+    }
+
+    @ApiOperation(value = "퀴즈응시기록 저장", notes = "퀴즈응시기록을 저장합니다.")
+    @PostMapping("/submit ")
+    public ResponseEntity<CommonResponseDTO<QuizDTO>> submit(@RequestParam Long userId, @RequestParam Long quizId, @RequestParam boolean answer) {
+        quizService.submit(userId,quizId,answer);
+        return ResponseEntity.ok(CommonResponseDTO.success("저장성공"));
     }
 }
