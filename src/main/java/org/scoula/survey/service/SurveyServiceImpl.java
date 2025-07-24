@@ -39,13 +39,13 @@ public class SurveyServiceImpl implements SurveyService {
         log.info("투자 성향 타입 결정 완료: {}", propensityType);
 
         // 3. DTO를 VO로 변환하여 데이터베이스에 삽입
-        // 이제 surveyDTO는 id, question1~4, totalScore, propensityType 모두 가집니다.
+
         SurveyVO surveyVO = surveyDTO.toVO();
         mapper.insertSurvey(surveyVO);
 
         log.info("데이터베이스 삽입 완료: {}", surveyVO);
 
-        // 4. 데이터베이스에 저장된 최신 투자성향 정보 반환
+
         return get(surveyVO.getId());
     }
 
