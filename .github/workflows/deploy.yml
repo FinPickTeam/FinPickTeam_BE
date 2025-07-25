@@ -44,7 +44,7 @@ jobs:
 
       - name: Set Docker Tag Output
         id: set_docker_tag
-        run: echo "docker_tag=${{ steps.current_time.outputs.formattedTime }}" >> $GITHUB_OUTPUT
+        run: echo "docker_tag=${{ steps.current-time.outputs.formattedTime }}" >> $GITHUB_OUTPUT
 
   cd:
     runs-on: ubuntu-24.04
