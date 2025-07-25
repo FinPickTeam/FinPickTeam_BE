@@ -8,7 +8,7 @@ jobs:
   ci:
     runs-on: ubuntu-24.04
     outputs:
-      docker-tag: ${{ steps.set-docker-tag.outputs.DOCKER_TAG }}
+      docker_tag: ${{ steps.set_docker_tag.outputs.docker_tag }}
 
     steps:
       - name: Checkout
@@ -43,8 +43,8 @@ jobs:
           docker push whwkahd3/finpick:${{ steps.current-time.outputs.formattedTime }}
 
       - name: Set Docker Tag Output
-        id: set-docker-tag
-        run: echo "DOCKER_TAG=${{ steps.current-time.outputs.formattedTime }}" >> $GITHUB_OUTPUT
+        id: set_docker_tag
+        run: echo "docker_tag=${{ steps.current_time.outputs.formattedTime }}" >> $GITHUB_OUTPUT
 
   cd:
     runs-on: ubuntu-24.04
@@ -52,7 +52,7 @@ jobs:
 
     steps:
       - name: Set DOCKER_TAG env variable
-        run: echo "DOCKER_TAG=${{ needs.ci.outputs.docker-tag }}" >> $GITHUB_ENV
+        run: echo "DOCKER_TAG=${{ needs.ci.outputs.docker_tag }}" >> $GITHUB_ENV
 
       - name: Debug DOCKER_TAG
         run: echo "DOCKER_TAG is $DOCKER_TAG"
