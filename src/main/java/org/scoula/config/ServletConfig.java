@@ -21,6 +21,7 @@ import java.util.List;
         "org.scoula.transactions.controller",
         "org.scoula.survey.controller",
         "org.scoula.quiz.controller",
+        "org.scoula.dictionary.controller"
 })
 public class ServletConfig implements WebMvcConfigurer {
 
