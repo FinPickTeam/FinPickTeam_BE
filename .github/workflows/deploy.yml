@@ -71,7 +71,7 @@ jobs:
             docker ps -a
 
             echo "🐳 Docker Image Pull"
-            docker pull whwkahd3/finpick:${{ DOCKER_TAG }}
+            docker pull whwkahd3/finpick:$DOCKER_TAG
 
             if [ $(docker ps -aq -f name=finpick) ]; then
               echo "🐳 Stopping existing container"
@@ -86,7 +86,7 @@ jobs:
               --log-driver json-file \
               --log-opt max-size=10m \
               --log-opt max-file=3 \
-              whwkahd3/finpick:${{ DOCKER_TAG }}
+              whwkahd3/finpick:$DOCKER_TAG
 
             echo "🐳 Docker ps"
             docker ps
