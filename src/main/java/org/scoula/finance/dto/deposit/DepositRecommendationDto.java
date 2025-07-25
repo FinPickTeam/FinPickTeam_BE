@@ -1,4 +1,4 @@
-package org.scoula.finance.dto;
+package org.scoula.finance.dto.deposit;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

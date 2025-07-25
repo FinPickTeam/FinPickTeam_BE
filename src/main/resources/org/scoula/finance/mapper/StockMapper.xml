@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.finance.mapper.StockMapper">
+
+
+    <!-- 상세 정보 매핑 -->
+    <resultMap id="StockAccessTokenMap" type="org.scoula.finance.dto.stock.StockAccessTokenDto">
+        <result property="id" column="id"/>
+        <result property="stockAccessToken" column="stock_access_token"/>
+        <result property="stockTokenExpiresDt" column="stock_token_expires_dt"/>
+    </resultMap>
+
+    <insert id="saveOrUpdateToken" parameterType="org.scoula.finance.dto.stock.StockAccessTokenDto">
+        INSERT INTO user_kiwoom_access_token(
+                                             id,
+                                             user_account,
+                                             stock_access_token,
+                                             stock_token_expires_dt
+        ) VALUES (
+                  #{id},
+                  #{stockAccount},
+                  #{stockAccessToken},
+                  #{stockTokenExpiresDt}
+                         )
+        ON DUPLICATE KEY UPDATE
+            user_account = VALUES(user_account),
+            stock_access_token = VALUES(stock_access_token),
+            stock_token_expires_dt = VALUES(stock_token_expires_dt)
+    </insert>
+
+    <select id="getUserAccount" parameterType="org.scoula.finance.dto.stock.StockAccountDto" resultType="string">
+        SELECT user_account
+        FROM user_kiwoom_access_token
+        WHERE id = #{id}
+    </select>
+    
+    <select id="getUserToken" parameterType="org.scoula.finance.dto.stock.StockAccessTokenDto" resultType="string">
+        SELECT stock_access_token
+        FROM user_kiwoom_access_token
+        WHERE id = #{id}
+    </select>
+
+    <select id="getStockList" resultType="org.scoula.finance.dto.stock.StockListDataDto">
+        SELECT
+            stock_code AS stockCode,
+            stock_name AS stockName,
+            market_type AS stockMarketType,
+            stock_summary AS stockSummary
+        FROM stock_list
+    </select>
+
+    <insert id="saveChartCache" parameterType="org.scoula.finance.dto.stock.StockChartDataDto">
+        INSERT INTO stock_chart_cache (stock_code, json_data, base_date)
+        VALUES (#{stockCode}, #{jsonData}, #{baseDate})
+            ON DUPLICATE KEY UPDATE
+                                 json_data = #{jsonData},
+                                 base_date = #{baseDate}
+    </insert>
+    
+    <select id="getStockCodeList" resultType="string">
+        SELECT stock_code
+        FROM stock_list
+    </select>
+
+    <select id="getChartCache" resultType="string">
+        SELECT json_data
+        FROM stock_chart_cache
+        WHERE stock_code = #{stockCode}
+    </select>
+</mapper>

@@ -2,11 +2,10 @@ package org.scoula.finance.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.scoula.finance.dto.DepositDetailDto;
-import org.scoula.finance.dto.DepositFilterDto;
-import org.scoula.finance.dto.DepositListDto;
-import org.scoula.finance.dto.DepositRecommendationDto;
-import org.scoula.finance.service.DepositService;
+import org.scoula.finance.dto.deposit.DepositDetailDto;
+import org.scoula.finance.dto.deposit.DepositFilterDto;
+import org.scoula.finance.dto.deposit.DepositListDto;
+import org.scoula.finance.service.deposit.DepositService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +30,7 @@ public class DepositController {
     public ResponseEntity<DepositDetailDto> getDepositList(@RequestParam String depositProductName)
     {return ResponseEntity.ok(depositService.selectDepositByProductName(depositProductName));}
 
+    //나중에 pathvariable로 수정 예정
 //    예금 추천
     @GetMapping("/recommend")
     public ResponseEntity<List<Map<String, Object>>> recommend(@RequestParam int userId, @RequestParam int amount, @RequestParam int period){

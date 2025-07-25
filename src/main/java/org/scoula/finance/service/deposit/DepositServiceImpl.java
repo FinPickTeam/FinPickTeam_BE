@@ -1,13 +1,13 @@
-package org.scoula.finance.service;
+package org.scoula.finance.service.deposit;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
-import org.scoula.finance.dto.DepositFilterDto;
-import org.scoula.finance.dto.DepositListDto;
+import org.scoula.finance.dto.deposit.DepositFilterDto;
+import org.scoula.finance.dto.deposit.DepositListDto;
 import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.scoula.finance.dto.DepositDetailDto;
-import org.scoula.finance.dto.DepositRecommendationDto;
+import org.scoula.finance.dto.deposit.DepositDetailDto;
+import org.scoula.finance.dto.deposit.DepositRecommendationDto;
 import org.scoula.finance.mapper.DepositMapper;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
@@ -43,7 +43,6 @@ public class DepositServiceImpl implements DepositService {
             return depositMapper.selectDepositsWithFilter(filter);
         }
     }
-
 
     // 예금 상세 조회
     @Override

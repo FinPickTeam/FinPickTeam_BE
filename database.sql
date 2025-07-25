@@ -235,13 +235,10 @@ CREATE TABLE `fund_list` (
 DROP TABLE IF EXISTS `stock_list`;
 CREATE TABLE `stock_list` (
                               `id` INT NOT NULL AUTO_INCREMENT,
-                              `stock_code` VARCHAR(255) NOT NULL,
                               `stock_name` VARCHAR(255) NOT NULL,
+                              `stock_code` VARCHAR(255) NOT NULL,
                               `market_type` ENUM('KOSPI', 'KOSDAQ') NOT NULL,
-                              `stock_sector` VARCHAR(255) NOT NULL,
-                              `stock_price` INT NOT NULL,
-                              `stock_per` FLOAT(10,2) NOT NULL,
-                              `dividend_yield` FLOAT(10,2) NOT NULL,
+                              `stock_summary` VARCHAR(20) NOT NULL,
                               PRIMARY KEY (`id`)
 );
 
@@ -254,6 +251,26 @@ CREATE TABLE `wishlist` (
                             `product_id` INT NOT NULL,
                             PRIMARY KEY (`id`),
                             FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
+);
+
+-- 8. 키움증권 rest api 접근 토큰
+DROP TABLE IF EXISTS `user_kiwoom_access_token`;
+CREATE TABLE `user_kiwoom_access_token` (
+                                            `id`       BIGINT       NOT NULL,
+                                            `user_account` VARCHAR(255) NOT NULL,
+                                            `stock_access_token` VARCHAR(255) NOT NULL,
+                                            `stock_token_expires_dt` VARCHAR(255) NOT NULL,
+                                            PRIMARY KEY (`id`),
+                                            FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+);
+
+-- 9. 주식 차트 데이터
+DROP TABLE IF EXISTS `stock_chart_cache`;
+CREATE TABLE `stock_chart_cache` (
+                                    `stock_code` VARCHAR(20) NOT NULL,
+                                    `json_data` TEXT NOT NULL,
+                                    `base_date` VARCHAR(8) NOT NULL,
+                                    PRIMARY KEY (`stock_code`)
 );
 
 -- CHALLENGE
