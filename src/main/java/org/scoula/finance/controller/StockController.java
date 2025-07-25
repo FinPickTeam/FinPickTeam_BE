@@ -79,6 +79,7 @@ public class StockController {
         return CommonResponseDTO.success("주식 상세 정보 조회 성공", detail);
     }
 
+    //사용자 맞춤 추천 주식 가져오기
     @GetMapping("/recommend")
     public CommonResponseDTO<List<StockListDto>> getRecommend(@RequestParam(name = "id") Long id) {
         List<StockListDto> recommendData = stockService.getStockRecommendationList(id);
