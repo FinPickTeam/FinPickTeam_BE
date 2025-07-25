@@ -49,10 +49,11 @@ jobs:
   cd:
     runs-on: ubuntu-20.04
     needs: [ci]
-    env:
-      DOCKER_TAG: ${{ needs.ci.outputs.docker-tag }}
 
     steps:
+      - name: Set DOCKER_TAG env variable
+        run: echo "DOCKER_TAG=${{ needs.ci.outputs.docker-tag }}" >> $GITHUB_ENV
+
       - name: Deploy
         uses: appleboy/ssh-action@master
         with:
