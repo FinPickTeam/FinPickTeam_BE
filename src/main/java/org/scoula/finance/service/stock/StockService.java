@@ -19,4 +19,7 @@ public interface StockService {
 
     // 주식 상세 정보 조회
     StockDetailDto getStockDetail(Long id, String stockCode);
+
+    // 사용자 맞춤 추식 추천
+    List<StockListDto> getStockRecommendationList(Long id);
 }

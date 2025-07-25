@@ -18,6 +18,7 @@ public class StockListDto {
     private String stockPredictedPrice;
     private String stockChangeRate;
     private String stockSummary;
+    private String stockGptReason;
 
 
 }

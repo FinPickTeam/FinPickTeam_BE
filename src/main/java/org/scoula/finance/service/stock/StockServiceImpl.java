@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.scoula.finance.dto.deposit.DepositRecommendationDto;
 import org.scoula.finance.dto.stock.*;
 import org.scoula.finance.mapper.StockMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +21,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Service
@@ -29,10 +37,15 @@ public class StockServiceImpl implements StockService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final StockMapper stockMapper;
 
+    @Value("${openai.api-key}")
+    private String openaiApiKey;
+    @Value("${openai.api-url}")
+    private String openaiApiUrl;
+
     @Value("${stock.api-key}")
-    private String apiKey;
+    private String stockApiKey;
     @Value("${stock.api-secret}")
-    private String apiSecret;
+    private String stockApiSecret;
 
     @Override
     public StockAccessTokenDto issueAndSaveToken(Long id){
@@ -220,6 +233,7 @@ public StockAccountDto getAccountReturnRate(Long id) {
             dto.setStockName(root.path("stk_nm").asText());
             dto.setStockPredictedPrice(root.path("pred_pre").asText());
             dto.setStockChangeRate(root.path("flu_rt").asText());
+            dto.setStockChartData(stockMapper.getChartCache(stockCode));
             dto.setStockYearHigh(root.path("oyr_hgst").asText());
             dto.setStockYearLow(root.path("oyr_lwst").asText());
             dto.setStockFaceValue(root.path("fav").asText());
@@ -240,18 +254,73 @@ public StockAccountDto getAccountReturnRate(Long id) {
         }
     }
 
+    //주식 추천 로직
+    @Override
+    public List<StockListDto> getStockRecommendationList(Long id) {
+        List<String> stockList = stockMapper.getStockCodeList();
+        String prompt = generatePrompt(stockList);
+
+        try {
+            String gptResponse = callOpenAiApi(prompt).trim();
+
+            if (gptResponse.startsWith("```")) {
+                gptResponse = gptResponse.replaceFirst("^```json\\s*", "")
+                        .replaceFirst("\\s*```$", "");
+            }
+
+            JsonNode jsonArray = objectMapper.readTree(gptResponse);
+            Map<String, String> gptRecommendationMap = new HashMap<>(); // GPT 추천결과를 Map<stockCode, reason>으로 저장
+
+            for (JsonNode node : jsonArray) {
+                String stockCode = node.path("stockCode").asText().trim();
+                String reason = node.path("reason").asText().trim();
+                gptRecommendationMap.put(stockCode, reason);
+            }
+
+            // DB에서 추천 종목의 상세 정보 가져오기
+            List<StockListDataDto> baseDataList = stockMapper.getStockList();  // 모든 주식 정보
+            Map<String, StockListDataDto> baseDataMap = baseDataList.stream()
+                    .collect(Collectors.toMap(StockListDataDto::getStockCode, dto -> dto));
+
+            List<StockListDto> finalList = new ArrayList<>();
+
+            for (String code : gptRecommendationMap.keySet()) {
+                StockListDataDto data = baseDataMap.get(code);
+                if (data == null) continue;
+
+                StockDetailDto detail = getStockDetail(id, code);
+                if (detail == null) continue;
+
+                StockListDto dto = new StockListDto();
+                dto.setStockCode(code);
+                dto.setStockName(data.getStockName());
+                dto.setStockChartData(stockMapper.getChartCache(code));
+                dto.setStockPrice(detail.getStockPrice());
+                dto.setStockMarketType(data.getStockMarketType());
+                dto.setStockPredictedPrice(detail.getStockPredictedPrice());
+                dto.setStockChangeRate(detail.getStockChangeRate());
+                dto.setStockSummary(data.getStockSummary());
+                dto.setStockGptReason(gptRecommendationMap.get(code));
+
+                finalList.add(dto);
+            }
+            return finalList;
+        } catch (Exception e) {
+            log.error("GPT 응답 처리 중 오류 발생", e);
+            return Collections.emptyList();  // 예외 시 빈 리스트 반환
+        }
+    }
 
     public String createUrl(String endpoint) {
         String host = "https://mockapi.kiwoom.com";
         return host + endpoint;
     }
 
-
     public String createJsonData() {
         Map<String, String> payload = new HashMap<>();
         payload.put("grant_type", "client_credentials");
-        payload.put("appkey", apiKey);
-        payload.put("secretkey", apiSecret);
+        payload.put("appkey", stockApiKey);
+        payload.put("secretkey", stockApiSecret);
         try {
             return objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException e) {
@@ -259,8 +328,6 @@ public StockAccountDto getAccountReturnRate(Long id) {
             return "{}";
         }
     }
-
-
 
     // api 요청 함수
     private String sendPostRequest(String endpoint, String token, String jsonData, String apiId) {
@@ -311,5 +378,54 @@ public StockAccountDto getAccountReturnRate(Long id) {
 
         log.error("sendPostRequest failed after {} attempts", maxRetries);
         return "";
+    }
+
+    // GPT 프롬프트
+    public String generatePrompt(List<String> stockCode){
+        if(stockCode.isEmpty()){
+            return "데이터 없음";
+        }
+
+        //나중에 사용자 데이터 추가 필요
+        StringBuilder sb = new StringBuilder();
+        sb.append("사용자가 ").append(stockCode).append("의 주식중에서 하나를 투자하려고 해")
+                .append("이 주식중에서 5개를 선택해주고 ")
+                .append("이 상품을 왜 추천하는지, 너무 딱딱하지 않고 ")
+                .append("일상적인 말투로 설명해 줘. 사용자 입장에서 공감되도록, ")
+                .append("편하게 말하듯 써줘. 예를 들면 '최근 거래량이 많이 늘었어요!' 같은 말투. ")
+                .append("결과는 아래 JSON 형식으로만:\n")
+                .append("[\n")
+                .append("  { \"stockCode\": \"주식코드1\", \"reason\": \"추천 이유1\" },\n")
+                .append("  { \"stockCode\": \"주식코드2\", \"reason\": \"추천 이유2\" }\n")
+                .append("]\n")
+                .append("다른 말은 하지 말고 JSON 배열만 반환해.");
+
+        return sb.toString();
+    }
+
+    private String callOpenAiApi(String prompt) throws Exception {
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getMessageConverters()
+                .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+
+        String requestBody = objectMapper.writeValueAsString(
+                Map.of(
+                        "model", "gpt-4o",
+                        "messages", List.of(
+                                Map.of("role", "system", "content", "너는 금융상품 전문가야."),
+                                Map.of("role", "user", "content", prompt)
+                        ),
+                        "temperature", 0.7
+                )
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(openaiApiKey);
+        headers.set("Content-Type", "application/json; charset=UTF-8");
+
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+        ResponseEntity<String> response = restTemplate.exchange(openaiApiUrl, HttpMethod.POST, request, String.class);
+
+        return objectMapper.readTree(response.getBody()).at("/choices/0/message/content").asText();
     }
 }

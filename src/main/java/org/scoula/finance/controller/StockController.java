@@ -25,41 +25,74 @@ public class StockController {
 
     // 사용자 키움증권 rest api 접근 토큰
     @PostMapping("/token/{userId}")
-    public ResponseEntity<StockAccessTokenDto> issueAndSaveToken(@PathVariable Long userId){
-        stockService.issueAndSaveToken(userId);
-        return ResponseEntity.ok(stockService.issueAndSaveToken(userId)); //백엔드 발급 확인용
-//        return ResponseEntity.status(HttpStatus.CREATED).build();
+    public CommonResponseDTO<StockAccessTokenDto> issueAndSaveToken(@PathVariable Long userId) {
+        StockAccessTokenDto token = stockService.issueAndSaveToken(userId);
+        if (token == null) {
+            return CommonResponseDTO.error("토큰 발급에 실패했습니다.", 500);
+        }
+        return CommonResponseDTO.success("토큰 발급 성공", token);
     }
+
     // 계좌 수익률 정보 가져오기
     @GetMapping("/account/{userId}")
-    public ResponseEntity<StockAccountDto> getAccountInfo(@PathVariable Long userId){
-        return ResponseEntity.ok(stockService.getAccountReturnRate(userId));
+    public CommonResponseDTO<StockAccountDto> getAccountInfo(@PathVariable Long userId) {
+        StockAccountDto dto = stockService.getAccountReturnRate(userId);
+        if (dto == null) {
+            return CommonResponseDTO.error("계좌 수익률 정보를 찾을 수 없습니다.", 404);
+        }
+        return CommonResponseDTO.success("계좌 수익률 조회 성공", dto);
     }
 
     // 주식 목록 가져오기 (필터 포함)
     @GetMapping("/stocks")
-    public ResponseEntity<List<StockListDto>> getAllStocks(@RequestParam Long id,
-                                                           @RequestParam(required = false) String market,
-                                                           @RequestParam(required = false) String sortName,
-                                                           @RequestParam(required = false) String sortPrice
-                                                           ){
-        return ResponseEntity.ok(stockService.getStockList(id, market, sortName, sortPrice));
+    public CommonResponseDTO<List<StockListDto>> getAllStocks(
+            @RequestParam(name = "userId") Long userId,
+            @RequestParam(required = false) String market,
+            @RequestParam(required = false) String sortName,
+            @RequestParam(required = false) String sortPrice) {
+
+        List<StockListDto> stocks = stockService.getStockList(userId, market, sortName, sortPrice);
+        return CommonResponseDTO.success("주식 목록 조회 성공", stocks);
     }
 
     // 차트 데이터 저장
-    @PutMapping("/chart_data")
-    public CommonResponseDTO<String> updateChatData(@RequestParam Long id){
-        stockService.fetchAndCacheChartData(id);
-        return CommonResponseDTO.success("차트 업데이트에 성공했습니다.", null);
+    @PutMapping("/stocks/chart-data")
+    public CommonResponseDTO<String> updateChartData(@RequestParam(name = "userId") Long userId) {
+        try {
+            stockService.fetchAndCacheChartData(userId);
+            return CommonResponseDTO.success("차트 데이터 업데이트 성공");
+        } catch (Exception e) {
+            return CommonResponseDTO.error("차트 업데이트 실패: " + e.getMessage(), 500);
+        }
     }
-    //주식 상세 정보 가져오기
-    @GetMapping("stocks/{stockCode}")
-    public ResponseEntity<StockDetailDto> getStockDetail(
-            @RequestParam Long id, // 임시(JWT 토큰 대용)
-//            @AuthenticationPrincipal User user,
-            @PathVariable String stockCode){
 
-//        Long userID = user.getId();
-        return ResponseEntity.ok(stockService.getStockDetail(id, stockCode));
+    //주식 상세 정보 가져오기
+    @GetMapping("/stocks/{stockCode}")
+    public CommonResponseDTO<StockDetailDto> getStockDetail(
+            @RequestParam(name = "userId") Long userId,
+            @PathVariable String stockCode) {
+
+        StockDetailDto detail = stockService.getStockDetail(userId, stockCode);
+        if (detail == null) {
+            return CommonResponseDTO.error("주식 상세 정보를 찾을 수 없습니다.", 404);
+        }
+        return CommonResponseDTO.success("주식 상세 정보 조회 성공", detail);
+    }
+
+    @GetMapping("/recommend")
+    public CommonResponseDTO<List<StockListDto>> getRecommend(@RequestParam(name = "id") Long id) {
+        List<StockListDto> recommendData = stockService.getStockRecommendationList(id);
+
+        if (recommendData == null || recommendData.isEmpty()) {
+            return CommonResponseDTO.error("추천 가능한 주식이 없습니다.", 404);
+        }
+
+        return CommonResponseDTO.success("사용자 맞춤 주식 추천 성공", recommendData);
+    }
+
+    @GetMapping("/test")
+    public CommonResponseDTO<Long> test(@AuthenticationPrincipal User user) {
+        Long userId = user.getId();
+        return CommonResponseDTO.success("유저 아이디 반환", userId);
     }
 }

@@ -14,6 +14,7 @@ public class StockDetailDto {
     private String stockPrice;
     private String stockPredictedPrice;
     private String stockChangeRate;
+    private String stockChartData;
     private String stockYearHigh;
     private String stockYearLow;
     private String stockFaceValue;
