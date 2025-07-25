@@ -39,7 +39,6 @@ jobs:
       - name: Docker build
         run: |
           docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-          cp /home/ubuntu/finpick/application.properties ./application.properties
           docker build -f ./Dockerfile -t whwkahd3/finpick:${{ steps.current-time.outputs.formattedTime }} .
           docker push whwkahd3/finpick:${{ steps.current-time.outputs.formattedTime }}
 
@@ -61,6 +60,9 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            echo "🚀 Running env → properties generator"
+            bash /home/ubuntu/finpick/generate-properties.sh
+                    
             echo "📜 Fetching logs from running container..."
             docker logs --tail 100 finpick || true
 
@@ -68,19 +70,13 @@ jobs:
             docker ps -a
 
             echo "🐳 Docker Image Pull"
-            docker pull whwkahd3/finpick:${{ env.DOCKER_TAG }}
+            docker pull whwkahd3/finpick:${{ DOCKER_TAG }}
 
             if [ $(docker ps -aq -f name=finpick) ]; then
               echo "🐳 Stopping existing container"
               docker stop finpick || true
               docker rm finpick || true
             fi
-
-            echo "📂 Copying application.properties into container"
-            docker create --name temp_container whwkahd3/finpick:${{ env.DOCKER_TAG }}
-#            docker cp /home/ubuntu/finpick/application.properties temp_container:/app/src/main/resources/application.properties
-#            docker commit temp_container whwkahd3/finpick:${{ env.DOCKER_TAG }}
-            docker rm temp_container
 
             echo "🐳 Docker Run"
             docker run -d --name finpick \
@@ -89,7 +85,7 @@ jobs:
               --log-driver json-file \
               --log-opt max-size=10m \
               --log-opt max-file=3 \
-              whwkahd3/finpick:${{ env.DOCKER_TAG }}
+              whwkahd3/finpick:${{ DOCKER_TAG }}
 
             echo "🐳 Docker ps"
             docker ps
