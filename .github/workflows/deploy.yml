@@ -33,7 +33,7 @@ jobs:
         id: current-time
         uses: josStorer/get-current-time@v2.0.2
         with:
-          format: YYYY-MM-DDTHH-mm-ss
+          format: YYYY-MM-DD_HH-mm-ss
           utcOffset: "+09:00"
 
       - name: Docker build
@@ -63,6 +63,10 @@ jobs:
           script: |
             echo "🚀 Running env → properties generator"
             bash /home/ubuntu/finpick/generate-properties.sh
+            echo "✅ Finished running generate-properties.sh"
+            
+            echo "🧾 Contents of application.properties"
+            cat /home/ubuntu/finpick/application.properties || echo "❌ application.properties not found"
                     
             echo "📜 Fetching logs from running container..."
             docker logs --tail 100 finpick || true
