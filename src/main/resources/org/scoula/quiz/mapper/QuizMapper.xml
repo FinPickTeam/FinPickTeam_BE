@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.quiz.mapper.QuizMapper">
+
+    <resultMap id="getHistoryList" type="org.scoula.quiz.domain.QuizHistoryDetailVO">
+        <id property="historyId" column="history_id"/>
+        <result property="question" column="quiz_question"/>
+        <result property="answer" column="quiz_correct_answer"/>
+        <result property="isCorrect" column="is_correct"/>
+    </resultMap>
+
+
+    <insert id="insertHistory">
+        INSERT INTO `quiz_history` (
+            `user_id`,
+            `quiz_id`,
+            `is_correct`
+        ) VALUES (
+                     #{userId},
+                     #{quizId},
+                     #{isCorrect}
+                 )
+    </insert>
+
+    <select id="getQuiz" parameterType="long" resultType="org.scoula.quiz.domain.QuizVO">
+        SELECT id, question, answer, explanation FROM quiz
+            WHERE
+            NOT EXISTS (
+                SELECT 1
+                FROM quiz_history
+                WHERE quiz_history.quiz_id = quiz.id
+                  AND quiz_history.user_id = #{userId}
+            )
+        ORDER BY RAND()
+            LIMIT 1
+    </select>
+
+    <select id="isQuizTakenToday" resultType="int">
+        SELECT COUNT(*)
+        FROM `quiz_history`
+        WHERE `user_id` = #{userId}
+          AND `quiz_id` = #{quizId}
+          AND `is_Correct`= #{isCorrect}
+          AND DATE(`submitted_at`) = CURDATE();
+    </select>
+
+
+
+
+    <select id="getHistoryList" parameterType="Long" resultMap="getHistoryList">
+        SELECT qh.id AS history_id, q.question AS quiz_question, q.answer AS quiz_correct_answer, qh.is_correct
+        FROM quiz_history qh
+        JOIN quiz q ON qh.quiz_id = q.id
+        WHERE qh.user_id = #{userId}
+        ORDER BY qh.submitted_at DESC;
+    </select>
+
+    <select id="getHistoryDetail" parameterType="Long" resultMap="getHistoryList">
+        SELECT qh.id AS history_id, q.question AS quiz_question, q.answer AS quiz_correct_answer, qh.is_correct
+        FROM quiz_history qh
+        JOIN quiz q ON qh.quiz_id = q.id
+        WHERE qh.id = #{historyId}
+        ORDER BY qh.submitted_at DESC;
+    </select>
+</mapper>

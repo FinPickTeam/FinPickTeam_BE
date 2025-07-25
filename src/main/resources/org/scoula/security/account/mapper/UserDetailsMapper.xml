@@ -1,24 +1,30 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
 <mapper namespace="org.scoula.security.account.mapper.UserDetailsMapper">
-    <resultMap id="authMap" type="AuthVO">
-        <result property="username" column="username" />
-        <result property="auth" column="auth" />
+
+    <resultMap id="userMap" type="org.scoula.user.domain.User">
+        <id property="id" column="id"/>
+        <result property="email" column="email"/>
+        <result property="password" column="password"/>
+        <result property="userName" column="user_name"/>
+        <result property="phoneNum" column="phone_num"/>
+        <result property="gender" column="gender"/>
+        <result property="birthday" column="birthday"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="lastPwChangeAt" column="last_pw_change_at"/>
+<!--        <result property="isActive" column="is_active"/>-->
     </resultMap>
-    <resultMap id="memberMap" type="MemberVO">
-        <id property="username" column="username" />
-        <result property="username" column="username" />
-        <result property="password" column="password" />
-        <result property="email" column="email" />
-        <result property="regDate" column="reg_date" />
-        <result property="updateDate" column="update_date" />
-        <collection property="authList" resultMap="authMap" />
-    </resultMap>
-    <select id="get" resultMap="memberMap">
-        select m.username, password, email, reg_date, update_date, auth
-        from
-            tbl_member m left outer join tbl_member_auth a
-                                         on m.username = a.username
-        where m.username = #{username}
+
+    <select id="get" resultMap="userMap">
+        SELECT
+            id, email, password, user_name, phone_num, gender,
+            birthday, created_at, updated_at, last_pw_change_at
+--         ,is_active
+        FROM user
+        WHERE email = #{email}
     </select>
 </mapper>

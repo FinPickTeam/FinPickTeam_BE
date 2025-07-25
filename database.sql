@@ -20,6 +20,9 @@ ALTER TABLE `user`
 ALTER TABLE `user`
     ADD COLUMN `is_verified` BOOLEAN NOT NULL DEFAULT 0 AFTER `last_pw_change_at`;
 
+ALTER TABLE `user`
+    ADD COLUMN `is_active` BOOLEAN DEFAULT TRUE;
+
 
 -- 2. 유저 상태 (닉네임, 레벨)
 DROP TABLE IF EXISTS `user_status`;
@@ -166,6 +169,7 @@ CREATE TABLE `transaction` (
                                `type` ENUM('INCOME', 'EXPENSE') NOT NULL,
                                `amount` DECIMAL(10,2) NOT NULL,
                                `memo` TEXT,
+                               `analysis` VARCHAR(255),
                                PRIMARY KEY (`id`),
                                FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
                                FOREIGN KEY (`account_id`) REFERENCES `account`(`id`) ON DELETE CASCADE
@@ -195,11 +199,15 @@ CREATE TABLE `monthreport` (
 DROP TABLE IF EXISTS `deposit_list`;
 CREATE TABLE `deposit_list` (
                                 `id` INT NOT NULL AUTO_INCREMENT,
-                                `deposit_name` VARCHAR(255) NOT NULL,
-                                `bank_name` VARCHAR(255) NOT NULL,
-                                `interest_rate` FLOAT(10,2) NOT NULL,
-                                `period_month` INT NOT NULL,
-                                `description` TEXT NOT NULL,
+                                `deposit_bank_name` VARCHAR(255) NOT NULL,
+                                `deposit_product_name` VARCHAR(255) NOT NULL,
+                                `deposit_contract_period` VARCHAR(50) NOT NULL,
+                                `deposit_subscription_amount` VARCHAR(50) NOT NULL,
+                                `deposit_basic_rate` FLOAT(10,2) NOT NULL,
+                                `deposit_max_rate` FLOAT(10,2) NOT NULL,
+                                `deposit_preferential_rate` TEXT NULL,
+                                `deposit_product_features` TEXT NULL,
+                                `deposit_summary` VARCHAR(255) NOT NULL,
                                 `deposit_link` VARCHAR(255) NOT NULL,
                                 PRIMARY KEY (`id`)
 );
@@ -227,13 +235,10 @@ CREATE TABLE `fund_list` (
 DROP TABLE IF EXISTS `stock_list`;
 CREATE TABLE `stock_list` (
                               `id` INT NOT NULL AUTO_INCREMENT,
-                              `stock_code` VARCHAR(255) NOT NULL,
                               `stock_name` VARCHAR(255) NOT NULL,
+                              `stock_code` VARCHAR(255) NOT NULL,
                               `market_type` ENUM('KOSPI', 'KOSDAQ') NOT NULL,
-                              `stock_sector` VARCHAR(255) NOT NULL,
-                              `stock_price` INT NOT NULL,
-                              `stock_per` FLOAT(10,2) NOT NULL,
-                              `dividend_yield` FLOAT(10,2) NOT NULL,
+                              `stock_summary` VARCHAR(20) NOT NULL,
                               PRIMARY KEY (`id`)
 );
 
@@ -246,6 +251,26 @@ CREATE TABLE `wishlist` (
                             `product_id` INT NOT NULL,
                             PRIMARY KEY (`id`),
                             FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
+);
+
+-- 8. 키움증권 rest api 접근 토큰
+DROP TABLE IF EXISTS `user_kiwoom_access_token`;
+CREATE TABLE `user_kiwoom_access_token` (
+                                            `id`       BIGINT       NOT NULL,
+                                            `user_account` VARCHAR(255) NOT NULL,
+                                            `stock_access_token` VARCHAR(255) NOT NULL,
+                                            `stock_token_expires_dt` VARCHAR(255) NOT NULL,
+                                            PRIMARY KEY (`id`),
+                                            FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+);
+
+-- 9. 주식 차트 데이터
+DROP TABLE IF EXISTS `stock_chart_cache`;
+CREATE TABLE `stock_chart_cache` (
+                                    `stock_code` VARCHAR(20) NOT NULL,
+                                    `json_data` TEXT NOT NULL,
+                                    `base_date` VARCHAR(8) NOT NULL,
+                                    PRIMARY KEY (`stock_code`)
 );
 
 -- CHALLENGE
