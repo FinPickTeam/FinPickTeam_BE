@@ -9,8 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class QuizHistoryDetailVO {
-    Long id;
+    Long historyId;
     String question;
     String answer;
-    String isCorrect;
+    Boolean isCorrect;
 }

@@ -4,15 +4,24 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.scoula.quiz.mapper.QuizMapper">
+
+    <resultMap id="getHistoryList" type="org.scoula.quiz.domain.QuizHistoryDetailVO">
+        <id property="historyId" column="history_id"/>
+        <result property="question" column="quiz_question"/>
+        <result property="answer" column="quiz_correct_answer"/>
+        <result property="isCorrect" column="is_correct"/>
+    </resultMap>
+
+
     <insert id="insertHistory">
         INSERT INTO `quiz_history` (
             `user_id`,
             `quiz_id`,
-            `is_correct`,
+            `is_correct`
         ) VALUES (
                      #{userId},
                      #{quizId},
-                     #{isCorrect},
+                     #{isCorrect}
                  )
     </insert>
 
@@ -36,5 +45,24 @@
           AND `quiz_id` = #{quizId}
           AND `is_Correct`= #{isCorrect}
           AND DATE(`submitted_at`) = CURDATE();
+    </select>
+
+
+
+
+    <select id="getHistoryList" parameterType="Long" resultMap="getHistoryList">
+        SELECT qh.id AS history_id, q.question AS quiz_question, q.answer AS quiz_correct_answer, qh.is_correct
+        FROM quiz_history qh
+        JOIN quiz q ON qh.quiz_id = q.id
+        WHERE qh.user_id = #{userId}
+        ORDER BY qh.submitted_at DESC;
+    </select>
+
+    <select id="getHistoryDetail" parameterType="Long" resultMap="getHistoryList">
+        SELECT qh.id AS history_id, q.question AS quiz_question, q.answer AS quiz_correct_answer, qh.is_correct
+        FROM quiz_history qh
+        JOIN quiz q ON qh.quiz_id = q.id
+        WHERE qh.id = #{historyId}
+        ORDER BY qh.submitted_at DESC;
     </select>
 </mapper>
