@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.survey.mapper.SurveyMapper">
+
+    <insert id="insertSurvey" parameterType="org.scoula.survey.domain.SurveyVO">
+        INSERT INTO investment_types (id, total_score, propensity_type, question1, question2, question3, question4)
+        VALUES (#{id}, #{totalScore}, #{propensityType}, #{question1}, #{question2}, #{question3}, #{question4})
+    </insert>
+
+    <select id="selectById" parameterType="long" resultType="org.scoula.survey.domain.SurveyVO">
+        SELECT * FROM investment_types WHERE id = #{id}
+    </select>
+
+</mapper>

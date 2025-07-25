@@ -24,6 +24,8 @@ import javax.sql.DataSource;
 @MapperScan(basePackages = {
         "org.scoula.user.mapper",
         "org.scoula.finance.mapper",
+        "org.scoula.transactions.mapper",
+        "org.scoula.survey.mapper"
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",
@@ -32,7 +34,10 @@ import javax.sql.DataSource;
         "org.scoula.common.*", // 공통 유틸이나 예외 추가할 여지
         "org.scoula.finance.controller",
         "org.scoula.finance.service",
-
+        "org.scoula.transactions.service",
+        "org.scoula.transactions.util",
+        "org.scoula.transactions.exception",
+        "org.scoula.survey.service",
 })
 @EnableTransactionManagement
 public class RootConfig {
