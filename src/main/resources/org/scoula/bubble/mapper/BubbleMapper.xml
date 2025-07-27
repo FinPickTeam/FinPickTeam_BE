@@ -6,6 +6,6 @@
 <mapper namespace="org.scoula.bubble.mapper.BubbleMapper">
 
     <select id="get" resultType="org.scoula.bubble.domain.BubbleVO">
-        SELECT 1 FROM bubble ORDER BY RAND() LIMIT 1
+        SELECT * FROM bubble ORDER BY RAND() LIMIT 1
     </select>
 </mapper>
