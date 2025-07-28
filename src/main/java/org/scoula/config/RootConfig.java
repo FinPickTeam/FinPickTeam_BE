@@ -28,7 +28,8 @@ import javax.sql.DataSource;
         "org.scoula.survey.mapper",
         "org.scoula.quiz.mapper",
         "org.scoula.dictionary.mapper",
-        "org.scoula.bubble.mapper"
+        "org.scoula.bubble.mapper",
+        "org.scoula.nhapi.mapper",
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",
@@ -44,7 +45,11 @@ import javax.sql.DataSource;
         "org.scoula.quiz.service",
         "org.scoula.quiz.exception",
         "org.scoula.dictionary.service",
-        "org.scoula.bubble.service"
+        "org.scoula.bubble.service",
+        "org.scoula.nhapi.service",
+        "org.scoula.nhapi.util",
+
+
 })
 @EnableTransactionManagement
 public class RootConfig {
