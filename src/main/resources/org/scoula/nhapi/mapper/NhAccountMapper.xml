@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.nhapi.mapper.NhAccountMapper">
+    <insert id="insertAccount" parameterType="org.scoula.nhapi.domain.Account">
+        INSERT INTO account (
+            user_id, bank_name, account_number,
+            product_name, interest_rate, pin_account_number,
+            account_type, balance, connected_at
+        )
+        VALUES (
+                   #{userId}, #{bankName}, #{accountNumber},
+                   #{productName}, #{interestRate}, #{pinAccountNumber},
+                   #{accountType}, #{balance}, #{connectedAt}
+               )
+    </insert>
+
+
+    <update id="updateBalance">
+        UPDATE account
+        SET balance = #{balance, jdbcType=DECIMAL}
+        WHERE pin_account_number = #{pinAccountNumber}
+    </update>
+
+
+    <select id="findIdByFinAccount" resultType="long">
+        SELECT id FROM account WHERE pin_account_number = #{pinAccountNumber}
+    </select>
+
+    <select id="findUserIdByFinAccount" resultType="long">
+        SELECT user_id FROM account WHERE pin_account_number = #{pinAccountNumber}
+    </select>
+
+    <select id="findByAccountNumber" parameterType="String" resultType="org.scoula.nhapi.domain.Account">
+        SELECT *
+        FROM account
+        WHERE account_number = #{accountNumber}
+    </select>
+
+</mapper>
