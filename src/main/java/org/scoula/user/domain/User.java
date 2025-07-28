@@ -16,5 +16,6 @@ public class User {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime lastPwChangeAt;
+    private Boolean isVerified;
     private Boolean isActive;
 }
