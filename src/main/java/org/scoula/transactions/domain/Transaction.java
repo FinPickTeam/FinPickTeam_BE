@@ -16,4 +16,5 @@ public class Transaction {
     private String type; // INCOME or EXPENSE
     private BigDecimal amount;
     private String memo;
+    private String analysis; 
 }

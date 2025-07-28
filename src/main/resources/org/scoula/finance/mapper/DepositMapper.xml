@@ -6,7 +6,7 @@
 <mapper namespace="org.scoula.finance.mapper.DepositMapper">
 
     <!-- 상세 정보 매핑 -->
-    <resultMap id="DepositDetailMap" type="org.scoula.finance.dto.DepositDetailDto">
+    <resultMap id="DepositDetailMap" type="org.scoula.finance.dto.deposit.DepositDetailDto">
         <result property="depositBankName" column="deposit_bank_name"/>
         <result property="depositProductName" column="deposit_product_name"/>
         <result property="depositContractPeriod" column="deposit_contract_period"/>
@@ -20,7 +20,7 @@
     </resultMap>
 
     <!-- 추천 전용 매핑 -->
-    <resultMap id="DepositRecommendationMap" type="org.scoula.finance.dto.DepositRecommendationDto">
+    <resultMap id="DepositRecommendationMap" type="org.scoula.finance.dto.deposit.DepositRecommendationDto">
         <result property="depositBankName" column="deposit_bank_name"/>
         <result property="depositProductName" column="deposit_product_name"/>
         <result property="depositContractPeriod" column="deposit_contract_period"/>
@@ -35,8 +35,8 @@
 
     <!-- 예금 목록 조회 (필터 적용) -->
     <select id="selectDepositsWithFilter"
-            parameterType="org.scoula.finance.dto.DepositFilterDto"
-            resultType="org.scoula.finance.dto.DepositListDto">
+            parameterType="org.scoula.finance.dto.deposit.DepositFilterDto"
+            resultType="org.scoula.finance.dto.deposit.DepositListDto">
 
         SELECT
         deposit_bank_name,

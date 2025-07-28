@@ -19,6 +19,10 @@ import java.util.List;
         "org.scoula.user.controller",
         "org.scoula.user.exception",
         "org.scoula.transactions.controller",
+        "org.scoula.survey.controller",
+        "org.scoula.quiz.controller",
+        "org.scoula.dictionary.controller",
+        "org.scoula.bubble.controller"
         "org.scoula.transactions.exception",
         "org.scoula.nhapi.controller",
 })

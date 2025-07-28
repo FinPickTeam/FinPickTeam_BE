@@ -1,10 +1,8 @@
-package org.scoula.finance.service;
+package org.scoula.finance.service.deposit;
 
-import org.mapstruct.Mapper;
-import org.scoula.finance.dto.DepositDetailDto;
-import org.scoula.finance.dto.DepositFilterDto;
-import org.scoula.finance.dto.DepositListDto;
-import org.scoula.finance.dto.DepositRecommendationDto;
+import org.scoula.finance.dto.deposit.DepositDetailDto;
+import org.scoula.finance.dto.deposit.DepositFilterDto;
+import org.scoula.finance.dto.deposit.DepositListDto;
 
 import java.util.List;
 import java.util.Map;

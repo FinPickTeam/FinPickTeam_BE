@@ -25,6 +25,10 @@ import javax.sql.DataSource;
         "org.scoula.user.mapper",
         "org.scoula.finance.mapper",
         "org.scoula.transactions.mapper",
+        "org.scoula.survey.mapper",
+        "org.scoula.quiz.mapper",
+        "org.scoula.dictionary.mapper",
+        "org.scoula.bubble.mapper"
         "org.scoula.nhapi.mapper",
 })
 @ComponentScan(basePackages = {
@@ -36,6 +40,12 @@ import javax.sql.DataSource;
         "org.scoula.finance.service",
         "org.scoula.transactions.service",
         "org.scoula.transactions.util",
+        "org.scoula.transactions.exception",
+        "org.scoula.survey.service",
+        "org.scoula.quiz.service",
+        "org.scoula.quiz.exception",
+        "org.scoula.dictionary.service",
+        "org.scoula.bubble.service"
         "org.scoula.nhapi.service",
         "org.scoula.nhapi.util",
 
