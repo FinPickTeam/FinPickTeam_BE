@@ -56,6 +56,9 @@ jobs:
       - name: Debug DOCKER_TAG
         run: echo "DOCKER_TAG is $DOCKER_TAG"
 
+      - name: Debug WAR 파일 존재 여부
+        run: ls -al build/libs/
+
       - name: Deploy
         uses: appleboy/ssh-action@master
         with:
