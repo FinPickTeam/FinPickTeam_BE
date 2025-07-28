@@ -17,7 +17,7 @@ public class TransactionSyncController {
 
     private final TransactionSyncService transactionSyncService;
 
-    @PostMapping("/sync")
+    @PostMapping("/transactions-sync")
     public ResponseEntity<CommonResponseDTO<Map<String, Object>>> syncTransactions(
             @RequestParam String finAccount,
             @RequestParam String fromDate,
