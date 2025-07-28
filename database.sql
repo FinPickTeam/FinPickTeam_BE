@@ -1,3 +1,4 @@
+
 -- USER
 -- 1. 사용자 정보
 DROP TABLE IF EXISTS `user`;
