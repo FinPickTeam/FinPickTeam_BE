@@ -8,11 +8,12 @@ import org.scoula.user.dto.UserJoinRequestDTO;
 import org.scoula.security.account.dto.UserLoginRequestDTO;
 import org.scoula.user.dto.UserResponseDTO;
 import org.scoula.user.exception.auth.*;
+import org.scoula.user.exception.signup.DuplicateEmailException;
 import org.scoula.user.mapper.UserMapper;
 import org.scoula.security.util.JwtUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -41,6 +42,11 @@ public class UserServiceImpl implements UserService {
     public UserResponseDTO registerUser(UserJoinRequestDTO req) {
         log.info("🔒 회원가입 시도: {}", req.getEmail() + " , " + req.getPassword());
 
+        // 이메일 중복 검사
+        if (userMapper.findByEmail(req.getEmail()) != null) {
+            throw new DuplicateEmailException();  // 이 부분 추가
+        }
+
         User user = req.toUser(); // DTO → 도메인 객체
         user.setPassword(encoder.encode(user.getPassword())); // 비밀번호 암호화
 
@@ -48,8 +54,15 @@ public class UserServiceImpl implements UserService {
         user.setIsActive(true);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
+        user.setIsVerified(false); // default 값 (인증 미완료)
+        user.setLastPwChangeAt(LocalDateTime.now());
 
-        userMapper.save(user);
+        try {
+            userMapper.save(user);
+        } catch (DuplicateKeyException e) {
+            log.warn("❌ DB 이메일 중복 에러 발생: {}", user.getEmail());
+            throw new DuplicateEmailException();
+        }
 
         return UserResponseDTO.builder()
                 .id(user.getId())
@@ -71,9 +84,9 @@ public class UserServiceImpl implements UserService {
             throw new InvalidPasswordException();
         }
 
-        String at = jwtUtil.generateAccessToken(u.getEmail());
-        String rt = jwtUtil.generateRefreshToken(u.getEmail());
-        redisService.saveRefreshToken(u.getEmail(), rt);
+        String at = jwtUtil.generateAccessToken(u.getId(), u.getEmail());
+        String rt = jwtUtil.generateRefreshToken(u.getId(), u.getEmail());
+        redisService.saveRefreshToken(u.getId(), rt);
         return new TokenResponseDTO(at, rt);
     }
 
@@ -83,14 +96,15 @@ public class UserServiceImpl implements UserService {
         if (!jwtUtil.validateToken(refreshToken))
             throw new InvalidTokenException();
 
+        Long id = jwtUtil.getIdFromToken(refreshToken);
         String email = jwtUtil.getEmailFromToken(refreshToken);
-        String saved = redisService.getRefreshToken(email);
+        String saved = redisService.getRefreshToken(id);
         if (!refreshToken.equals(saved))
             throw new ExpiredTokenException();
 
-        String at = jwtUtil.generateAccessToken(email);
-        String rt = jwtUtil.generateRefreshToken(email);
-        redisService.saveRefreshToken(email, rt);
+        String at = jwtUtil.generateAccessToken(id, email);
+        String rt = jwtUtil.generateRefreshToken(id, email);
+        redisService.saveRefreshToken(id, rt);
         return new TokenResponseDTO(at, rt);
     }
 

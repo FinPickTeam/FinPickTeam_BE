@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Api(tags = "거래내역 API")
+@Api(tags = "transaction-controller")
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
