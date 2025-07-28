@@ -102,6 +102,9 @@ dependencies {
   // redis
   implementation 'org.springframework.data:spring-data-redis:2.7.18'
   implementation 'io.lettuce:lettuce-core:6.1.10.RELEASE'
+
+  // openCSV
+  implementation 'com.opencsv:opencsv:5.7.1'
 }
 
 

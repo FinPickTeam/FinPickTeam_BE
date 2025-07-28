@@ -93,4 +93,19 @@
             *
         FROM deposit_list
     </select>
+
+    <select id="selectDepositListByProductName" resultType="org.scoula.finance.dto.deposit.DepositListDto">
+        SELECT
+        *
+        FROM deposit_list
+        WHERE deposit_product_name IN
+        <foreach item="name" collection="names" open="(" separator="," close=")">
+            #{name}
+        </foreach>
+        ORDER BY FIELD(deposit_product_name,
+        <foreach item="name" collection="names" separator=",">
+            #{name}
+        </foreach>
+        )
+    </select>
 </mapper>
