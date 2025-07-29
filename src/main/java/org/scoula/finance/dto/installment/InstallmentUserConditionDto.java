@@ -16,7 +16,6 @@ public class InstallmentUserConditionDto {
     private boolean marketingConsent; // 마케팅 수신 동의
     private boolean housingSubscription; // 청약통장 가입 여부
     private boolean internetMobileBanking; // 모바일 뱅킹 이용 여부
-    private boolean ageGroup; // 나이대
     private boolean greenMission; // 친환경 미션 여부
     private boolean incomeTransfer; // 소득이체 실적
     private boolean newCustomer; // 신규 고객 여부
