@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class InstallmentDetailDto {
-    private String installBankName; // 은행명
+    private String installmentBankName; // 은행명
     private String installmentProductName; // 상품명
     private String installmentContractPeriod; // 계약기간
     private String installmentType; // 적립 방식

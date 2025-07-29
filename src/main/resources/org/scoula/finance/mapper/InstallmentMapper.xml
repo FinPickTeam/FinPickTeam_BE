@@ -15,4 +15,11 @@
             installment_summary
         FROM installment_list
     </select>
+
+    <select id="getInstallmentDetail" resultType="org.scoula.finance.dto.installment.InstallmentDetailDto">
+        SELECT
+            *
+        FROM installment_list
+        WHERE installment_product_name = #{installmentProductName}
+    </select>
 </mapper>
