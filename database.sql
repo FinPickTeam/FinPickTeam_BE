@@ -216,7 +216,25 @@ CREATE TABLE `deposit_list` (
                                 PRIMARY KEY (`id`)
 );
 
--- 5. 펀드 상품 목록
+-- 5. 적금 상품 목록
+DROP TABLE IF EXISTS `installment_list`;
+CREATE TABLE `installment_list` (
+                                `id` INT NOT NULL AUTO_INCREMENT,
+                                `installment_bank_name` VARCHAR(255) NOT NULL,
+                                `installment_product_name` VARCHAR(255) NOT NULL,
+                                `installment_contract_period` VARCHAR(50) NOT NULL,
+                                `installment_type` VARCHAR(8) NOT NULL,
+                                `installment_subscription_amount` VARCHAR(50) NOT NULL,
+                                `installment_basic_rate` FLOAT(10,2) NOT NULL,
+                                `installment_max_rate` FLOAT(10,2) NOT NULL,
+                                `installment_preferential_rate` TEXT NULL,
+                                `installment_product_features` TEXT NULL,
+                                `installment_summary` VARCHAR(255) NOT NULL,
+                                `installment_link` VARCHAR(255) NOT NULL,
+                                PRIMARY KEY (`id`)
+);
+
+-- 6. 펀드 상품 목록
 DROP TABLE IF EXISTS `fund_list`;
 CREATE TABLE `fund_list` (
                              `id` VARCHAR(255) NOT NULL,
@@ -235,7 +253,7 @@ CREATE TABLE `fund_list` (
                              PRIMARY KEY (`id`)
 );
 
--- 6. 주식 상품 목록
+-- 7. 주식 상품 목록
 DROP TABLE IF EXISTS `stock_list`;
 CREATE TABLE `stock_list` (
                               `id` INT NOT NULL AUTO_INCREMENT,
@@ -246,7 +264,7 @@ CREATE TABLE `stock_list` (
                               PRIMARY KEY (`id`)
 );
 
--- 7. 찜한 상품 (유저별)
+-- 8. 찜한 상품 (유저별)
 DROP TABLE IF EXISTS `wishlist`;
 CREATE TABLE `wishlist` (
                             `id` INT NOT NULL AUTO_INCREMENT,
@@ -257,7 +275,7 @@ CREATE TABLE `wishlist` (
                             FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 
--- 8. 키움증권 rest api 접근 토큰
+-- 9. 키움증권 rest api 접근 토큰
 DROP TABLE IF EXISTS `user_kiwoom_access_token`;
 CREATE TABLE `user_kiwoom_access_token` (
                                             `id`       BIGINT       NOT NULL,
@@ -268,7 +286,7 @@ CREATE TABLE `user_kiwoom_access_token` (
                                             FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 );
 
--- 9. 주식 차트 데이터
+-- 10. 주식 차트 데이터
 DROP TABLE IF EXISTS `stock_chart_cache`;
 CREATE TABLE `stock_chart_cache` (
                                     `stock_code` VARCHAR(20) NOT NULL,

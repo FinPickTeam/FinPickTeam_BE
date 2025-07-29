@@ -2,15 +2,16 @@ package org.scoula.finance.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.scoula.common.dto.CommonResponseDTO;
 import org.scoula.finance.dto.deposit.DepositDetailDto;
 import org.scoula.finance.dto.deposit.DepositFilterDto;
 import org.scoula.finance.dto.deposit.DepositListDto;
+import org.scoula.finance.dto.deposit.DepositUserConditionDto;
 import org.scoula.finance.service.deposit.DepositService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController
@@ -26,17 +27,23 @@ public class DepositController {
     }
 
 //    예금 상세 조회
-    @GetMapping("/depositdetail")
-    public ResponseEntity<DepositDetailDto> getDepositList(@RequestParam String depositProductName)
-    {return ResponseEntity.ok(depositService.selectDepositByProductName(depositProductName));}
+    @GetMapping("/depositdetail/{depositProductName}")
+    public ResponseEntity<DepositDetailDto> getDepositList(@PathVariable String depositProductName)
+    {
+        return ResponseEntity.ok(depositService.selectDepositByProductName(depositProductName));
+    }
 
     //나중에 pathvariable로 수정 예정
 //    예금 추천
-    @GetMapping("/recommend")
-    public ResponseEntity<List<Map<String, Object>>> recommend(@RequestParam int userId, @RequestParam int amount, @RequestParam int period){
+    @PostMapping("/recommend")
+    public CommonResponseDTO<List<DepositListDto>> recommend(
+            @RequestParam int userId,
+            @RequestParam int amount,
+            @RequestParam int period,
+            @RequestBody DepositUserConditionDto depositUserConditionDto){
 
         //유저 투자 성향 정보 받기
 
-        return ResponseEntity.ok(depositService.getAllDepositRecommendations(amount, period));
+        return CommonResponseDTO.success("추천 성공",depositService.getAllDepositRecommendations(amount, period, depositUserConditionDto));
     }
 }
