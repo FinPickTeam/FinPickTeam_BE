@@ -230,7 +230,7 @@ CREATE TABLE `installment_list` (
                                 `installment_preferential_rate` TEXT NULL,
                                 `installment_product_features` TEXT NULL,
                                 `installment_summary` VARCHAR(255) NOT NULL,
-                                `installment_link` VARCHAR(255) NOT NULL,
+                                `installment_link` VARCHAR(255) NULL,
                                 PRIMARY KEY (`id`)
 );
 
