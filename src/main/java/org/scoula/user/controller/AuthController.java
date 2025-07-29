@@ -34,7 +34,7 @@ public class AuthController {
     }
 
     @GetMapping("/test-redis")
-    public String testToken(@RequestParam String email) {
-        return redisService.getRefreshToken(email);
+    public String testToken(@RequestParam Long id) {
+        return redisService.getRefreshToken(id);
     }
 }

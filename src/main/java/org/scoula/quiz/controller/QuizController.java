@@ -18,7 +18,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@Api(tags = {"퀴즈API"}, description="Quiz Cotroller")
+@Api(tags = {"퀴즈API"}, description="Quiz Controller")
 @RequestMapping("/api/Quiz")
 public class QuizController {
 

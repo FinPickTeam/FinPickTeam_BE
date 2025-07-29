@@ -10,28 +10,28 @@ import lombok.RequiredArgsConstructor;
 public class RedisService {
     private final StringRedisTemplate redis;
 
-    public void saveRefreshToken(String email, String token) {
+    public void saveRefreshToken(Long userId, String token) {
         try {
             redis.opsForValue().set(
-                    RedisKeyPrefix.REFRESH_TOKEN + email,
+                    RedisKeyPrefix.REFRESH_TOKEN + userId,
                     token,
                     RedisKeyPrefix.REFRESH_TOKEN_TTL,
                     RedisKeyPrefix.REFRESH_TOKEN_UNIT
             );
-            System.out.println("✅ Redis 저장 성공: " + email);
+            System.out.println("✅ Redis 저장 성공: " + userId);
         } catch (Exception e) {
             System.out.println("❌ Redis 저장 실패: " + e.getMessage());
         }
     }
 
-
-    public String getRefreshToken(String email){
-        return redis.opsForValue().get(RedisKeyPrefix.REFRESH_TOKEN + email);
+    public String getRefreshToken(Long userId){
+        return redis.opsForValue().get(RedisKeyPrefix.REFRESH_TOKEN + userId);
     }
 
-    public void deleteRefreshToken(String email){
-        redis.delete(RedisKeyPrefix.REFRESH_TOKEN + email);
+    public void deleteRefreshToken(Long userId){
+        redis.delete(RedisKeyPrefix.REFRESH_TOKEN + userId);
     }
+
 
 
     // 이메일 인증시에 사용하려고 했던 것들

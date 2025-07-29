@@ -1,3 +1,4 @@
+
 -- USER
 -- 1. 사용자 정보
 DROP TABLE IF EXISTS `user`;
@@ -22,6 +23,9 @@ ALTER TABLE `user`
 
 ALTER TABLE `user`
     ADD COLUMN `is_active` BOOLEAN DEFAULT TRUE;
+
+ALTER TABLE `user`
+    ADD CONSTRAINT uq_user_email UNIQUE (`email`);
 
 
 -- 2. 유저 상태 (닉네임, 레벨)
