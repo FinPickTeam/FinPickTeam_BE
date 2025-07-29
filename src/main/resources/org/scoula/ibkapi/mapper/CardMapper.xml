@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.card.mapper.CardMapper">
+
+    <!-- 카드 insert -->
+    <insert id="insertCard" parameterType="CardDto">
+        INSERT INTO card (
+            user_id, oapi_card_altr_no, back_code, bank_name,
+            card_name, card_maskednum, card_member_type, card_type
+        )
+        VALUES (
+                   #{userId}, #{oapiCardAltrNo}, #{backCode}, #{bankName},
+                   #{cardName}, #{cardMaskednum}, #{cardMemberType}, #{cardType}
+               )
+    </insert>
+
+    <!-- 카드 조회 -->
+    <select id="findCardByAltrNo" resultType="CardDto">
+        SELECT * FROM card WHERE oapi_card_altr_no = #{oapiCardAltrNo}
+    </select>
+
+    <!-- 승인내역 insert -->
+    <insert id="insertCardTransaction" parameterType="CardTransactionDto">
+        INSERT INTO card_transaction (
+            user_id, oapi_card_altr_no, auth_number, approved_at,
+            amount, is_cancelled, cancel_amount, cancelled_at,
+            merchant_name, merchant_industry_code, merchant_industry,
+            installment_month, currency, foreign_amount,
+            purchase_date
+        )
+        VALUES (
+                   #{userId}, #{oapiCardAltrNo}, #{authNumber}, #{approvedAt},
+                   #{amount}, #{isCancelled}, #{cancelAmount}, #{cancelledAt},
+                   #{merchantName}, #{merchantIndustryCode}, #{merchantIndustry},
+                   #{installmentMonth}, #{currency}, #{foreignAmount},
+                   #{purchaseDate}
+               )
+    </insert>
+
+    <!-- 승인내역 중복 체크 -->
+    <select id="findTransactionByAuthNumber" resultType="CardTransactionDto">
+        SELECT * FROM card_transaction WHERE auth_number = #{authNumber}
+    </select>
+
+    <!-- 유저 카드 목록 -->
+    <select id="findCardsByUserId" resultType="CardDto">
+        SELECT * FROM card WHERE user_id = #{userId}
+    </select>
+
+    <!-- 카드 거래내역 -->
+    <select id="findTransactionsByCard" resultType="CardTransactionDto">
+        SELECT * FROM card_transaction WHERE oapi_card_altr_no = #{oapiCardAltrNo}
+        ORDER BY approved_at DESC
+    </select>
+
+</mapper>
