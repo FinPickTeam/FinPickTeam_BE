@@ -22,7 +22,8 @@ import java.util.List;
         "org.scoula.survey.controller",
         "org.scoula.quiz.controller",
         "org.scoula.dictionary.controller",
-        "org.scoula.bubble.controller"
+        "org.scoula.bubble.controller",
+        "org.scoula.news.controller"
 })
 public class ServletConfig implements WebMvcConfigurer {
 

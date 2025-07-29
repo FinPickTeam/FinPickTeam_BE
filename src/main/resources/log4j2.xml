@@ -28,6 +28,23 @@
         <Logger name="jdbc.sqlonly" level="INFO" additivity="false">
             <AppenderRef ref="console"></AppenderRef>
         </Logger>
+
+        <Logger name="org.springframework.web.client.RestTemplate" level="DEBUG" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+
+        <Logger name="org.springframework.http.client" level="DEBUG" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+
+        <Logger name="org.apache.http" level="DEBUG" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+
+        <Logger name="org.apache.http.wire" level="DEBUG" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+
     </Loggers>
 
 </Configuration>

@@ -13,10 +13,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.web.client.RestTemplate;
+
 
 import javax.sql.DataSource;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Configuration
@@ -28,7 +32,8 @@ import javax.sql.DataSource;
         "org.scoula.survey.mapper",
         "org.scoula.quiz.mapper",
         "org.scoula.dictionary.mapper",
-        "org.scoula.bubble.mapper"
+        "org.scoula.bubble.mapper",
+        "org.scoula.news.mapper"
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",
@@ -44,7 +49,8 @@ import javax.sql.DataSource;
         "org.scoula.quiz.service",
         "org.scoula.quiz.exception",
         "org.scoula.dictionary.service",
-        "org.scoula.bubble.service"
+        "org.scoula.bubble.service",
+        "org.scoula.news.service"
 })
 @EnableTransactionManagement
 public class RootConfig {

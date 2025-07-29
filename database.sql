@@ -360,12 +360,11 @@ CREATE TABLE `dictionary` (
 -- 2. 핀픽 콘텐츠 피드 (뉴스/칼럼 등)
 DROP TABLE IF EXISTS `finpik`;
 CREATE TABLE `finpik` (
-                          `id` INT NOT NULL AUTO_INCREMENT,
-                          `title` VARCHAR(255) NOT NULL,
-                          `summary` TEXT NOT NULL,
-                          `content` TEXT NOT NULL,
-                          `thumbnail_url` VARCHAR(255) NOT NULL,
-                          `published_at` DATETIME NOT NULL,
+                          `id` INT NOT NULL AUTO_INCREMENT, -- 기사고유id
+                          `title` VARCHAR(500) NOT NULL, -- 기사제목
+                          `summary` TEXT NOT NULL, -- 기사요약
+                          `link` varchar(500) NOT NULL, -- 기사링크
+                          `published_at` DATETIME NOT NULL, -- 기사생성날짜
                           PRIMARY KEY (`id`)
 );
 
