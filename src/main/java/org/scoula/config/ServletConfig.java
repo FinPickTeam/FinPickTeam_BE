@@ -24,6 +24,8 @@ import java.util.List;
         "org.scoula.bubble.controller",
         "org.scoula.transactions.exception",
         "org.scoula.nhapi.controller",
+        "org.scoula.challenge.controller",
+        "org.scoula.challenge.exception",
 })
 public class ServletConfig implements WebMvcConfigurer {
 

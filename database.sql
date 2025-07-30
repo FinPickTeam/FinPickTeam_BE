@@ -304,6 +304,9 @@ CREATE TABLE `challenge_category` (
                                       PRIMARY KEY (`ID`)
 );
 
+ALTER TABLE challenge_category ADD memo VARCHAR(255) DEFAULT NULL;
+
+
 -- 2. 챌린지 메인 테이블
 DROP TABLE IF EXISTS `challenge`;
 CREATE TABLE `challenge` (
@@ -325,6 +328,8 @@ CREATE TABLE `challenge` (
                              FOREIGN KEY (`category_id`) REFERENCES `challenge_category`(`ID`) ON DELETE CASCADE,
                              FOREIGN KEY (`writer_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
+ALTER TABLE challenge ADD use_password BOOLEAN DEFAULT FALSE;
+
 
 -- 3. 유저-챌린지 매핑 (참여 내역)
 DROP TABLE IF EXISTS `user_challenge`;
@@ -342,6 +347,9 @@ CREATE TABLE `user_challenge` (
                                   FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
                                   FOREIGN KEY (`challenge_id`) REFERENCES `challenge`(`ID`) ON DELETE CASCADE
 );
+
+ALTER TABLE user_challenge CHANGE joined_at created_at DATETIME DEFAULT CURRENT_TIMESTAMP;
+
 
 -- 4. 챌린지 진행 통계 (유저별 집계)
 DROP TABLE IF EXISTS `user_challenge_summary`;
