@@ -8,6 +8,7 @@ import org.scoula.common.dto.CommonResponseDTO;
 import org.scoula.finance.dto.installment.InstallmentDetailDto;
 import org.scoula.finance.dto.installment.InstallmentFilterDto;
 import org.scoula.finance.dto.installment.InstallmentListDto;
+import org.scoula.finance.dto.installment.InstallmentUserConditionDto;
 import org.scoula.finance.service.installment.InstallmentService;
 import org.scoula.security.account.domain.CustomUserDetails;
 import org.scoula.user.domain.User;
@@ -58,6 +59,24 @@ public class InstallmentController {
         else{
             return CommonResponseDTO.error("상세정보를 불러오는데 실패했습니다.",404);
         }
+    }
+
+    @ApiOperation(value = "적금 추천", notes = "사용자의 투자성향을 참고하여 적금 상품을 추천합니다.")
+    @PostMapping("/recommend")
+    public CommonResponseDTO<List<InstallmentListDto>> getRecommendInstallmentList(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam int amount,
+            @RequestParam int period,
+            @RequestBody InstallmentUserConditionDto userConditionDto){
+
+        if (amount <= 0 || period <= 0) {
+            return CommonResponseDTO.error("유효하지 않은 요청 값입니다. 금액과 기간은 0보다 커야 합니다.", 400);
+        }
+        if (userConditionDto == null) {
+            return CommonResponseDTO.error("사용자 조건 정보가 누락되었습니다.", 400);
+        }
+
+        return CommonResponseDTO.success("추천 상품을 불러오는데 성공했습니다", installmentService.getInstallmentRecommendationList(amount, period, userConditionDto));
     }
 
 }
