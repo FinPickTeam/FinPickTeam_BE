@@ -30,6 +30,7 @@ import javax.sql.DataSource;
         "org.scoula.dictionary.mapper",
         "org.scoula.bubble.mapper",
         "org.scoula.nhapi.mapper",
+        "org.scoula.challenge.mapper",
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",
@@ -48,7 +49,7 @@ import javax.sql.DataSource;
         "org.scoula.bubble.service",
         "org.scoula.nhapi.service",
         "org.scoula.nhapi.util",
-
+        "org.scoula.challenge.service",
 
 })
 @EnableTransactionManagement
@@ -100,12 +101,4 @@ public class RootConfig {
         return new DataSourceTransactionManager(dataSource());
     }
 
-    /*
-    static {
-        Dotenv d = Dotenv.configure()
-                .filename(".env")
-                .load();
-        d.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
-    }
-    */
 }
