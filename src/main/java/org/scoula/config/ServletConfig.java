@@ -22,10 +22,11 @@ import java.util.List;
         "org.scoula.quiz.controller",
         "org.scoula.dictionary.controller",
         "org.scoula.bubble.controller",
+        "org.scoula.news.controller",
         "org.scoula.transactions.exception",
         "org.scoula.nhapi.controller",
         "org.scoula.challenge.controller",
-        "org.scoula.challenge.exception",
+        "org.scoula.challenge.exception"
 })
 public class ServletConfig implements WebMvcConfigurer {
 

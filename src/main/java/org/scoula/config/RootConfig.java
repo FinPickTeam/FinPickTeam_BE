@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
 
+
 @Slf4j
 @Configuration
 @PropertySource("classpath:application.properties")
@@ -29,8 +30,9 @@ import javax.sql.DataSource;
         "org.scoula.quiz.mapper",
         "org.scoula.dictionary.mapper",
         "org.scoula.bubble.mapper",
+        "org.scoula.news.mapper",
         "org.scoula.nhapi.mapper",
-        "org.scoula.challenge.mapper",
+        "org.scoula.challenge.mapper"
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",
@@ -48,10 +50,10 @@ import javax.sql.DataSource;
         "org.scoula.quiz.exception",
         "org.scoula.dictionary.service",
         "org.scoula.bubble.service",
+        "org.scoula.news.service",
         "org.scoula.nhapi.service",
         "org.scoula.nhapi.util",
-        "org.scoula.challenge.service",
-
+        "org.scoula.challenge.service"
 })
 @EnableTransactionManagement
 public class RootConfig {

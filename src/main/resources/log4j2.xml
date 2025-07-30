@@ -10,6 +10,7 @@
 
     <!-- Logger 설정 -->
     <Loggers>
+
         <Root level="INFO">
             <AppenderRef ref="console"/>
         </Root>
@@ -28,6 +29,7 @@
         <Logger name="jdbc.sqlonly" level="INFO" additivity="false">
             <AppenderRef ref="console"></AppenderRef>
         </Logger>
+
     </Loggers>
 
 </Configuration>
