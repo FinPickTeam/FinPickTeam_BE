@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.scoula.challenge.domain.Challenge;
 import org.scoula.challenge.dto.ChallengeCreateRequestDTO;
 import org.scoula.challenge.dto.ChallengeCreateResponseDTO;
+import org.scoula.challenge.dto.ChallengeListResponseDTO;
 import org.scoula.challenge.enums.ChallengeStatus;
 import org.scoula.challenge.enums.ChallengeType;
 import org.scoula.challenge.exception.*;
@@ -13,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -72,5 +75,39 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         return new ChallengeCreateResponseDTO(challenge.getId(), nickname);
     }
+
+    @Override
+    public List<ChallengeListResponseDTO> getChallenges(Long userId, ChallengeType type, ChallengeStatus status) {
+        List<Challenge> challenges = challengeMapper.findChallenges(type, status);
+
+        List<Long> userChallengeIds = challengeMapper.findUserChallengeIds(userId);
+
+        return challenges.stream().map(challenge -> {
+            boolean isParticipating = userChallengeIds.contains(challenge.getId());
+
+            Double myProgress = null;
+            int participants = 0;
+
+            if (challenge.getType() == ChallengeType.PERSONAL && isParticipating) {
+                myProgress = challengeMapper.getUserProgress(userId, challenge.getId());
+            } else if (challenge.getType() == ChallengeType.GROUP && isParticipating) {
+                myProgress = challengeMapper.getGroupAverageProgress(challenge.getId());
+            } else if (challenge.getStatus() == ChallengeStatus.RECRUITING) {
+                participants = challengeMapper.getParticipantsCount(challenge.getId());
+            }
+
+            return ChallengeListResponseDTO.builder()
+                    .id(challenge.getId())
+                    .title(challenge.getTitle())
+                    .type(challenge.getType())
+                    .startDate(challenge.getStartDate())
+                    .endDate(challenge.getEndDate())
+                    .isParticipating(isParticipating)
+                    .myProgressRate(myProgress)
+                    .participantsCount(participants)
+                    .build();
+        }).collect(Collectors.toList());
+    }
+
 }
 

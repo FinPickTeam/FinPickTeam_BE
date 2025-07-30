@@ -25,4 +25,35 @@
           AND c.status IN ('RECRUITING', 'IN_PROGRESS')
     </select>
 
+    <select id="findChallenges" resultType="org.scoula.challenge.domain.Challenge">
+        SELECT * FROM challenge
+        WHERE (#{type} IS NULL OR type = #{type})
+          AND (#{status} IS NULL OR status = #{status})
+    </select>
+
+    <select id="findUserChallengeIds" resultType="long">
+        SELECT challenge_id FROM user_challenge
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="getUserProgress" resultType="double">
+        SELECT actual_value * 1.0 / goal_value
+        FROM user_challenge uc
+                 JOIN challenge c ON uc.challenge_id = c.id
+        WHERE uc.user_id = #{userId} AND uc.challenge_id = #{challengeId}
+    </select>
+
+    <select id="getGroupAverageProgress" resultType="double">
+        SELECT AVG(actual_value * 1.0 / c.goal_value)
+        FROM user_challenge uc
+                 JOIN challenge c ON uc.challenge_id = c.id
+        WHERE uc.challenge_id = #{challengeId}
+    </select>
+
+    <select id="getParticipantsCount" resultType="int">
+        SELECT COUNT(*) FROM user_challenge
+        WHERE challenge_id = #{challengeId}
+    </select>
+
+
 </mapper>
