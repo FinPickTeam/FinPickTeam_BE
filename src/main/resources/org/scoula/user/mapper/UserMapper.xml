@@ -18,6 +18,10 @@
         SELECT * FROM user WHERE email = #{email}
     </select>
 
+    <select id="findNicknameById" resultType="string">
+        SELECT nickname FROM user_status WHERE id = #{id}
+    </select>
+
     <update id="updatePassword" parameterType="org.scoula.user.domain.User">
         UPDATE user
         SET password = #{password},

@@ -15,7 +15,6 @@ import java.util.List;
         "org.scoula.exception",
         "org.scoula.controller",
         "org.scoula.finance.controller",
-        "org.scoula.finance.service",
         "org.scoula.user.controller",
         "org.scoula.user.exception",
         "org.scoula.transactions.controller",
@@ -23,7 +22,11 @@ import java.util.List;
         "org.scoula.quiz.controller",
         "org.scoula.dictionary.controller",
         "org.scoula.bubble.controller",
-        "org.scoula.news.controller"
+        "org.scoula.news.controller",
+        "org.scoula.transactions.exception",
+        "org.scoula.nhapi.controller",
+        "org.scoula.challenge.controller",
+        "org.scoula.challenge.exception"
 })
 public class ServletConfig implements WebMvcConfigurer {
 

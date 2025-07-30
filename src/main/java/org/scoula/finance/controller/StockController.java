@@ -23,7 +23,7 @@ import java.util.List;
 public class StockController {
     private final StockService stockService;
 
-    // 사용자 키움증권 rest api 접근 토큰
+    // 사용자 키움증권 rest api 접근 토큰 발급 및 저장
     @PostMapping("/token/{userId}")
     public CommonResponseDTO<StockAccessTokenDto> issueAndSaveToken(@PathVariable Long userId) {
         StockAccessTokenDto token = stockService.issueAndSaveToken(userId);
@@ -33,7 +33,7 @@ public class StockController {
         return CommonResponseDTO.success("토큰 발급 성공", token);
     }
 
-    // 계좌 수익률 정보 가져오기
+    // 사용자 계좌 수익률 정보 가져오기
     @GetMapping("/account/{userId}")
     public CommonResponseDTO<StockAccountDto> getAccountInfo(@PathVariable Long userId) {
         StockAccountDto dto = stockService.getAccountReturnRate(userId);
@@ -93,6 +93,7 @@ public class StockController {
 
     @GetMapping("/test")
     public CommonResponseDTO<Long> test(@AuthenticationPrincipal User user) {
+        log.info(" 유저 데이터: "+  user.toString());
         Long userId = user.getId();
         return CommonResponseDTO.success("유저 아이디 반환", userId);
     }

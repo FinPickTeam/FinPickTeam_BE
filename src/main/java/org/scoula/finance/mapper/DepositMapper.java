@@ -16,5 +16,6 @@ public interface DepositMapper {
     List<DepositRecommendationDto> selectAllDepositRecommendations();
     DepositDetailDto selectDepositByProductName(@Param("productName") String productName);
     List<DepositRecommendationDto> selectDepositsByProductName(@Param("productName") String productName);
+    List<DepositListDto> selectDepositListByProductName(@Param("names") List<String> names);
 
 }

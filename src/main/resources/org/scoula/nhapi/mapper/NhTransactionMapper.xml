@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.nhapi.mapper.NhTransactionMapper">
+
+    <insert id="insertTransaction" parameterType="org.scoula.nhapi.domain.Transaction">
+        INSERT INTO transaction (
+            user_id, account_id, place, date, category,
+            type, amount, memo, analysis
+        ) VALUES (
+                     #{userId}, #{accountId}, #{place}, #{date}, #{category},
+                     #{type}, #{amount}, #{memo}, #{analysis}
+                 )
+    </insert>
+
+</mapper>

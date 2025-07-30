@@ -30,7 +30,9 @@ import javax.sql.DataSource;
         "org.scoula.quiz.mapper",
         "org.scoula.dictionary.mapper",
         "org.scoula.bubble.mapper",
-        "org.scoula.news.mapper"
+        "org.scoula.news.mapper",
+        "org.scoula.nhapi.mapper",
+        "org.scoula.challenge.mapper"
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",
@@ -39,6 +41,7 @@ import javax.sql.DataSource;
         "org.scoula.common.*", // 공통 유틸이나 예외 추가할 여지
         "org.scoula.finance.controller",
         "org.scoula.finance.service",
+        "org.scoula.finance.util",
         "org.scoula.transactions.service",
         "org.scoula.transactions.util",
         "org.scoula.transactions.exception",
@@ -47,7 +50,10 @@ import javax.sql.DataSource;
         "org.scoula.quiz.exception",
         "org.scoula.dictionary.service",
         "org.scoula.bubble.service",
-        "org.scoula.news.service"
+        "org.scoula.news.service",
+        "org.scoula.nhapi.service",
+        "org.scoula.nhapi.util",
+        "org.scoula.challenge.service"
 })
 @EnableTransactionManagement
 public class RootConfig {
@@ -98,12 +104,4 @@ public class RootConfig {
         return new DataSourceTransactionManager(dataSource());
     }
 
-    /*
-    static {
-        Dotenv d = Dotenv.configure()
-                .filename(".env")
-                .load();
-        d.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
-    }
-    */
 }
