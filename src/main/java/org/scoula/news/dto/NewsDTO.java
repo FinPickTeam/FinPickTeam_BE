@@ -22,15 +22,13 @@ public class NewsDTO {
     private LocalDateTime publishedAt;
 
 
-
-
     public static NewsDTO of(NewsVO newsVO){
 
         return NewsDTO.builder()
                 .id(newsVO.getId())
                 .title(newsVO.getTitle())
-                .summary(newsVO.getLink())
-                .link(newsVO.getSummary())
+                .summary(newsVO.getSummary())
+                .link(newsVO.getLink())
                 .publishedAt(newsVO.getPublishedAt())
                 .build();
     }
