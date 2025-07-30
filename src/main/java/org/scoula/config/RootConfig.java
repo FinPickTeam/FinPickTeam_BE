@@ -39,6 +39,7 @@ import javax.sql.DataSource;
         "org.scoula.common.*", // 공통 유틸이나 예외 추가할 여지
         "org.scoula.finance.controller",
         "org.scoula.finance.service",
+        "org.scoula.finance.util",
         "org.scoula.transactions.service",
         "org.scoula.transactions.util",
         "org.scoula.transactions.exception",
