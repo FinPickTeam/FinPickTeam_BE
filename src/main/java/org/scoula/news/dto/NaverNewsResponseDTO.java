@@ -2,6 +2,7 @@ package org.scoula.news.dto;
 
 
 import lombok.Data;
+import org.apache.commons.text.StringEscapeUtils;
 import org.scoula.news.domain.NewsVO;
 
 import java.time.LocalDateTime;
@@ -37,13 +38,16 @@ public class NaverNewsResponseDTO {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
             LocalDateTime parsePubDate=LocalDateTime.parse(this.pubDate,formatter);
 
-            String cleanTitle = this.title.replaceAll("<[^>]*>", "");
+            String unescapedTitle = StringEscapeUtils.unescapeHtml4(this.title);
+            String unescapedDescription = StringEscapeUtils.unescapeHtml4(this.description);
 
+            String cleanTitle = unescapedTitle.replaceAll("<[^>]*>", "");
+            String cleanDescription = unescapedDescription.replaceAll("<[^>]*>", "");
 
             NewsVO newsVO = new NewsVO();
-            newsVO.setTitle(this.title);
+            newsVO.setTitle(cleanTitle);
             newsVO.setLink(this.originallink);
-            newsVO.setSummary(this.description);
+            newsVO.setSummary(cleanDescription);
             newsVO.setPublishedAt(parsePubDate);
             return newsVO;
         }

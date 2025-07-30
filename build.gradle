@@ -101,6 +101,9 @@ dependencies {
   implementation 'org.springframework.data:spring-data-redis:2.7.18'
   implementation 'io.lettuce:lettuce-core:6.1.10.RELEASE'
 
+  // commons-te
+  implementation 'org.apache.commons:commons-text:1.10.0'
+
   // ✅ Swagger UI WebJar 리소스를 수동으로 추가
   add("swaggerUI", "org.webjars:swagger-ui:3.52.5")
 }

@@ -37,7 +37,7 @@ public class NewsController {
     @GetMapping("/SearchNews")
     public ResponseEntity<CommonResponseDTO<List<NewsDTO>>> getNewsList() {
         List<NewsDTO> newsDTO= newsService.getList();
-        return ResponseEntity.ok(CommonResponseDTO.success("네이버 뉴스 삽입 성공",newsDTO));
+        return ResponseEntity.ok(CommonResponseDTO.success("뉴스 조회 성공",newsDTO));
     }
 
 }
