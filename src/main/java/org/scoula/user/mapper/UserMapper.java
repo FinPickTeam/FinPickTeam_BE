@@ -9,5 +9,6 @@ public interface UserMapper {
 
     void save(User user); // 회원가입
     User findByEmail(String email); // 이메일로 비밀번호 찾기
+    String findNicknameById(Long id);
     void updatePassword(User user); // 비밀번호 재발급
 }

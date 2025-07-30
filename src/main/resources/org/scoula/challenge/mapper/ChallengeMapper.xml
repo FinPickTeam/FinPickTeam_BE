@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.challenge.mapper.ChallengeMapper">
+
+    <insert id="insertChallenge" parameterType="org.scoula.challenge.domain.Challenge" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO challenge
+        (title, category_id, start_date, end_date, description, type, max_participants, password, use_password, writer_id, status, goal_type, goal_value)
+        VALUES
+            (#{title}, #{categoryId}, #{startDate}, #{endDate}, #{description}, #{type}, #{maxParticipants}, #{password}, #{usePassword}, #{writerId}, #{status}, #{goalType}, #{goalValue})
+    </insert>
+
+    <insert id="insertUserChallenge">
+        INSERT INTO user_challenge (user_id, challenge_id, is_creator, is_completed, actual_value, is_success)
+        VALUES (#{userId}, #{challengeId}, #{isCreator}, #{isCompleted}, #{actualValue}, #{isSuccess});
+    </insert>
+
+    <select id="countUserOngoingChallenges" resultType="int">
+        SELECT COUNT(*) FROM user_challenge uc
+                                 JOIN challenge c ON uc.challenge_id = c.ID
+        WHERE uc.user_id = #{userId}
+          AND c.type = #{type}
+          AND c.status IN ('RECRUITING', 'IN_PROGRESS')
+    </select>
+
+</mapper>
