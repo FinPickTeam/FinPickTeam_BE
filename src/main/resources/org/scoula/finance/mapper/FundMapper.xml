@@ -10,4 +10,11 @@
             *
         FROM fund_list
     </select>
+
+    <select id="getFundDetail" resultType="org.scoula.finance.dto.fund.FundDetailDto">
+        SELECT
+            *
+        FROM fund_list
+        WHERE fund_product_name = #{fundProductName}
+    </select>
 </mapper>
