@@ -82,11 +82,9 @@ CREATE TABLE `avatar` (
                           `id` BIGINT NOT NULL,
                           `avatar_image` VARCHAR(255) NOT NULL,
                           `top_id` INT,
-                          `bottom_id` INT,
                           `shoes_id` INT,
                           `accessory_id` INT,
-                          `hat_id` INT,
-                          `background_id` INT,
+                          `gift_card_id` INT,
                           PRIMARY KEY (`id`),
                           FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
@@ -95,22 +93,21 @@ CREATE TABLE `avatar` (
 DROP TABLE IF EXISTS `item`;
 CREATE TABLE `item` (
                         `id` BIGINT NOT NULL AUTO_INCREMENT,
-                        `type` ENUM('TOP', 'BOTTOM', 'SHOES', 'ACCESSORY', 'HAT', 'BACKGROUND') NOT NULL,
-                        `code` INT NOT NULL,
+                        `type` ENUM('TOP', 'SHOES', 'ACCESSORY', 'GIFTCARD') NOT NULL,
                         `cost` INT NOT NULL,
                         `image_url` VARCHAR(255) NOT NULL,
                         PRIMARY KEY (`id`)
 );
 
--- 8. 착용 정보
+-- 8. 옷장
 DROP TABLE IF EXISTS `clothes`;
 CREATE TABLE `clothes` (
-                           `id` BIGINT NOT NULL,
+                           `id` BIGINT NOT NULL AUTO_INCREMENT,
                            `user_id` BIGINT NOT NULL,
                            `item_id` BIGINT NOT NULL,
                            `is_wearing` BOOLEAN NOT NULL,
                            PRIMARY KEY (`id`, `user_id`),
-                           FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
+                           FOREIGN KEY (`user_id`) REFERENCES `avatar`(`id`) ON DELETE CASCADE,
                            FOREIGN KEY (`item_id`) REFERENCES `item`(`id`) ON DELETE CASCADE
 );
 
