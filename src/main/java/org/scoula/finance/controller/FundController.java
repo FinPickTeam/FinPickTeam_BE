@@ -53,4 +53,17 @@ public class FundController {
             return CommonResponseDTO.error("해당 펀드를 찾을 수 없습니다.", 404);
         }
     }
+
+    @ApiOperation(value = "펀드 추천 리스트 조회", notes = "사용자의 투자성향과 펀드의 일간 수익률 데이터를 기반으로 상품을 추천합니다.")
+    @GetMapping("/recommned")
+    public CommonResponseDTO<List<FundListDto>> getRecommendFundList(){
+        List<FundListDto> dto = fundService.getFundRecommendation();
+
+        if(dto != null){
+            return CommonResponseDTO.success("펀드 추천 목록을 불러오는데 성공했습니다.", dto);
+        }
+        else{
+            return CommonResponseDTO.error("해당 펀드를 찾을 수 없습니다.", 404);
+        }
+    }
 }

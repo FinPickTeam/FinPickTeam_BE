@@ -7,11 +7,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @NoArgsConstructor
-public class FundListDto {
+public class FundRecommendationDto {
     private String fundManager; // 펀드 운용사
     private String fundProductName; // 펀드명
     private String fundRiskLevel; // 위험등급
     private String fundType; // 종류
-    private String fund3MonthReturn; // 3개월 수익률
+    private String fundReturnsData; // 수익률 데이터
     private String fundProductFeatures; // 상품 특징
 }
