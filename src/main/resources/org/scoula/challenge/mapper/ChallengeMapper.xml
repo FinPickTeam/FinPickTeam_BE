@@ -89,5 +89,20 @@
         WHERE id = #{challengeId}
     </update>
 
+    <select id="findAllChallenges" resultType="org.scoula.challenge.domain.Challenge">
+        SELECT * FROM challenge
+    </select>
+
+    <update id="completeUserChallenges">
+        UPDATE user_challenge
+        SET is_completed = true, updated_at = NOW()
+        WHERE challenge_id = #{challengeId}
+    </update>
+
+    <update id="markChallengeSuccess">
+        UPDATE user_challenge
+        SET is_success = true
+        WHERE challenge_id = #{challengeId}
+    </update>
 
 </mapper>

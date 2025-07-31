@@ -51,7 +51,8 @@ import javax.sql.DataSource;
         "org.scoula.news.service",
         "org.scoula.nhapi.service",
         "org.scoula.nhapi.util",
-        "org.scoula.challenge.service"
+        "org.scoula.challenge.service",
+        "org.scoula.challenge.scheduler",
 })
 @EnableTransactionManagement
 public class RootConfig {
