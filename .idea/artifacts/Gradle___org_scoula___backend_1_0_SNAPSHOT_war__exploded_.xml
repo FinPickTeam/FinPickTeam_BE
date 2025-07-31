@@ -98,6 +98,13 @@
           <element id="library" level="project" name="Gradle: commons-collections:commons-collections:3.2.2" />
           <element id="library" level="project" name="Gradle: net.bytebuddy:byte-buddy:1.8.12" />
           <element id="library" level="project" name="Gradle: io.jsonwebtoken:jjwt-impl:0.11.5" />
+          <element id="library" level="project" name="Gradle: com.squareup.okhttp3:okhttp:4.12.0" />
+          <element id="library" level="project" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10" />
+          <element id="library" level="project" name="Gradle: com.squareup.okio:okio-jvm:3.6.0" />
+          <element id="library" level="project" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.10" />
+          <element id="library" level="project" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.9.10" />
+          <element id="library" level="project" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.9.10" />
+          <element id="library" level="project" name="Gradle: org.jetbrains:annotations:13.0" />
         </element>
       </element>
     </root>
