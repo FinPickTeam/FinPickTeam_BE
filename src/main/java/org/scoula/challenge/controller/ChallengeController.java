@@ -8,12 +8,14 @@ import org.scoula.challenge.enums.ChallengeType;
 import org.scoula.challenge.service.ChallengeService;
 import org.scoula.common.dto.CommonResponseDTO;
 import org.scoula.security.util.JwtUtil;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Slf4j
+@Component
 @RestController
 @RequestMapping("/api/challenge")
 @RequiredArgsConstructor
