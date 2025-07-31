@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.transactions.mapper.AccountTransactionMapper">
+
+    <select id="findByUserAndAccount" resultType="org.scoula.transactions.domain.AccountTransaction">
+        SELECT id, user_id, account_id, date, type, amount, balance, place, is_cancelled, tu_no
+        FROM account_transaction
+        WHERE user_id = #{userId}
+          AND account_id = #{accountId}
+          AND is_cancelled = FALSE
+        ORDER BY date DESC
+    </select>
+
+
+</mapper>

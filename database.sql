@@ -151,35 +151,102 @@ DROP TABLE IF EXISTS `account`;
 CREATE TABLE `account` (
                            `id` BIGINT NOT NULL AUTO_INCREMENT,
                            `user_id` BIGINT NOT NULL,
-                           `bank_name` VARCHAR(255) NOT NULL,
-                           `account_number` VARCHAR(255) NOT NULL,
                            `pin_account_number` VARCHAR(255) NOT NULL,
-                           `account_type` VARCHAR(255) NOT NULL,
-                           `balance` DECIMAL(10,2) NOT NULL,
-                           `connected_at` DATETIME DEFAULT now(),
+                           `bank_code` VARCHAR(20) NOT NULL,
+                           `account_number` VARCHAR(255) NOT NULL,
+                           `product_name` VARCHAR(255) NOT NULL,
+                           `account_type` VARCHAR(50) NOT NULL,
+                           `balance` DECIMAL(20,2) NOT NULL,
+                           `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                            PRIMARY KEY (`id`),
                            FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 
--- 2. 거래 내역
-DROP TABLE IF EXISTS `transaction`;
-CREATE TABLE `transaction` (
-                               `id` BIGINT NOT NULL AUTO_INCREMENT,
-                               `user_id` BIGINT NOT NULL,
-                               `account_id` BIGINT NOT NULL,
-                               `place` VARCHAR(255) NOT NULL,
-                               `date` DATETIME NOT NULL,
-                               `category` VARCHAR(255),
-                               `type` ENUM('INCOME', 'EXPENSE') NOT NULL,
-                               `amount` DECIMAL(10,2) NOT NULL,
-                               `memo` TEXT,
-                               `analysis` VARCHAR(255),
-                               PRIMARY KEY (`id`),
-                               FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
-                               FOREIGN KEY (`account_id`) REFERENCES `account`(`id`) ON DELETE CASCADE
+-- 2. 계좌 거래 내역
+DROP TABLE IF EXISTS `account_transaction`;
+CREATE TABLE `account_transaction` (
+                                       `id` BIGINT NOT NULL AUTO_INCREMENT,
+                                       `user_id` BIGINT NOT NULL,
+                                       `account_id` BIGINT NOT NULL,
+                                       `date` DATETIME NOT NULL,
+                                       `type` ENUM('INCOME', 'EXPENSE') NOT NULL,
+                                       `amount` DECIMAL(20,2) NOT NULL,
+                                       `balance` DECIMAL(20,2) NOT NULL,
+                                       `place` VARCHAR(255) NOT NULL,
+                                       `is_cancelled` BOOLEAN NOT NULL DEFAULT FALSE,
+                                       `tu_no` BIGINT NOT NULL,
+                                       PRIMARY KEY (`id`),
+                                       FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
+                                       FOREIGN KEY (`account_id`) REFERENCES `account`(`id`) ON DELETE CASCADE
 );
 
--- 3. 월간 리포트
+-- 3. 카드 정보
+DROP TABLE IF EXISTS `card`;
+CREATE TABLE `card` (
+                        `id` BIGINT NOT NULL AUTO_INCREMENT,
+                        `user_id` BIGINT NOT NULL,
+                        `fin_card_number` VARCHAR(255) NOT NULL,
+                        `back_code` VARCHAR(10) NOT NULL,
+                        `bank_name` VARCHAR(50) NOT NULL,
+                        `card_name` VARCHAR(100) NOT NULL,
+                        `card_maskednum` VARCHAR(30) NOT NULL,
+                        `card_member_type` ENUM('SELF', 'FAMILY') NOT NULL,
+                        `card_type` ENUM('CREDIT', 'DEBIT') NOT NULL,
+                        `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (`id`),
+                        FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
+);
+
+-- 4. 카드 거래 내역
+DROP TABLE IF EXISTS `card_transaction`;
+CREATE TABLE `card_transaction` (
+                                    `id` BIGINT NOT NULL AUTO_INCREMENT,
+                                    `user_id` BIGINT NOT NULL,
+                                    `card_id` BIGINT NOT NULL,
+                                    `auth_number` VARCHAR(50) NOT NULL,
+                                    `sales_type` ENUM('1','2','3','6','7','8') NOT NULL COMMENT '1:일시불 2:할부 3:현금서비스 6:해외일시불 7:해외할부 8:해외현금서비스',
+                                    `approved_at` DATETIME NOT NULL,
+                                    `payment_date` DATE NOT NULL,
+                                    `amount` DECIMAL(20,2) NOT NULL,
+                                    `is_cancelled` BOOLEAN NOT NULL DEFAULT FALSE,
+                                    `cancel_amount` DECIMAL(20,2),
+                                    `cancelled_at` DATETIME,
+                                    `merchant_name` VARCHAR(100),
+                                    `tpbcd` VARCHAR(20),
+                                    `tpbcd_nm` VARCHAR(50),
+                                    `installment_month` INT,
+                                    `currency` VARCHAR(10),
+                                    `foreign_amount` DECIMAL(20,2),
+                                    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                    PRIMARY KEY (`id`),
+                                    FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
+                                    FOREIGN KEY (`card_id`) REFERENCES `card`(`id`) ON DELETE CASCADE
+);
+
+-- 5. 거래내역 (통합 로그)
+DROP TABLE IF EXISTS `ledger`;
+CREATE TABLE `ledger` (
+                          `id` BIGINT NOT NULL AUTO_INCREMENT,
+                          `user_id` BIGINT NOT NULL,
+                          `source_id` BIGINT NOT NULL,
+                          `account_id` BIGINT,
+                          `card_id` BIGINT,
+                          `source_type` ENUM('ACCOUNT', 'CARD') NOT NULL,
+                          `source_name` VARCHAR(100),
+                          `type` ENUM('INCOME', 'EXPENSE') NOT NULL,
+                          `amount` DECIMAL(20,2) NOT NULL,
+                          `category` VARCHAR(50),
+                          `memo` TEXT,
+                          `analysis` VARCHAR(255),
+                          `date` DATETIME NOT NULL,
+                          `merchant_name` VARCHAR(100),
+                          `place` VARCHAR(100),
+                          `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                          PRIMARY KEY (`id`),
+                          FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
+);
+
+-- 6. 월간 리포트
 DROP TABLE IF EXISTS `monthreport`;
 CREATE TABLE `monthreport` (
                                `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -199,7 +266,7 @@ CREATE TABLE `monthreport` (
                                FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 
--- 4. 예금 상품 목록
+-- 7. 예금 상품 목록
 DROP TABLE IF EXISTS `deposit_list`;
 CREATE TABLE `deposit_list` (
                                 `id` INT NOT NULL AUTO_INCREMENT,
@@ -216,25 +283,7 @@ CREATE TABLE `deposit_list` (
                                 PRIMARY KEY (`id`)
 );
 
--- 5. 적금 상품 목록
-DROP TABLE IF EXISTS `installment_list`;
-CREATE TABLE `installment_list` (
-                                `id` INT NOT NULL AUTO_INCREMENT,
-                                `installment_bank_name` VARCHAR(255) NOT NULL,
-                                `installment_product_name` VARCHAR(255) NOT NULL,
-                                `installment_contract_period` VARCHAR(50) NOT NULL,
-                                `installment_type` VARCHAR(8) NOT NULL,
-                                `installment_subscription_amount` VARCHAR(50) NOT NULL,
-                                `installment_basic_rate` FLOAT(10,2) NOT NULL,
-                                `installment_max_rate` FLOAT(10,2) NOT NULL,
-                                `installment_preferential_rate` TEXT NULL,
-                                `installment_product_features` TEXT NULL,
-                                `installment_summary` VARCHAR(255) NOT NULL,
-                                `installment_link` VARCHAR(255) NULL,
-                                PRIMARY KEY (`id`)
-);
-
--- 6. 펀드 상품 목록
+-- 8. 펀드 상품 목록
 DROP TABLE IF EXISTS `fund_list`;
 CREATE TABLE `fund_list` (
                              `id` VARCHAR(255) NOT NULL,
@@ -253,7 +302,7 @@ CREATE TABLE `fund_list` (
                              PRIMARY KEY (`id`)
 );
 
--- 7. 주식 상품 목록
+-- 9. 주식 상품 목록
 DROP TABLE IF EXISTS `stock_list`;
 CREATE TABLE `stock_list` (
                               `id` INT NOT NULL AUTO_INCREMENT,
@@ -264,7 +313,7 @@ CREATE TABLE `stock_list` (
                               PRIMARY KEY (`id`)
 );
 
--- 8. 찜한 상품 (유저별)
+-- 10. 찜한 상품 (유저별)
 DROP TABLE IF EXISTS `wishlist`;
 CREATE TABLE `wishlist` (
                             `id` INT NOT NULL AUTO_INCREMENT,
@@ -275,7 +324,7 @@ CREATE TABLE `wishlist` (
                             FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 
--- 9. 키움증권 rest api 접근 토큰
+-- 11. 키움증권 rest api 접근 토큰
 DROP TABLE IF EXISTS `user_kiwoom_access_token`;
 CREATE TABLE `user_kiwoom_access_token` (
                                             `id`       BIGINT       NOT NULL,
@@ -286,7 +335,7 @@ CREATE TABLE `user_kiwoom_access_token` (
                                             FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 );
 
--- 10. 주식 차트 데이터
+-- 12. 주식 차트 데이터
 DROP TABLE IF EXISTS `stock_chart_cache`;
 CREATE TABLE `stock_chart_cache` (
                                     `stock_code` VARCHAR(20) NOT NULL,
