@@ -1,20 +1,20 @@
 package org.scoula.transactions.domain;
 
-import lombok.*;
+import lombok.Data;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor @Builder
-public class Transaction {
+@Data
+public class AccountTransaction {
     private Long id;
     private Long userId;
     private Long accountId;
-    private String place;
     private LocalDateTime date;
-    private String category;
     private String type; // INCOME or EXPENSE
     private BigDecimal amount;
-    private String memo;
-    private String analysis; 
+    private BigDecimal balance;
+    private String place;
+    private Boolean isCancelled;
+    private Long tuNo;
 }
