@@ -139,8 +139,36 @@ DROP TABLE IF EXISTS `bubble`;
 CREATE TABLE `bubble` (
                           `id` BIGINT NOT NULL AUTO_INCREMENT,
                           `message` VARCHAR(255) NOT NULL,
+
                           PRIMARY KEY (`id`)
 );
+
+-- 12. 재화정보
+DROP TABLE IF EXISTS `coin`;
+CREATE TABLE `coin` (
+                        `id` BIGINT NOT NULL,
+                        `amount` VARCHAR(255) NOT NULL,
+                        `cumulative_amount` BIGINT NOT NULL DEFAULT 0, -- 누적 재화량
+                        `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+                        PRIMARY KEY (`id`),
+                        FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
+);
+
+-- 13. 재화내역
+DROP TABLE IF EXISTS `coin_history`;
+CREATE TABLE `coin_history` (
+                                `id` BIGINT NOT NULL AUTO_INCREMENT,
+                                `user_id` BIGINT NOT NULL,
+                                `amount` BIGINT NOT NULL,
+                                `type` ENUM('PLUS', 'MINUS') NOT NULL,
+                                `comment` VARCHAR(255) NOT NULL,
+                                `coin_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                                PRIMARY KEY (`id`),
+                                FOREIGN KEY (`user_id`) REFERENCES `coin`(`id`) ON DELETE CASCADE
+);
+
 
 -- FINANCIAL
 -- 1. 계좌 정보
