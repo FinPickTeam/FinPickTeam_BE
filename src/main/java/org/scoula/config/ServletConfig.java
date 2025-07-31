@@ -25,6 +25,7 @@ import java.util.List;
         "org.scoula.bubble.controller",
         "org.scoula.transactions.exception",
         "org.scoula.nhapi.controller",
+        "org.scoula.monthreport.controller",
 })
 public class ServletConfig implements WebMvcConfigurer {
 

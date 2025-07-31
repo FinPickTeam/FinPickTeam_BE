@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.monthreport.mapper.MonthReportMapper">
+
+    <select id="findCardTransactions" resultType="org.scoula.monthreport.dto.CardTransactionDTO">
+        SELECT amount, merchant_industry
+        FROM card_transaction
+        WHERE user_id = #{userId}
+          AND approved_at BETWEEN #{from} AND #{to}
+          AND is_cancelled = FALSE
+    </select>
+
+    <select id="findMonthReport" resultType="org.scoula.monthreport.dto.MonthReportDTO">
+        SELECT month, total_expense, total_saving
+        FROM monthreport
+        WHERE user_id = #{userId} AND month = #{month}
+    </select>
+
+    <select id="findTransactionMonths" resultType="string">
+        SELECT DISTINCT DATE_FORMAT(approved_at, '%Y-%m') AS month
+        FROM card_transaction
+        WHERE user_id = #{userId}
+        ORDER BY month ASC
+    </select>
+
+    <select id="findExistingReportMonths" resultType="string">
+        SELECT DISTINCT month
+        FROM monthreport
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="findRecentMonthReports" resultType="org.scoula.monthreport.dto.MonthReportDTO">
+        SELECT month, total_expense
+        FROM monthreport
+        WHERE user_id = #{userId}
+          AND STR_TO_DATE(month, '%Y-%m') &lt; STR_TO_DATE(#{currentMonth}, '%Y-%m')
+        ORDER BY STR_TO_DATE(month, '%Y-%m') DESC
+        LIMIT 6
+    </select>
+
+    <insert id="insertMonthReport">
+        INSERT INTO monthreport (
+            user_id, month, total_expense, total_saving, saving_rate,
+            compare_expense, compare_saving,
+            category_chart, six_month_chart,
+            feedback, next_goal
+        ) VALUES (
+                     #{userId}, #{month}, #{totalExpense}, #{totalSaving}, #{savingRate},
+                     #{compareExpense}, #{compareSaving},
+                     #{categoryChart}, #{sixMonthChart},
+                     #{feedback}, #{nextGoal}
+                 )
+    </insert>
+
+    <select id="findRecentMonthReportsInclusive" resultType="org.scoula.monthreport.dto.MonthReportDTO">
+        SELECT month, total_expense
+        FROM monthreport
+        WHERE user_id = #{userId}
+        AND STR_TO_DATE(month, '%Y-%m') <![CDATA[ <= ]]> STR_TO_DATE(#{currentMonth}, '%Y-%m')
+        ORDER BY STR_TO_DATE(month, '%Y-%m') DESC
+        LIMIT 6
+    </select>
+
+
+</mapper>

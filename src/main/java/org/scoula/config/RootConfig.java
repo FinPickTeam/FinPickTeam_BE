@@ -30,6 +30,7 @@ import javax.sql.DataSource;
         "org.scoula.dictionary.mapper",
         "org.scoula.bubble.mapper",
         "org.scoula.nhapi.mapper",
+        "org.scoula.monthreport.mapper",
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",
@@ -48,6 +49,7 @@ import javax.sql.DataSource;
         "org.scoula.bubble.service",
         "org.scoula.nhapi.service",
         "org.scoula.nhapi.util",
+        "org.scoula.monthreport.service",
 
 
 })
