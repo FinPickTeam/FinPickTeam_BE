@@ -13,4 +13,6 @@ public interface ChallengeService {
     ChallengeCreateResponseDTO createChallenge(Long userId, ChallengeCreateRequestDTO req);
     List<ChallengeListResponseDTO> getChallenges(Long userId, ChallengeType type, ChallengeStatus status);
     ChallengeDetailResponseDTO getChallengeDetail(Long userId, Long challengeId);
+    void joinChallenge(Long userId, Long challengeId, Integer password);
+
 }
