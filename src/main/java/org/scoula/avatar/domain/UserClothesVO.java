@@ -3,9 +3,10 @@ package org.scoula.avatar.domain;
 import lombok.Data;
 
 @Data
-public class ItemsVO {
-    private Long id;
+public class UserClothesVO {
+    private int itemId;
+    private int cost;
     private String type;
-    private Integer cost;
     private String imageUrl;
+    private boolean isWearing;
 }

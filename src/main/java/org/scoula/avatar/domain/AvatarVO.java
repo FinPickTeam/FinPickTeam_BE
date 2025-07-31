@@ -10,6 +10,4 @@ public class AvatarVO {
     private Integer shoesId;
     private Integer accessoryId;
     private Integer giftCardId;
-
-
 }

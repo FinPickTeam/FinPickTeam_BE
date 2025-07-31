@@ -4,8 +4,8 @@ import lombok.Data;
 
 @Data
 public class ClothesVO {
-    private Long id;
-    private Long userId;
-    private Long itemId;
-    private Boolean isWearing;
+    private int id;
+    private int item_id;
+    private int user_id;
+    private int isWearing;
 }

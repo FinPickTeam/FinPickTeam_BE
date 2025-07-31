@@ -5,4 +5,51 @@
 
 <mapper namespace="org.scoula.avatar.mapper.AvatarMapper">
 
+    <!--아바타 착장 조회-->
+    <select id="getAvatar" resultType="org.scoula.avatar.domain.AvatarVO">
+        SELECT * FROM AVATAR WHERE id=#{userId}
+    </select>
+
+    <!--아이템 타입 조회-->
+    <select id="getItemType" parameterType="int" resultType="String">
+        SELECT type FROM item WHERE id=#{itemId}
+    </select>
+
+    <!--아바타 착장 수정-->
+    <update id="updateAvatar" parameterType="org.scoula.avatar.domain.AvatarVO">
+        UPDATE avatar
+        SET
+            top_id = #{topId},
+            shoes_id = #{shoesId},
+            accessory_id = #{accessoryId},
+            gift_card_item_id = #{giftCardId}
+        WHERE
+            id = #{userId}
+    </update>
+
+    <!-- 유저가 보유한 의상 목록 조회 -->
+    <select id="getUserClothes" resultType="org.scoula.avatar.domain.UserClothesVO">
+        SELECT c.item_id, i.type, i.cost, i.image_url, c.is_wearing
+        FROM clothes c
+                 LEFT JOIN item i ON c.item_id=i.id
+        WHERE c.user_id={user_id}
+    </select>
+
+
+    <!-- 옷장에 유저의상 추가 -->
+    <insert id="insertClothe" parameterType="org.scoula.avatar.domain.ClothesVO">
+        INSERT INTO clothes (user_id, item_id, is_wearing)VALUES (#{userId}, #{itemId}, false)
+    </insert>
+
+    <!-- 유저재화수정 -->
+    <update id="updateMoney" parameterType="int">
+        UPDATE coin SET amount=#{curAmount}
+    </update>
+
+    <select id="getUserCoin" parameterType="Long" resultType="int">
+        SELECT amount FROM coin WHERE id=#{userId}
+    </select>
+    <select id="getItemCost" resultType="java.lang.Integer">
+        SELECT cost FROM item WHERE id=#{itemId};
+    </select>
 </mapper>

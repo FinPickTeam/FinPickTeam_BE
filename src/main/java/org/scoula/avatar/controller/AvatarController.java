@@ -4,6 +4,7 @@ public class AvatarController {
 
     //아바타 착장 조회(get, 파라미터 : Long userId, 반환값 : AvatarDTO)
 
+
     //아바타 착장 수정(put, 파라미터 : Long userId, int topId, int shoesId, int accessoryId, int giftCardId, 반환값 : 성공여부)
     //각 아이템들마다 해당하는 타입파악(select type from item where id=#{itemId}) 후, 해당하는 컬럼에 각각 반영
 
