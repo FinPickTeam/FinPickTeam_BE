@@ -7,9 +7,9 @@
 
     <insert id="insertChallenge" parameterType="org.scoula.challenge.domain.Challenge" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO challenge
-        (title, category_id, start_date, end_date, description, type, max_participants, password, use_password, writer_id, status, goal_type, goal_value)
+        (title, category_id, start_date, end_date, description, type, max_participants, password, use_password, writer_id, status, goal_type, goal_value, participant_count)
         VALUES
-            (#{title}, #{categoryId}, #{startDate}, #{endDate}, #{description}, #{type}, #{maxParticipants}, #{password}, #{usePassword}, #{writerId}, #{status}, #{goalType}, #{goalValue})
+            (#{title}, #{categoryId}, #{startDate}, #{endDate}, #{description}, #{type}, #{maxParticipants}, #{password}, #{usePassword}, #{writerId}, #{status}, #{goalType}, #{goalValue}, #{participantCount})
     </insert>
 
     <insert id="insertUserChallenge">
@@ -55,5 +55,26 @@
         WHERE challenge_id = #{challengeId}
     </select>
 
+    <select id="findChallengeById" resultType="org.scoula.challenge.domain.Challenge">
+        SELECT * FROM challenge WHERE id = #{challengeId}
+    </select>
+
+    <select id="isUserParticipating" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM user_challenge
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </select>
+
+    <select id="getGroupMembersWithAvatar" resultType="org.scoula.challenge.dto.ChallengeMemberDTO">
+    SELECT u.id AS userId,
+           us.nickname AS nickname,
+           (uc.actual_value * 1.0 / c.goal_value) AS progress,
+           a.avatar_image AS avatarImage
+    FROM user_challenge uc
+             JOIN user u ON uc.user_id = u.id
+             JOIN user_status us ON u.id = us.id
+             JOIN challenge c ON uc.challenge_id = c.id
+             LEFT JOIN avatar a ON u.id = a.id
+    WHERE uc.challenge_id = #{challengeId}
+</select>
 
 </mapper>

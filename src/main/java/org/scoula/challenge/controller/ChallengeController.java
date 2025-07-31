@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.challenge.dto.ChallengeCreateRequestDTO;
 import org.scoula.challenge.dto.ChallengeCreateResponseDTO;
+import org.scoula.challenge.dto.ChallengeDetailResponseDTO;
 import org.scoula.challenge.dto.ChallengeListResponseDTO;
 import org.scoula.challenge.enums.ChallengeStatus;
 import org.scoula.challenge.enums.ChallengeType;
@@ -48,5 +49,15 @@ public class ChallengeController {
         List<ChallengeListResponseDTO> challenges = challengeService.getChallenges(userId, type, status);
         return CommonResponseDTO.success("챌린지 리스트 조회 성공", challenges);
     }
+
+    @GetMapping("/{id}")
+    public CommonResponseDTO<ChallengeDetailResponseDTO> getChallengeDetail(@PathVariable("id") Long id,
+                                                                            HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
+        ChallengeDetailResponseDTO detail = challengeService.getChallengeDetail(userId, id);
+        return CommonResponseDTO.success("챌린지 상세 조회 성공", detail);
+    }
+
 
 }

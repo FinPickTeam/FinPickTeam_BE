@@ -329,6 +329,7 @@ CREATE TABLE `challenge` (
                              FOREIGN KEY (`writer_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 ALTER TABLE challenge ADD use_password BOOLEAN DEFAULT FALSE;
+ALTER TABLE challenge ADD COLUMN participant_count INT DEFAULT 0;
 
 
 -- 3. 유저-챌린지 매핑 (참여 내역)
