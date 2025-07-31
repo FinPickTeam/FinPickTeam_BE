@@ -2,9 +2,7 @@ package org.scoula.challenge.service;
 
 import lombok.RequiredArgsConstructor;
 import org.scoula.challenge.domain.Challenge;
-import org.scoula.challenge.dto.ChallengeCreateRequestDTO;
-import org.scoula.challenge.dto.ChallengeCreateResponseDTO;
-import org.scoula.challenge.dto.ChallengeListResponseDTO;
+import org.scoula.challenge.dto.*;
 import org.scoula.challenge.enums.ChallengeStatus;
 import org.scoula.challenge.enums.ChallengeType;
 import org.scoula.challenge.exception.*;
@@ -65,6 +63,13 @@ public class ChallengeServiceImpl implements ChallengeService {
         challenge.setStatus(ChallengeStatus.RECRUITING);
         challenge.setGoalType("소비");
 
+        // 참여자 수 설정 (COMMON 은 제외)
+        if (req.getType() != ChallengeType.COMMON) {
+            challenge.setParticipantCount(1); // 본인 참여
+        } else {
+            challenge.setParticipantCount(0); // 플랫폼 기본값
+        }
+
         challengeMapper.insertChallenge(challenge);
 
         // 6. UserChallenge 생성 (is_creator = true)
@@ -86,14 +91,11 @@ public class ChallengeServiceImpl implements ChallengeService {
             boolean isParticipating = userChallengeIds.contains(challenge.getId());
 
             Double myProgress = null;
-            int participants = 0;
 
             if (challenge.getType() == ChallengeType.PERSONAL && isParticipating) {
                 myProgress = challengeMapper.getUserProgress(userId, challenge.getId());
             } else if (challenge.getType() == ChallengeType.GROUP && isParticipating) {
                 myProgress = challengeMapper.getGroupAverageProgress(challenge.getId());
-            } else if (challenge.getStatus() == ChallengeStatus.RECRUITING) {
-                participants = challengeMapper.getParticipantsCount(challenge.getId());
             }
 
             return ChallengeListResponseDTO.builder()
@@ -104,10 +106,48 @@ public class ChallengeServiceImpl implements ChallengeService {
                     .endDate(challenge.getEndDate())
                     .isParticipating(isParticipating)
                     .myProgressRate(myProgress)
-                    .participantsCount(participants)
+                    .participantsCount(challenge.getParticipantCount())
                     .build();
         }).collect(Collectors.toList());
     }
+
+    @Override
+    public ChallengeDetailResponseDTO getChallengeDetail(Long userId, Long challengeId) {
+        Challenge challenge = challengeMapper.findChallengeById(challengeId);
+        if (challenge == null) throw new ChallengeNotFoundException();
+
+        boolean isMine = challenge.getWriterId().equals(userId);
+        boolean isParticipating = challengeMapper.isUserParticipating(userId, challengeId);
+
+        Double myProgress = null;
+        List<ChallengeMemberDTO> members = null;
+
+        if (isParticipating) {
+            myProgress = challengeMapper.getUserProgress(userId, challengeId);
+        }
+
+        if (challenge.getType() == ChallengeType.GROUP) {
+            members = challengeMapper.getGroupMembersWithAvatar(challengeId);
+        }
+
+        return ChallengeDetailResponseDTO.builder()
+                .id(challenge.getId())
+                .title(challenge.getTitle())
+                .description(challenge.getDescription())
+                .type(challenge.getType())
+                .status(challenge.getStatus())
+                .startDate(challenge.getStartDate())
+                .endDate(challenge.getEndDate())
+                .goalType(challenge.getGoalType())
+                .goalValue(challenge.getGoalValue())
+                .isMine(isMine)
+                .isParticipating(isParticipating)
+                .myProgress(myProgress)
+                .participantsCount(challenge.getParticipantCount())
+                .members(members)
+                .build();
+    }
+
 
 }
 

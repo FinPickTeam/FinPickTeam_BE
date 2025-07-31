@@ -3,6 +3,7 @@ package org.scoula.challenge.mapper;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.scoula.challenge.domain.Challenge;
+import org.scoula.challenge.dto.ChallengeMemberDTO;
 import org.scoula.challenge.enums.ChallengeStatus;
 import org.scoula.challenge.enums.ChallengeType;
 
@@ -31,7 +32,12 @@ public interface ChallengeMapper {
 
     Double getGroupAverageProgress(@Param("challengeId") Long challengeId);
 
-    int getParticipantsCount(@Param("challengeId") Long challengeId);
+    Challenge findChallengeById(@Param("challengeId") Long challengeId);
+
+    boolean isUserParticipating(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
+
+    List<ChallengeMemberDTO> getGroupMembersWithAvatar(@Param("challengeId") Long challengeId);
+
 
 }
 
