@@ -38,6 +38,10 @@ public interface ChallengeMapper {
 
     List<ChallengeMemberDTO> getGroupMembersWithAvatar(@Param("challengeId") Long challengeId);
 
+    void incrementParticipantCount(@Param("challengeId") Long challengeId);
+
+    void updateChallengeStatus(@Param("challengeId") Long challengeId,
+                               @Param("status") String status);
 
 }
 
