@@ -286,18 +286,16 @@ CREATE TABLE `deposit_list` (
 -- 8. 펀드 상품 목록
 DROP TABLE IF EXISTS `fund_list`;
 CREATE TABLE `fund_list` (
-                             `id` VARCHAR(255) NOT NULL,
-                             `fund_name` VARCHAR(255) NOT NULL,
-                             `manager_name` VARCHAR(255) NOT NULL,
-                             `standard_price` FLOAT(10,2) NOT NULL,
-                             `return_1month` FLOAT(10,2) NOT NULL,
-                             `return_3month` FLOAT(10,2) NOT NULL,
-                             `return_6month` FLOAT(10,2) NOT NULL,
-                             `return_9month` FLOAT(10,2) NOT NULL,
-                             `return_12month` FLOAT(10,2) NOT NULL,
-                             `fund_type` ENUM('BOND', 'STOCK', 'MIXED', 'ETF') NOT NULL,
-                             `risk_rating` ENUM('LOW', 'MEDIUM', 'HIGH') NOT NULL,
-                             `description` TEXT NOT NULL,
+                             `id` INT NOT NULL AUTO_INCREMENT,
+                             `fund_manager` VARCHAR(255) NOT NULL,
+                             `fund_product_name` VARCHAR(255) NOT NULL,
+                             `fund_risk_level` VARCHAR(255) NOT NULL,
+                             `fund_type` VARCHAR(20) NOT NULL,
+                             `fund_returns_data` TEXT NOT NULL,
+                             `fund_start_Date` VARCHAR(255) NOT NULL,
+                             `fund_net_asset_value` VARCHAR(255) NOT NULL,
+                             `fund_total_expense_ratio` VARCHAR(255) NOT NULL,
+                             `fund_product_features` TEXT NOT NULL,
                              `fund_link` VARCHAR(255) NOT NULL,
                              PRIMARY KEY (`id`)
 );
