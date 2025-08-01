@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.user.mapper.UserStatusMapper">
+
+    <insert id="save" parameterType="org.scoula.user.domain.UserStatus">
+        INSERT INTO user_status (id, nickname, level)
+        VALUES (#{id}, #{nickname}, #{level})
+    </insert>
+
+    <select id="isNicknameDuplicated" resultType="boolean">
+        SELECT EXISTS(SELECT 1 FROM user_status WHERE nickname = #{nickname})
+    </select>
+
+</mapper>

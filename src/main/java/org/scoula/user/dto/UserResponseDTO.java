@@ -11,6 +11,7 @@ public class UserResponseDTO {
     private String email;
     private String userName;
     private String createdAt;
-
+    private String nickname;
+    private String level;
 }
 

@@ -175,6 +175,7 @@ CREATE TABLE `account_transaction` (
                                        `place` VARCHAR(255) NOT NULL,
                                        `is_cancelled` BOOLEAN NOT NULL DEFAULT FALSE,
                                        `tu_no` BIGINT NOT NULL,
+                                       `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                        PRIMARY KEY (`id`),
                                        FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
                                        FOREIGN KEY (`account_id`) REFERENCES `account`(`id`) ON DELETE CASCADE
@@ -223,7 +224,32 @@ CREATE TABLE `card_transaction` (
                                     FOREIGN KEY (`card_id`) REFERENCES `card`(`id`) ON DELETE CASCADE
 );
 
--- 5. 거래내역 (통합 로그)
+-- 5. 가계부 카테고리
+DROP TABLE IF EXISTS `tr_category`;
+CREATE TABLE tr_category (
+                             id BIGINT NOT NULL AUTO_INCREMENT,
+                             name VARCHAR(50) NOT NULL UNIQUE,   -- 내부 키 (ex. food, cafe)
+                             label VARCHAR(50) NOT NULL,         -- 사용자 노출명 (ex. 식비)
+                             PRIMARY KEY (id)
+);
+
+-- 🎯 초기 카테고리 데이터
+INSERT INTO tr_category (name, label) VALUES
+                                          ('food',         '식비'),
+                                          ('cafe',         '카페/간식'),
+                                          ('shopping',     '쇼핑/미용'),
+                                          ('mart',         '편의점/마트/잡화'),
+                                          ('house',        '주거/통신'),
+                                          ('hobby',        '취미/여가'),
+                                          ('transport',    '교통/자동차'),
+                                          ('finance',      '보험 및 기타 금융'),
+                                          ('subscription', '구독'),
+                                          ('transfer',     '이체'),
+                                          ('etc',          '기타'),
+                                          ('uncategorized','카테고리 없음');
+
+
+-- 6. 거래내역 (통합 로그)
 DROP TABLE IF EXISTS `ledger`;
 CREATE TABLE `ledger` (
                           `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -235,7 +261,7 @@ CREATE TABLE `ledger` (
                           `source_name` VARCHAR(100),
                           `type` ENUM('INCOME', 'EXPENSE') NOT NULL,
                           `amount` DECIMAL(20,2) NOT NULL,
-                          `category` VARCHAR(50),
+                          `category_id` BIGINT NOT NULL,
                           `memo` TEXT,
                           `analysis` VARCHAR(255),
                           `date` DATETIME NOT NULL,
@@ -243,10 +269,11 @@ CREATE TABLE `ledger` (
                           `place` VARCHAR(100),
                           `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                           PRIMARY KEY (`id`),
-                          FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
+                          FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
+                          FOREIGN KEY (`category_id`) REFERENCES `tr_category`(`id`) ON DELETE RESTRICT
 );
 
--- 6. 월간 리포트
+-- 7. 월간 리포트
 DROP TABLE IF EXISTS `monthreport`;
 CREATE TABLE `monthreport` (
                                `id` BIGINT NOT NULL AUTO_INCREMENT,
@@ -266,7 +293,7 @@ CREATE TABLE `monthreport` (
                                FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 
--- 7. 예금 상품 목록
+-- 8. 예금 상품 목록
 DROP TABLE IF EXISTS `deposit_list`;
 CREATE TABLE `deposit_list` (
                                 `id` INT NOT NULL AUTO_INCREMENT,
@@ -283,26 +310,24 @@ CREATE TABLE `deposit_list` (
                                 PRIMARY KEY (`id`)
 );
 
--- 8. 펀드 상품 목록
+-- 9. 펀드 상품 목록
 DROP TABLE IF EXISTS `fund_list`;
 CREATE TABLE `fund_list` (
-                             `id` VARCHAR(255) NOT NULL,
-                             `fund_name` VARCHAR(255) NOT NULL,
-                             `manager_name` VARCHAR(255) NOT NULL,
-                             `standard_price` FLOAT(10,2) NOT NULL,
-                             `return_1month` FLOAT(10,2) NOT NULL,
-                             `return_3month` FLOAT(10,2) NOT NULL,
-                             `return_6month` FLOAT(10,2) NOT NULL,
-                             `return_9month` FLOAT(10,2) NOT NULL,
-                             `return_12month` FLOAT(10,2) NOT NULL,
-                             `fund_type` ENUM('BOND', 'STOCK', 'MIXED', 'ETF') NOT NULL,
-                             `risk_rating` ENUM('LOW', 'MEDIUM', 'HIGH') NOT NULL,
-                             `description` TEXT NOT NULL,
+                             `id` INT NOT NULL AUTO_INCREMENT,
+                             `fund_manager` VARCHAR(255) NOT NULL,
+                             `fund_product_name` VARCHAR(255) NOT NULL,
+                             `fund_risk_level` VARCHAR(255) NOT NULL,
+                             `fund_type` VARCHAR(20) NOT NULL,
+                             `fund_returns_data` TEXT NOT NULL,
+                             `fund_start_Date` VARCHAR(255) NOT NULL,
+                             `fund_net_asset_value` VARCHAR(255) NOT NULL,
+                             `fund_total_expense_ratio` VARCHAR(255) NOT NULL,
+                             `fund_product_features` TEXT NOT NULL,
                              `fund_link` VARCHAR(255) NOT NULL,
                              PRIMARY KEY (`id`)
 );
 
--- 9. 주식 상품 목록
+-- 10. 주식 상품 목록
 DROP TABLE IF EXISTS `stock_list`;
 CREATE TABLE `stock_list` (
                               `id` INT NOT NULL AUTO_INCREMENT,
@@ -313,7 +338,7 @@ CREATE TABLE `stock_list` (
                               PRIMARY KEY (`id`)
 );
 
--- 10. 찜한 상품 (유저별)
+-- 11. 찜한 상품 (유저별)
 DROP TABLE IF EXISTS `wishlist`;
 CREATE TABLE `wishlist` (
                             `id` INT NOT NULL AUTO_INCREMENT,
@@ -324,7 +349,7 @@ CREATE TABLE `wishlist` (
                             FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 
--- 11. 키움증권 rest api 접근 토큰
+-- 12. 키움증권 rest api 접근 토큰
 DROP TABLE IF EXISTS `user_kiwoom_access_token`;
 CREATE TABLE `user_kiwoom_access_token` (
                                             `id`       BIGINT       NOT NULL,
@@ -335,7 +360,7 @@ CREATE TABLE `user_kiwoom_access_token` (
                                             FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 );
 
--- 12. 주식 차트 데이터
+-- 13. 주식 차트 데이터
 DROP TABLE IF EXISTS `stock_chart_cache`;
 CREATE TABLE `stock_chart_cache` (
                                     `stock_code` VARCHAR(20) NOT NULL,
@@ -343,6 +368,7 @@ CREATE TABLE `stock_chart_cache` (
                                     `base_date` VARCHAR(8) NOT NULL,
                                     PRIMARY KEY (`stock_code`)
 );
+
 
 -- CHALLENGE
 -- 1. 챌린지 카테고리 (예: 소비 줄이기, 저축 늘리기 등)

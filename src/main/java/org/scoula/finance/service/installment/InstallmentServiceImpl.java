@@ -64,10 +64,9 @@ public class InstallmentServiceImpl implements InstallmentService {
             System.out.println("input.json 저장 완료: " + inputFile.getAbsolutePath());
 
             // 3. Python 실행
-            String pythonScriptPath = pythonUrl;
             ProcessBuilder builder = new ProcessBuilder(
                     "python",
-                    pythonScriptPath
+                    pythonUrl
             );
             builder.redirectErrorStream(true);
             Process process = builder.start();
