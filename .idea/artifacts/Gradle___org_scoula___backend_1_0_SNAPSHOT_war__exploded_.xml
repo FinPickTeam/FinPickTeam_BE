@@ -52,7 +52,6 @@
           <element id="library" level="project" name="Gradle: io.github.cdimascio:dotenv-java:3.2.0" />
           <element id="library" level="project" name="Gradle: io.lettuce:lettuce-core:6.1.10.RELEASE" />
           <element id="library" level="project" name="Gradle: com.opencsv:opencsv:5.7.1" />
-          <element id="library" level="project" name="Gradle: org.apache.commons:commons-text:1.10.0" />
           <element id="library" level="project" name="Gradle: org.springframework:spring-aop:5.3.37" />
           <element id="library" level="project" name="Gradle: org.springframework:spring-web:5.3.37" />
           <element id="library" level="project" name="Gradle: org.springframework:spring-beans:5.3.37" />
@@ -83,6 +82,7 @@
           <element id="library" level="project" name="Gradle: io.netty:netty-transport:4.1.82.Final" />
           <element id="library" level="project" name="Gradle: io.netty:netty-common:4.1.82.Final" />
           <element id="library" level="project" name="Gradle: io.projectreactor:reactor-core:3.3.22.RELEASE" />
+          <element id="library" level="project" name="Gradle: org.apache.commons:commons-text:1.10.0" />
           <element id="library" level="project" name="Gradle: org.apache.commons:commons-lang3:3.12.0" />
           <element id="library" level="project" name="Gradle: commons-beanutils:commons-beanutils:1.9.4" />
           <element id="library" level="project" name="Gradle: org.apache.commons:commons-collections4:4.4" />

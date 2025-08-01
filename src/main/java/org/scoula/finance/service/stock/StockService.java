@@ -21,5 +21,5 @@ public interface StockService {
     StockDetailDto getStockDetail(Long id, String stockCode);
 
     // 사용자 맞춤 추식 추천
-    List<StockListDto> getStockRecommendationList(Long id);
+    List<StockListDto> getStockRecommendationList(Long id, int limit);
 }

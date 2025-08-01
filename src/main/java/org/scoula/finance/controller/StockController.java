@@ -81,8 +81,8 @@ public class StockController {
 
     //사용자 맞춤 추천 주식 가져오기
     @GetMapping("/recommend")
-    public CommonResponseDTO<List<StockListDto>> getRecommend(@RequestParam(name = "id") Long id) {
-        List<StockListDto> recommendData = stockService.getStockRecommendationList(id);
+    public CommonResponseDTO<List<StockListDto>> getRecommend(@RequestParam(name = "id") Long id, @RequestParam(name = "limit") int limit) {
+        List<StockListDto> recommendData = stockService.getStockRecommendationList(id, limit);
 
         if (recommendData == null || recommendData.isEmpty()) {
             return CommonResponseDTO.error("추천 가능한 주식이 없습니다.", 404);
