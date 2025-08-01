@@ -30,6 +30,9 @@ public interface AvatarMapper {
     //유저 옷장에 의상삽입
     void insertClothe(@Param("userId") Long userId,@Param("itemId") Long itemId);
 
+    //clothe테이블의 is_wearing 갱신
+    void updateClothe(@Param("userId") Long userId, @Param("isWearing") Boolean isWearing, @Param("items") Long[] items);
+
     //재화차감
     void updateMoney(@Param("userId") Long userId,@Param("cost") int cost);
 

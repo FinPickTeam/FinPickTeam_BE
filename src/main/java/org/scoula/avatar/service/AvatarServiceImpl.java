@@ -39,9 +39,21 @@ public class AvatarServiceImpl implements AvatarService {
     //아바타 수정
     @Override
     public void updateAvatar(Long userId, Long[] items) {
-        Map<String,Long> itemsByType=new HashMap<>();
 
-        //아이템들을 타입별로 분류
+        // 현재 아바타 착장 저장
+        AvatarVO curAvatarVO = mapper.getAvatar(userId);
+        Long[] curItems = {curAvatarVO.getAvatarImage(),
+                curAvatarVO.getTopId(),
+                curAvatarVO.getShoesId(),
+                curAvatarVO.getAccessoryId(),
+                curAvatarVO.getGiftCardId()
+        };
+
+        // 현재 아바타 착장들을 옷장에서 '착용하지 않음(is_wearing=false)'으로 변경
+        mapper.updateClothe(userId, false, curItems);
+
+        //착용하려는 아이템들을 타입별로 분류
+        Map<String,Long> itemsByType=new HashMap<>();
         for (Long item : items) {
             String itemType = mapper.getItemType(item);
             itemsByType.put(itemType, item);
@@ -57,8 +69,9 @@ public class AvatarServiceImpl implements AvatarService {
         avatarVO.setGiftCardId(itemsByType.get("giftCard"));
         log.info(avatarVO);
 
-
+        //아바타 착장 및 옷장 착용여부 수정
         mapper.updateAvatar(avatarVO);
+        mapper.updateClothe(userId, true, items);
     }
 
     //유저 전체 의상 조회
