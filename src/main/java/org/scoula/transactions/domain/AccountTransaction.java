@@ -1,11 +1,13 @@
 package org.scoula.transactions.domain;
 
 import lombok.Data;
+import lombok.Builder;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 public class AccountTransaction {
     private Long id;
     private Long userId;

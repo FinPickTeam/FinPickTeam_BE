@@ -9,4 +9,5 @@ import java.util.List;
 @Mapper
 public interface AccountTransactionMapper {
     List<AccountTransaction> findByUserAndAccount(@Param("userId") Long userId, @Param("accountId") Long accountId);
+    void insert(AccountTransaction tx);
 }

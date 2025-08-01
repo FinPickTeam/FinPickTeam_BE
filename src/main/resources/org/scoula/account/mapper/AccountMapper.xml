@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.account.mapper.AccountMapper">
+
+    <!-- 1. 계좌 등록 -->
+    <insert id="insert" parameterType="org.scoula.account.domain.Account"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO account (
+            user_id,
+            pin_account_number,
+            bank_code,
+            account_number,
+            product_name,
+            account_type,
+            balance
+        ) VALUES (
+                     #{userId},
+                     #{pinAccountNumber},
+                     #{bankCode},
+                     #{accountNumber},
+                     #{productName},
+                     #{accountType},
+                     #{balance}
+                 )
+    </insert>
+
+    <!-- 2. 잔액 업데이트 -->
+    <update id="updateBalance" parameterType="map">
+        UPDATE account
+        SET balance = #{balance}
+        WHERE pin_account_number = #{finAccountNumber}
+    </update>
+
+    <!-- 3. 핀어카운트로 계좌 ID 조회 -->
+    <select id="findIdByFinAccount" parameterType="string" resultType="long">
+        SELECT id FROM account
+        WHERE pin_account_number = #{finAccountNumber}
+        LIMIT 1
+    </select>
+
+</mapper>

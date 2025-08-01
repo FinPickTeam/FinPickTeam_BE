@@ -9,51 +9,47 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f9e6fdaa-3c49-434b-bda6-5898356b54cc" name="Changes" comment="feat: 거래내역 통합 로그(ledger) 테이블 및 관련 테이블 스키마 수정">
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/AccountTransactionController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/CardTransactionController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/LedgerController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/domain/AccountTransaction.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/domain/CardTransaction.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/domain/Ledger.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/AccountTransactionDto.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/CardTransactionDto.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/LedgerDetailDto.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/LedgerDto.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/AccountTransactionErrorCode.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/AccountTransactionNotFoundException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/CardTransactionErrorCode.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/CardTransactionNotFoundException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/LedgerErrorCode.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/LedgerNotFoundException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/AccountTransactionMapper.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/CardTransactionMapper.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/LedgerMapper.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/AccountTransactionService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/AccountTransactionServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/CardTransactionService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/CardTransactionServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/LedgerService.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/LedgerServiceImpl.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/AccountTransactionMapper.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/CardTransactionMapper.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/LedgerMapper.xml" afterDir="false" />
+    <list default="true" id="f9e6fdaa-3c49-434b-bda6-5898356b54cc" name="Changes" comment="refactor:  NH 계좌 연동 구조 전면 리팩토링 (API 호출/저장/거래내역 분리)">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/account/controller/AccountController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/account/domain/Account.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/account/dto/AccountRegisterResponseDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/account/mapper/AccountMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/account/service/AccountService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/account/service/AccountServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/client/NHApiClient.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/service/NhAccountService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/service/NhAccountServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/TransactionSyncRequestDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/TransactionSyncProcessor.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/account/mapper/AccountMapper.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/config/RootConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/config/RootConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/TransactionController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/domain/Transaction.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/TransactionDTO.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/TransactionDetailDTO.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/AccountNotFoundException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/TransactionNotFoundException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/UserNotFoundException.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/TransactionMapper.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/TransactionService.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/TransactionServiceImpl.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/util/RuleBasedAnalyzer.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/TransactionMapper.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/controller/AccountRegisterController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/controller/BalanceInquiryController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/controller/TransactionSyncController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/domain/Account.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/domain/Transaction.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/dto/BalanceResponseDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/dto/NHBalanceInquiryResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/dto/FinAccountRequestDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/dto/FinAccountRequestDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/dto/TransactionDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/dto/TransactionDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/mapper/NhAccountMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/mapper/NhTransactionMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/service/AccountRegisterService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/service/AccountRegisterServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/service/BalanceInquiryService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/service/BalanceInquiryServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/service/TransactionSyncService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/service/TransactionSyncServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/nhapi/util/NHApiClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/domain/AccountTransaction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/domain/AccountTransaction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/domain/Ledger.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/domain/Ledger.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/AccountTransactionMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/AccountTransactionMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/LedgerMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/LedgerMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/org/scoula/nhapi/mapper/NhAccountMapper.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/org/scoula/nhapi/mapper/NhTransactionMapper.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/AccountTransactionMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/AccountTransactionMapper.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/LedgerMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/LedgerMapper.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -102,24 +98,27 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "cocoaocean"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;cocoaocean&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/FinPickTeam/FinPickTeam_BE.git",
-    "accountId": "e23dba73-0157-440e-83f9-43510870512b"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/FinPickTeam/FinPickTeam_BE.git&quot;,
+    &quot;accountId&quot;: &quot;e23dba73-0157-440e-83f9-43510870512b&quot;
   }
-}]]></component>
+}</component>
   <component name="LogFilters">
     <option name="FILTER_ERRORS" value="false" />
     <option name="FILTER_WARNINGS" value="false" />
     <option name="FILTER_INFO" value="true" />
     <option name="FILTER_DEBUG" value="true" />
     <option name="CUSTOM_FILTER" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
@@ -132,42 +131,42 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Gradle.Build FinPickTeam_BE.executor": "Run",
-    "Gradle.Download Sources.executor": "Run",
-    "Gradle.FinPickTeam_BE [:clean].executor": "Run",
-    "Gradle.FinPickTeam_BE [build].executor": "Run",
-    "Gradle.FinPickTeam_BE [celan].executor": "Run",
-    "Gradle.FinPickTeam_BE [clean].executor": "Run",
-    "Gradle.FinPick_BE 빌드.executor": "Run",
-    "Gradle.backend 빌드.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "Tomcat Server.Tomcat 9.0.107.executor": "Run",
-    "Tomcat 서버.Tomcat 9.0.105.executor": "Run",
-    "Tomcat 서버.Tomcat 9.0.106.executor": "Run",
-    "git-widget-placeholder": "refactor/#74-transactions-query",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/FinPick_BE/src/main/java/org/scoula/common/dto",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Gradle.Build FinPickTeam_BE.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Download Sources.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.FinPickTeam_BE [:clean].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.FinPickTeam_BE [build].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.FinPickTeam_BE [celan].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.FinPickTeam_BE [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.FinPick_BE 빌드.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.backend 빌드.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;Tomcat Server.Tomcat 9.0.107.executor&quot;: &quot;Run&quot;,
+    &quot;Tomcat 서버.Tomcat 9.0.105.executor&quot;: &quot;Run&quot;,
+    &quot;Tomcat 서버.Tomcat 9.0.106.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;refactor/#77-nhapi-account-sync&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/FinPick_BE/src/main/java/org/scoula/common/dto&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mysql"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="ReactorSettings">
     <option name="notificationShown" value="true" />
   </component>
@@ -324,7 +323,8 @@
       <workItem from="1753853614482" duration="50000" />
       <workItem from="1753853938471" duration="322000" />
       <workItem from="1753854385406" duration="3543000" />
-      <workItem from="1753943886997" duration="3304000" />
+      <workItem from="1753943886997" duration="6765000" />
+      <workItem from="1754016472050" duration="5867000" />
     </task>
     <task id="LOCAL-00001" summary="feat: 거래내역 통합 로그(ledger) 테이블 및 관련 테이블 스키마 수정">
       <option name="closed" value="true" />
@@ -334,7 +334,15 @@
       <option name="project" value="LOCAL" />
       <updated>1753944192151</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="refactor: 거래내역 조회 API 개편">
+      <option name="closed" value="true" />
+      <created>1753947345165</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1753947345165</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -342,7 +350,9 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="feat: 거래내역 통합 로그(ledger) 테이블 및 관련 테이블 스키마 수정" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: 거래내역 통합 로그(ledger) 테이블 및 관련 테이블 스키마 수정" />
+    <MESSAGE value="refactor: 거래내역 조회 API 개편" />
+    <MESSAGE value="refactor:  NH 계좌 연동 구조 전면 리팩토링 (API 호출/저장/거래내역 분리)" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor:  NH 계좌 연동 구조 전면 리팩토링 (API 호출/저장/거래내역 분리)" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

@@ -10,4 +10,5 @@ import java.util.List;
 public interface LedgerMapper {
     List<Ledger> findLedgerByUserId(Long userId);
     Ledger findLedgerDetail(@Param("userId") Long userId, @Param("ledgerId") Long ledgerId);
+    void insert(Ledger ledger);
 }

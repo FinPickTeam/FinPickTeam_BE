@@ -1,10 +1,12 @@
 package org.scoula.transactions.domain;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Builder
 @Data
 public class Ledger {
     private Long id;
