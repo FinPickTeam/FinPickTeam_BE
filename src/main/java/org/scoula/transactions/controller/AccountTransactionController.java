@@ -20,8 +20,12 @@ public class AccountTransactionController {
     @GetMapping
     public CommonResponseDTO<List<AccountTransactionDto>> getAccountTransactions(
             @PathVariable Long userId,
-            @PathVariable Long accountId) {
-        List<AccountTransactionDto> result = accountTransactionService.getAccountTransactions(userId, accountId);
+            @RequestParam Long accountId,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to) {
+
+        List<AccountTransactionDto> result = accountTransactionService.getTransactions(userId, accountId, from, to);
         return CommonResponseDTO.success("계좌 거래내역 조회 성공", result);
     }
+
 }

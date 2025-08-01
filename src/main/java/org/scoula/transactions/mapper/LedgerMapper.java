@@ -8,6 +8,11 @@ import java.util.List;
 
 @Mapper
 public interface LedgerMapper {
-    List<Ledger> findLedgerByUserId(Long userId);
+    List<Ledger> findLedgers(@Param("userId") Long userId,
+                             @Param("from") String from,
+                             @Param("to") String to,
+                             @Param("category") String category);
+
     Ledger findLedgerDetail(@Param("userId") Long userId, @Param("ledgerId") Long ledgerId);
 }
+
