@@ -22,4 +22,6 @@ public class Challenge {
     private ChallengeStatus status; // ENUM('RECRUITING', 'IN_PROGRESS', 'COMPLETED')
     private String goalType; // enum: 소비, 횟수 등
     private Integer goalValue;
+    private Integer participantCount;
+
 }

@@ -23,8 +23,8 @@ public class JDBCTests {
     @Test
     @DisplayName("JDBC 드라이버 연결이 된다.")
     public void testConnection() {
-        String url = "jdbc:mysql://localhost:3306/scoula_db";
-        try(Connection conn = DriverManager.getConnection(url, "scoula", "1234")) {
+        String url = "jdbc:mysql://localhost:3306/finpick_db";
+        try(Connection conn = DriverManager.getConnection(url, "root", "whwkahd0226")) {
             log.info(conn);
         } catch (Exception e) {
             fail(e.getMessage());

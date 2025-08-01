@@ -1,5 +1,8 @@
 package org.scoula.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -22,17 +25,27 @@ import java.util.List;
         "org.scoula.quiz.controller",
         "org.scoula.dictionary.controller",
         "org.scoula.bubble.controller",
+        "org.scoula.news.controller",
         "org.scoula.transactions.exception",
         "org.scoula.nhapi.controller",
         "org.scoula.challenge.controller",
-        "org.scoula.challenge.exception",
+        "org.scoula.challenge.exception"
 })
 public class ServletConfig implements WebMvcConfigurer {
 
     // Jackson 컨버터 등록
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
-        converters.add(new MappingJackson2HttpMessageConverter());
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        // LocalDate를 문자열로 출력하도록 설정
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+        MappingJackson2HttpMessageConverter jacksonConverter =
+                new MappingJackson2HttpMessageConverter(objectMapper);
+
+        converters.add(jacksonConverter);
     }
 
     @Override

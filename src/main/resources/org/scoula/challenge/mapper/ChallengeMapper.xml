@@ -7,9 +7,9 @@
 
     <insert id="insertChallenge" parameterType="org.scoula.challenge.domain.Challenge" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO challenge
-        (title, category_id, start_date, end_date, description, type, max_participants, password, use_password, writer_id, status, goal_type, goal_value)
+        (title, category_id, start_date, end_date, description, type, max_participants, password, use_password, writer_id, status, goal_type, goal_value, participant_count)
         VALUES
-            (#{title}, #{categoryId}, #{startDate}, #{endDate}, #{description}, #{type}, #{maxParticipants}, #{password}, #{usePassword}, #{writerId}, #{status}, #{goalType}, #{goalValue})
+            (#{title}, #{categoryId}, #{startDate}, #{endDate}, #{description}, #{type}, #{maxParticipants}, #{password}, #{usePassword}, #{writerId}, #{status}, #{goalType}, #{goalValue}, #{participantCount})
     </insert>
 
     <insert id="insertUserChallenge">
@@ -24,5 +24,85 @@
           AND c.type = #{type}
           AND c.status IN ('RECRUITING', 'IN_PROGRESS')
     </select>
+
+    <select id="findChallenges" resultType="org.scoula.challenge.domain.Challenge">
+        SELECT * FROM challenge
+        WHERE (#{type} IS NULL OR type = #{type})
+          AND (#{status} IS NULL OR status = #{status})
+    </select>
+
+    <select id="findUserChallengeIds" resultType="long">
+        SELECT challenge_id FROM user_challenge
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="getUserProgress" resultType="double">
+        SELECT actual_value * 1.0 / goal_value
+        FROM user_challenge uc
+                 JOIN challenge c ON uc.challenge_id = c.id
+        WHERE uc.user_id = #{userId} AND uc.challenge_id = #{challengeId}
+    </select>
+
+    <select id="getGroupAverageProgress" resultType="double">
+        SELECT AVG(actual_value * 1.0 / c.goal_value)
+        FROM user_challenge uc
+                 JOIN challenge c ON uc.challenge_id = c.id
+        WHERE uc.challenge_id = #{challengeId}
+    </select>
+
+    <select id="getParticipantsCount" resultType="int">
+        SELECT COUNT(*) FROM user_challenge
+        WHERE challenge_id = #{challengeId}
+    </select>
+
+    <select id="findChallengeById" resultType="org.scoula.challenge.domain.Challenge">
+        SELECT * FROM challenge WHERE id = #{challengeId}
+    </select>
+
+    <select id="isUserParticipating" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM user_challenge
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </select>
+
+    <select id="getGroupMembersWithAvatar" resultType="org.scoula.challenge.dto.ChallengeMemberDTO">
+        SELECT u.id AS userId,
+               us.nickname AS nickname,
+               (uc.actual_value * 1.0 / c.goal_value) AS progress,
+               a.avatar_image AS avatarImage
+        FROM user_challenge uc
+                 JOIN user u ON uc.user_id = u.id
+                 JOIN user_status us ON u.id = us.id
+                 JOIN challenge c ON uc.challenge_id = c.id
+                 LEFT JOIN avatar a ON u.id = a.id
+        WHERE uc.challenge_id = #{challengeId}
+    </select>
+
+    <update id="incrementParticipantCount">
+        UPDATE challenge
+        SET participant_count = participant_count + 1
+        WHERE id = #{challengeId}
+    </update>
+
+    <update id="updateChallengeStatus">
+        UPDATE challenge
+        SET status = #{status}
+        WHERE id = #{challengeId}
+    </update>
+
+    <select id="findAllChallenges" resultType="org.scoula.challenge.domain.Challenge">
+        SELECT * FROM challenge
+    </select>
+
+    <update id="completeUserChallenges">
+        UPDATE user_challenge
+        SET is_completed = true, updated_at = NOW()
+        WHERE challenge_id = #{challengeId}
+    </update>
+
+    <update id="markChallengeSuccess">
+        UPDATE user_challenge
+        SET is_success = true
+        WHERE challenge_id = #{challengeId}
+    </update>
 
 </mapper>

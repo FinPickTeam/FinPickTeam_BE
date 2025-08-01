@@ -2,19 +2,20 @@ package org.scoula.challenge.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.scoula.challenge.dto.ChallengeCreateRequestDTO;
-import org.scoula.challenge.dto.ChallengeCreateResponseDTO;
+import org.scoula.challenge.dto.*;
+import org.scoula.challenge.enums.ChallengeStatus;
+import org.scoula.challenge.enums.ChallengeType;
 import org.scoula.challenge.service.ChallengeService;
 import org.scoula.common.dto.CommonResponseDTO;
 import org.scoula.security.util.JwtUtil;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @Slf4j
+@Component
 @RestController
 @RequestMapping("/api/challenge")
 @RequiredArgsConstructor
@@ -34,4 +35,42 @@ public class ChallengeController {
         ChallengeCreateResponseDTO result = challengeService.createChallenge(userId, req);
         return CommonResponseDTO.success("챌린지가 생성되었습니다.", result);
     }
+
+    @GetMapping("/list")
+    public CommonResponseDTO<List<ChallengeListResponseDTO>> getChallenges(
+            @RequestParam(value = "type", required = false) ChallengeType type,
+            @RequestParam(value = "status", required = false) ChallengeStatus status,
+            HttpServletRequest request) {
+
+        String bearer = request.getHeader("Authorization");
+        Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
+
+        List<ChallengeListResponseDTO> challenges = challengeService.getChallenges(userId, type, status);
+        return CommonResponseDTO.success("챌린지 리스트 조회 성공", challenges);
+    }
+
+    @GetMapping("/{id}")
+    public CommonResponseDTO<ChallengeDetailResponseDTO> getChallengeDetail(@PathVariable("id") Long id,
+                                                                            HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
+        ChallengeDetailResponseDTO detail = challengeService.getChallengeDetail(userId, id);
+        return CommonResponseDTO.success("챌린지 상세 조회 성공", detail);
+    }
+
+    @PostMapping("/{id}/join")
+    public CommonResponseDTO<?> joinChallenge(@PathVariable("id") Long challengeId,
+                                              @RequestBody(required = false) ChallengeJoinRequestDTO joinRequest,
+                                              HttpServletRequest request) {
+
+        String bearer = request.getHeader("Authorization");
+        Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
+
+        Integer password = (joinRequest != null) ? joinRequest.getPassword() : null;
+
+        challengeService.joinChallenge(userId, challengeId, password);
+        return CommonResponseDTO.success("챌린지 참여 신청이 완료되었습니다.");
+    }
+
+
 }
