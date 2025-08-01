@@ -256,7 +256,7 @@ public StockAccountDto getAccountReturnRate(Long id) {
 
     //주식 추천 로직
     @Override
-    public List<StockListDto> getStockRecommendationList(Long id) {
+    public List<StockListDto> getStockRecommendationList(Long id, int limit) {
         List<String> stockList = stockMapper.getStockCodeList();
         String prompt = generatePrompt(stockList);
 
