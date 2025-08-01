@@ -20,8 +20,13 @@ public class CardTransactionController {
     @GetMapping
     public CommonResponseDTO<List<CardTransactionDto>> getCardTransactions(
             @PathVariable Long userId,
-            @PathVariable Long cardId) {
-        List<CardTransactionDto> result = cardTransactionService.getCardTransactions(userId, cardId);
-        return CommonResponseDTO.success("카드 거래내역 조회 성공", result);
+            @RequestParam Long cardId,
+            @RequestParam(required = false) String from,
+            @RequestParam(required = false) String to) {
+
+        List<CardTransactionDto> result = cardTransactionService.getCardTransactions(userId, cardId, from, to);
+        return CommonResponseDTO.success("카드 승인내역 조회 성공", result);
     }
+
+
 }

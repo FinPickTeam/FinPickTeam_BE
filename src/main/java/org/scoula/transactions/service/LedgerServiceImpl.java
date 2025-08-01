@@ -8,6 +8,9 @@ import org.scoula.transactions.exception.LedgerNotFoundException;
 import org.scoula.transactions.mapper.LedgerMapper;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -17,8 +20,8 @@ public class LedgerServiceImpl implements LedgerService {
     private final LedgerMapper ledgerMapper;
 
     @Override
-    public List<LedgerDto> getLedgerByUserId(Long userId) {
-        List<Ledger> ledgers = ledgerMapper.findLedgerByUserId(userId);
+    public List<LedgerDto> getLedgers(Long userId, String from, String to, String category) {
+        List<Ledger> ledgers = ledgerMapper.findLedgers(userId, from, to, category);
 
         if (ledgers == null || ledgers.isEmpty()) {
             throw new LedgerNotFoundException();
@@ -26,6 +29,7 @@ public class LedgerServiceImpl implements LedgerService {
 
         return ledgers.stream().map(this::convertToDto).toList();
     }
+
 
 
     @Override
@@ -39,23 +43,19 @@ public class LedgerServiceImpl implements LedgerService {
         return convertToDetailDto(ledger);
     }
 
-
     private LedgerDto convertToDto(Ledger l) {
         LedgerDto dto = new LedgerDto();
         dto.setId(l.getId());
-        dto.setUserId(l.getUserId());
         dto.setSourceType(l.getSourceType());
         dto.setSourceName(l.getSourceName());
         dto.setAmount(l.getAmount());
         dto.setType(l.getType());
-        dto.setCategory(l.getCategory());
-        dto.setMemo(l.getMemo());
-        dto.setAnalysis(l.getAnalysis());
+        dto.setCategory(l.getCategory());  // Mapper에서 조인된 category.label
         dto.setDate(l.getDate());
         dto.setMerchantName(l.getMerchantName());
-        dto.setPlace(l.getPlace());
         return dto;
     }
+
 
     private LedgerDetailDto convertToDetailDto(Ledger l) {
         LedgerDetailDto dto = new LedgerDetailDto();
@@ -75,5 +75,4 @@ public class LedgerServiceImpl implements LedgerService {
         dto.setCardId(l.getCardId());
         return dto;
     }
-
 }

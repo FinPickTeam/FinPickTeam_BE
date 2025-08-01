@@ -5,5 +5,5 @@ import org.scoula.transactions.dto.AccountTransactionDto;
 import java.util.List;
 
 public interface AccountTransactionService {
-    List<AccountTransactionDto> getAccountTransactions(Long userId, Long accountId);
+    List<AccountTransactionDto> getTransactions(Long userId, Long accountId, String from, String to);
 }

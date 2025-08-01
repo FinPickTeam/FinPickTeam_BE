@@ -5,19 +5,38 @@
 
 <mapper namespace="org.scoula.transactions.mapper.LedgerMapper">
 
-    <select id="findLedgerByUserId" resultType="org.scoula.transactions.domain.Ledger">
-        SELECT id, user_id, source_type, source_name, amount, type, category, memo, analysis,
-               date, merchant_name, place, account_id, card_id, source_id, created_at
-        FROM ledger
-        WHERE user_id = #{userId}
-        ORDER BY date DESC
+    <!-- 통합 조회 -->
+    <select id="findLedgers" resultType="org.scoula.transactions.domain.Ledger">
+        SELECT
+        l.id, l.user_id, l.source_type, l.source_name,
+        l.amount, l.type,
+        c.label AS category,  <!-- label = 사용자 노출용 -->
+        l.date, l.merchant_name
+        FROM ledger l
+        JOIN tr_category c ON l.category_id = c.id
+        WHERE l.user_id = #{userId}
+        <if test="from != null">AND l.date &gt;= #{from}</if>
+        <if test="to != null">AND l.date &lt;= #{to}</if>
+        <if test="category != null">AND c.name = #{category}</if>
+        ORDER BY l.date DESC
     </select>
 
+
+
+
+
+
+    <!-- 거래 상세 조회 -->
     <select id="findLedgerDetail" resultType="org.scoula.transactions.domain.Ledger">
-        SELECT id, user_id, source_type, source_name, amount, type, category, memo, analysis,
-               date, merchant_name, place, account_id, card_id, source_id, created_at
-        FROM ledger
-        WHERE user_id = #{userId} AND id = #{ledgerId}
+        SELECT
+        l.id, l.user_id, l.source_type, l.source_name, l.amount, l.type,
+        l.memo, l.analysis, l.date, l.merchant_name, l.place,
+        l.account_id, l.card_id, l.source_id, l.created_at,
+        c.name AS category
+        FROM ledger l
+        JOIN tr_category c ON l.category_id = c.id
+        WHERE l.user_id = #{userId} AND l.id = #{ledgerId}
     </select>
+
 
 </mapper>
