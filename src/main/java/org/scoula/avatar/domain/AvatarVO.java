@@ -4,10 +4,10 @@ import lombok.Data;
 
 @Data
 public class AvatarVO {
-    private Long id;
-    private String avatarImage;
-    private Integer topId;
-    private Integer shoesId;
-    private Integer accessoryId;
-    private Integer giftCardId;
+    private Long userId;
+    private Long avatarImage;
+    private Long topId;
+    private Long shoesId;
+    private Long accessoryId;
+    private Long giftCardId;
 }

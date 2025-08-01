@@ -80,11 +80,11 @@ CREATE TABLE `mydata` (
 DROP TABLE IF EXISTS `avatar`;
 CREATE TABLE `avatar` (
                           `id` BIGINT NOT NULL,
-                          `avatar_image` VARCHAR(255) NOT NULL,
-                          `top_id` INT,
-                          `shoes_id` INT,
-                          `accessory_id` INT,
-                          `gift_card_id` INT,
+                          `avatar_image` BIGINT NOT NULL,
+                          `top_id` BIGINT,
+                          `shoes_id` BIGINT,
+                          `accessory_id` BIGINT,
+                          `gift_card_id` BIGINT,
                           PRIMARY KEY (`id`),
                           FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
@@ -93,7 +93,8 @@ CREATE TABLE `avatar` (
 DROP TABLE IF EXISTS `item`;
 CREATE TABLE `item` (
                         `id` BIGINT NOT NULL AUTO_INCREMENT,
-                        `type` ENUM('TOP', 'SHOES', 'ACCESSORY', 'GIFTCARD') NOT NULL,
+                        `name` VARCHAR(255) NOT NULL,
+                        `type` ENUM('avatarImage', 'top', 'shoes', 'accessory', 'giftCard') NOT NULL,
                         `cost` INT NOT NULL,
                         `image_url` VARCHAR(255) NOT NULL,
                         PRIMARY KEY (`id`)
@@ -147,13 +148,14 @@ CREATE TABLE `bubble` (
 DROP TABLE IF EXISTS `coin`;
 CREATE TABLE `coin` (
                         `id` BIGINT NOT NULL,
-                        `amount` VARCHAR(255) NOT NULL,
+                        `amount` BIGINT NOT NULL DEFAULT 1000,
                         `cumulative_amount` BIGINT NOT NULL DEFAULT 0, -- 누적 재화량
                         `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
                         PRIMARY KEY (`id`),
                         FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
+ALTER TABLE `coin` MODIFY COLUMN `amount` BIGINT NOT NULL;
 
 -- 13. 재화내역
 DROP TABLE IF EXISTS `coin_history`;
@@ -161,9 +163,9 @@ CREATE TABLE `coin_history` (
                                 `id` BIGINT NOT NULL AUTO_INCREMENT,
                                 `user_id` BIGINT NOT NULL,
                                 `amount` BIGINT NOT NULL,
-                                `type` ENUM('PLUS', 'MINUS') NOT NULL,
+                                `type` ENUM('plus', 'minus') NOT NULL,
                                 `comment` VARCHAR(255) NOT NULL,
-                                `coin_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
                                 PRIMARY KEY (`id`),
                                 FOREIGN KEY (`user_id`) REFERENCES `coin`(`id`) ON DELETE CASCADE

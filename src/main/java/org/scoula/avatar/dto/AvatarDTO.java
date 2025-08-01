@@ -11,16 +11,16 @@ import org.scoula.avatar.domain.AvatarVO;
 @NoArgsConstructor
 @Builder
 public class AvatarDTO {
-    private Long id;
-    private String avatarImage;
-    private Integer topId;
-    private Integer shoesId;
-    private Integer accessoryId;
-    private Integer giftCardId;
+    private Long userId;
+    private Long avatarImage;
+    private Long topId;
+    private Long shoesId;
+    private Long accessoryId;
+    private Long giftCardId;
 
     public static AvatarDTO of(AvatarVO vo){
         return AvatarDTO.builder()
-                .id(vo.getId())
+                .userId(vo.getUserId())
                 .avatarImage(vo.getAvatarImage())
                 .topId(vo.getTopId())
                 .shoesId(vo.getShoesId())
@@ -31,7 +31,7 @@ public class AvatarDTO {
 
     public AvatarVO toVO(){
         AvatarVO vo = new AvatarVO();
-        vo.setId(this.id);
+        vo.setUserId(this.userId);
         vo.setAvatarImage(this.avatarImage);
         vo.setTopId(this.topId);
         vo.setShoesId(this.shoesId);

@@ -5,7 +5,8 @@ import lombok.Data;
 @Data
 public class ItemsVO {
     private Long id;
+    private String name;
     private String type;
-    private Integer cost;
+    private int cost;
     private String imageUrl;
 }
