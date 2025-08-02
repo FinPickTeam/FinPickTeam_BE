@@ -5,14 +5,17 @@
 
 <mapper namespace="org.scoula.transactions.mapper.AccountTransactionMapper">
 
-    <select id="findByUserAndAccount" resultType="org.scoula.transactions.domain.AccountTransaction">
-        SELECT id, user_id, account_id, date, type, amount, balance, place, is_cancelled, tu_no
+    <select id="findAccountTransactions" resultType="org.scoula.transactions.domain.AccountTransaction">
+        SELECT id, user_id, account_id, date, type, amount, balance, place
         FROM account_transaction
         WHERE user_id = #{userId}
-          AND account_id = #{accountId}
-          AND is_cancelled = FALSE
+        AND account_id = #{accountId}
+        AND is_cancelled = FALSE
+        <if test="from != null">AND date &gt;= #{from}</if>
+        <if test="to != null">AND date &lt;= #{to}</if>
         ORDER BY date DESC
     </select>
 
 
 </mapper>
+

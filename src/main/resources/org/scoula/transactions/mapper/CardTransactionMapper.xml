@@ -5,14 +5,18 @@
 
 <mapper namespace="org.scoula.transactions.mapper.CardTransactionMapper">
 
-    <select id="findByUserAndCard" resultType="org.scoula.transactions.domain.CardTransaction">
+    <select id="findCardTransactions" resultType="org.scoula.transactions.domain.CardTransaction">
         SELECT id, user_id, card_id, auth_number, sales_type, approved_at,
-               amount, merchant_name, tpbcd, tpbcd_nm
+        amount, merchant_name, tpbcd, tpbcd_nm
         FROM card_transaction
         WHERE user_id = #{userId}
-          AND card_id = #{cardId}
-          AND is_cancelled = FALSE
+        AND card_id = #{cardId}
+        AND is_cancelled = FALSE
+        <if test="from != null">AND approved_at &gt;= #{from}</if>
+        <if test="to != null">AND approved_at &lt;= #{to}</if>
         ORDER BY approved_at DESC
     </select>
 
+
 </mapper>
+

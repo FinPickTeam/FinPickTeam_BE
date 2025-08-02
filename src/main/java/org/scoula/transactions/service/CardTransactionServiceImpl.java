@@ -16,8 +16,8 @@ public class CardTransactionServiceImpl implements CardTransactionService {
     private final CardTransactionMapper mapper;
 
     @Override
-    public List<CardTransactionDto> getCardTransactions(Long userId, Long cardId) {
-        List<CardTransaction> txList = mapper.findByUserAndCard(userId, cardId);
+    public List<CardTransactionDto> getCardTransactions(Long userId, Long cardId, String from, String to) {
+        List<CardTransaction> txList = mapper.findCardTransactions(userId, cardId, from, to);
 
         if (txList == null || txList.isEmpty()) {
             throw new CardTransactionNotFoundException();
@@ -25,7 +25,6 @@ public class CardTransactionServiceImpl implements CardTransactionService {
 
         return txList.stream().map(this::toDto).toList();
     }
-
 
     private CardTransactionDto toDto(CardTransaction tx) {
         CardTransactionDto dto = new CardTransactionDto();
@@ -41,5 +40,5 @@ public class CardTransactionServiceImpl implements CardTransactionService {
         dto.setTpbcdNm(tx.getTpbcdNm());
         return dto;
     }
-
 }
+

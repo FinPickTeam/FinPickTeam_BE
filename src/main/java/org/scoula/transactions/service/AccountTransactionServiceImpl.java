@@ -16,8 +16,8 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
     private final AccountTransactionMapper mapper;
 
     @Override
-    public List<AccountTransactionDto> getAccountTransactions(Long userId, Long accountId) {
-        List<AccountTransaction> txList = mapper.findByUserAndAccount(userId, accountId);
+    public List<AccountTransactionDto> getTransactions(Long userId, Long accountId, String from, String to) {
+        List<AccountTransaction> txList = mapper.findAccountTransactions(userId, accountId, from, to);
 
         if (txList == null || txList.isEmpty()) {
             throw new AccountTransactionNotFoundException();
@@ -25,7 +25,6 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
 
         return txList.stream().map(this::toDto).toList();
     }
-
 
     private AccountTransactionDto toDto(AccountTransaction tx) {
         AccountTransactionDto dto = new AccountTransactionDto();
@@ -39,5 +38,4 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
         dto.setPlace(tx.getPlace());
         return dto;
     }
-
 }
