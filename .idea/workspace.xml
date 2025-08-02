@@ -9,7 +9,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="60a024bb-732a-441a-adfd-602c9259727c" name="변경" comment="" />
+    <list default="true" id="60a024bb-732a-441a-adfd-602c9259727c" name="변경" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/controller/WishListController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/dto/stock/StockCardListDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database.sql" beforeDir="false" afterPath="$PROJECT_DIR$/database.sql" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -38,8 +44,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Interface" />
         <option value="Enum" />
+        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -82,50 +88,51 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Gradle.Build FinPickTeam_BE.executor": "Run",
-    "Gradle.Download Sources.executor": "Run",
-    "Gradle.FinPickTeam_BE [:clean].executor": "Run",
-    "Gradle.FinPickTeam_BE [build].executor": "Run",
-    "Gradle.FinPickTeam_BE [celan].executor": "Run",
-    "Gradle.FinPickTeam_BE [clean].executor": "Run",
-    "Gradle.FinPickTeam_BE 빌드.executor": "Run",
-    "Gradle.FinPick_BE 빌드.executor": "Run",
-    "Gradle.backend 빌드.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "TomEE 서버.Tomcat 9.0.106.executor": "Run",
-    "Tomcat Server.Tomcat 9.0.107.executor": "Run",
-    "Tomcat 서버.Tomcat 9.0.105.executor": "Run",
-    "Tomcat 서버.Tomcat 9.0.106.executor": "Run",
-    "Tomcat 서버.Tomcat 9.0.107.executor": "Run",
-    "git-widget-placeholder": "refactor/#74-transactions-query",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/FinPick_BE/src/main/java/org/scoula/common/dto",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Project",
-    "project.structure.proportion": "0.0",
-    "project.structure.side.proportion": "0.0",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Gradle.Build FinPickTeam_BE.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Download Sources.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.FinPickTeam_BE [:clean].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.FinPickTeam_BE [build].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.FinPickTeam_BE [celan].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.FinPickTeam_BE [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.FinPickTeam_BE 빌드.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.FinPick_BE 빌드.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.backend 빌드.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;TomEE 서버.Tomcat 9.0.106.executor&quot;: &quot;Run&quot;,
+    &quot;Tomcat Server.Tomcat 9.0.107.executor&quot;: &quot;Run&quot;,
+    &quot;Tomcat 서버.Tomcat 9.0.105.executor&quot;: &quot;Run&quot;,
+    &quot;Tomcat 서버.Tomcat 9.0.106.executor&quot;: &quot;Run&quot;,
+    &quot;Tomcat 서버.Tomcat 9.0.107.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feat/#83-wishlist&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/park/Desktop/kB_final_project/FinPickTeam_BE/src/main/resources/org/scoula/finance/mapper&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mysql"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mysql&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="ReactorSettings">
     <option name="notificationShown" value="true" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\park\Desktop\kB_final_project\FinPickTeam_BE\src\main\resources\org\scoula\finance\mapper" />
       <recent name="C:\FinPick_BE\src\main\java\org\scoula\common\dto" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
@@ -345,14 +352,15 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-a94e463ab2e7-intellij.indexing.shared.core-IU-243.26053.27" />
-        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-IU-243.26053.27" />
+        <option value="bundled-jdk-9823dce3aa75-fdfe4dae3a2d-intellij.indexing.shared.core-IU-243.21565.193" />
+        <option value="bundled-js-predefined-d6986cc7102b-e768b9ed790e-JavaScript-IU-243.21565.193" />
       </set>
     </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
+      <changelist id="60a024bb-732a-441a-adfd-602c9259727c" name="변경" comment="" />
       <created>1753609094493</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
@@ -373,6 +381,7 @@
       <workItem from="1753853938471" duration="322000" />
       <workItem from="1753854385406" duration="3543000" />
       <workItem from="1753943886997" duration="3304000" />
+      <workItem from="1754118224034" duration="14319000" />
     </task>
     <task id="LOCAL-00001" summary="feat: 거래내역 통합 로그(ledger) 테이블 및 관련 테이블 스키마 수정">
       <option name="closed" value="true" />
