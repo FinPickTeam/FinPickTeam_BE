@@ -28,17 +28,26 @@
     </insert>
 
     <!-- 2. 잔액 업데이트 -->
-    <update id="updateBalance" parameterType="map">
+    <update id="updateBalanceByUser">
         UPDATE account
         SET balance = #{balance}
-        WHERE pin_account_number = #{finAccountNumber}
+        WHERE user_id = #{userId}
+          AND pin_account_number = #{pinAccountNumber}
     </update>
 
-    <!-- 3. 핀어카운트로 계좌 ID 조회 -->
-    <select id="findIdByFinAccount" parameterType="string" resultType="long">
-        SELECT id FROM account
-        WHERE pin_account_number = #{finAccountNumber}
-        LIMIT 1
+
+    <select id="findById" resultType="org.scoula.account.domain.Account">
+        SELECT *
+        FROM account
+        WHERE id = #{accountId}
     </select>
+
+    <select id="findByUserId" resultType="org.scoula.account.domain.Account">
+        SELECT id, user_id, pin_account_number, bank_code, account_number,
+               product_name, account_type, balance, created_at
+        FROM account
+        WHERE user_id = #{userId}
+    </select>
+
 
 </mapper>

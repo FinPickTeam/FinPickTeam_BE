@@ -2,12 +2,10 @@ package org.scoula.nhapi.client;
 
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
-import org.scoula.nhapi.dto.FinAccountRequestDto;
 import org.scoula.nhapi.exception.NHApiException;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
-import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -17,21 +15,20 @@ import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Component
 @Slf4j
+@Component
 public class NHApiClient {
 
     private static final String BASE_URL = "https://developers.nonghyup.com";
-    private static final String API_KEY = "xxx"; // 실제 API 키 사용
+    private static final String API_KEY = "97150a353857633d8d6d1963f03b293ac4d2b4dca758804ed0240896e469b818"; // 실제 사용 시 교체
 
-    public JSONObject callOpenFinAccount(FinAccountRequestDto dto) {
+    public JSONObject callOpenFinAccount(String accountNumber, String birthday) {
         JSONObject body = new JSONObject();
         body.put("Header", buildHeader("OpenFinAccountDirect"));
         body.put("DrtrRgyn", "Y");
         body.put("Bncd", "011");
-        body.put("BrdtBrno", dto.getBirthday());
-        body.put("Acno", dto.getAccountNumber());
-
+        body.put("BrdtBrno", birthday);
+        body.put("Acno", accountNumber);
         return post("/OpenFinAccountDirect.nh", body);
     }
 
@@ -40,7 +37,6 @@ public class NHApiClient {
         body.put("Header", buildHeader("CheckOpenFinAccountDirect"));
         body.put("Rgno", rgno);
         body.put("BrdtBrno", birthday);
-
         return post("/CheckOpenFinAccountDirect.nh", body);
     }
 
@@ -48,7 +44,6 @@ public class NHApiClient {
         JSONObject body = new JSONObject();
         body.put("Header", buildHeader("InquireBalance"));
         body.put("FinAcno", finAcno);
-
         return post("/InquireBalance.nh", body);
     }
 
@@ -63,14 +58,14 @@ public class NHApiClient {
         body.put("PageNo", "1");
         body.put("Bncd", "011");
         body.put("Dmcnt", "100");
-
         return post("/InquireTransactionHistory.nh", body);
     }
 
     private JSONObject post(String path, JSONObject body) {
+        HttpURLConnection conn = null;
         try {
             URL url = new URL(BASE_URL + path);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn = (HttpURLConnection) url.openConnection();
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);
@@ -84,7 +79,11 @@ public class NHApiClient {
             return new JSONObject(res);
 
         } catch (Exception e) {
-            throw new NHApiException("NH API 호출 실패: " + path, e);
+            log.error("❌ NH API 호출 실패 (Post 요청) - 경로: {}, 에러: {}", path, e.getMessage());
+            // 예외 발생 시 기본 응답
+            return createFallbackResponse();
+        } finally {
+            if (conn != null) conn.disconnect();
         }
     }
 
@@ -98,11 +97,17 @@ public class NHApiClient {
         header.put("ApiSvcCd", switch (apiName) {
             case "OpenFinAccountDirect", "CheckOpenFinAccountDirect" -> "DrawingTransferA";
             case "InquireBalance", "InquireTransactionHistory" -> "ReceivedTransferA";
-            default -> throw new NHApiException("지원하지 않는 ApiNm");
+            default -> throw new NHApiException("지원하지 않는 ApiNm: " + apiName);
         });
         header.put("IsTuno", UUID.randomUUID().toString().substring(0, 20));
         header.put("AccessToken", API_KEY);
         return header;
     }
-}
 
+    private JSONObject createFallbackResponse() {
+        JSONObject fallback = new JSONObject();
+        fallback.put("Header", new JSONObject().put("Rpcd", "ERROR"));
+        fallback.put("Message", "Mock fallback response");
+        return fallback;
+    }
+}

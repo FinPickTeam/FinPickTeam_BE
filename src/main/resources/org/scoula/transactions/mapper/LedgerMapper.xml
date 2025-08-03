@@ -21,11 +21,6 @@
         ORDER BY l.date DESC
     </select>
 
-
-
-
-
-
     <!-- 거래 상세 조회 -->
     <select id="findLedgerDetail" resultType="org.scoula.transactions.domain.Ledger">
         SELECT
@@ -42,14 +37,13 @@
     <insert id="insert" parameterType="org.scoula.transactions.domain.Ledger">
         INSERT INTO ledger (
             user_id, source_type, source_name,
-            amount, type, category, memo, analysis,
+            amount, type, category_id, memo, analysis,
             date, merchant_name, place, account_id, card_id, source_id, created_at
         ) VALUES (
                      #{userId}, #{sourceType}, #{sourceName},
-                     #{amount}, #{type}, #{category}, #{memo}, #{analysis},
-                     #{date}, #{merchantName}, #{place}, #{accountId}, #{cardId}, #{sourceId}, #{createdAt}
+                     #{amount}, #{type}, #{categoryId}, #{memo}, #{analysis},
+                     #{date}, #{merchantName}, #{place}, #{accountId}, #{cardId}, #{sourceId}, now()
                  )
     </insert>
-
 
 </mapper>
