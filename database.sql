@@ -80,13 +80,11 @@ CREATE TABLE `mydata` (
 DROP TABLE IF EXISTS `avatar`;
 CREATE TABLE `avatar` (
                           `id` BIGINT NOT NULL,
-                          `avatar_image` VARCHAR(255) NOT NULL,
-                          `top_id` INT,
-                          `bottom_id` INT,
-                          `shoes_id` INT,
-                          `accessory_id` INT,
-                          `hat_id` INT,
-                          `background_id` INT,
+                          `avatar_image` BIGINT NOT NULL,
+                          `top_id` BIGINT,
+                          `shoes_id` BIGINT,
+                          `accessory_id` BIGINT,
+                          `gift_card_id` BIGINT,
                           PRIMARY KEY (`id`),
                           FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
@@ -95,22 +93,22 @@ CREATE TABLE `avatar` (
 DROP TABLE IF EXISTS `item`;
 CREATE TABLE `item` (
                         `id` BIGINT NOT NULL AUTO_INCREMENT,
-                        `type` ENUM('TOP', 'BOTTOM', 'SHOES', 'ACCESSORY', 'HAT', 'BACKGROUND') NOT NULL,
-                        `code` INT NOT NULL,
+                        `name` VARCHAR(255) NOT NULL,
+                        `type` ENUM('avatarImage', 'top', 'shoes', 'accessory', 'giftCard') NOT NULL,
                         `cost` INT NOT NULL,
                         `image_url` VARCHAR(255) NOT NULL,
                         PRIMARY KEY (`id`)
 );
 
--- 8. 착용 정보
+-- 8. 옷장
 DROP TABLE IF EXISTS `clothes`;
 CREATE TABLE `clothes` (
-                           `id` BIGINT NOT NULL,
+                           `id` BIGINT NOT NULL AUTO_INCREMENT,
                            `user_id` BIGINT NOT NULL,
                            `item_id` BIGINT NOT NULL,
                            `is_wearing` BOOLEAN NOT NULL,
                            PRIMARY KEY (`id`, `user_id`),
-                           FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
+                           FOREIGN KEY (`user_id`) REFERENCES `avatar`(`id`) ON DELETE CASCADE,
                            FOREIGN KEY (`item_id`) REFERENCES `item`(`id`) ON DELETE CASCADE
 );
 
@@ -142,8 +140,37 @@ DROP TABLE IF EXISTS `bubble`;
 CREATE TABLE `bubble` (
                           `id` BIGINT NOT NULL AUTO_INCREMENT,
                           `message` VARCHAR(255) NOT NULL,
+
                           PRIMARY KEY (`id`)
 );
+
+-- 12. 재화정보
+DROP TABLE IF EXISTS `coin`;
+CREATE TABLE `coin` (
+                        `id` BIGINT NOT NULL,
+                        `amount` BIGINT NOT NULL DEFAULT 1000,
+                        `cumulative_amount` BIGINT NOT NULL DEFAULT 0, -- 누적 재화량
+                        `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+                        PRIMARY KEY (`id`),
+                        FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
+);
+ALTER TABLE `coin` MODIFY COLUMN `amount` BIGINT NOT NULL;
+
+-- 13. 재화내역
+DROP TABLE IF EXISTS `coin_history`;
+CREATE TABLE `coin_history` (
+                                `id` BIGINT NOT NULL AUTO_INCREMENT,
+                                `user_id` BIGINT NOT NULL,
+                                `amount` BIGINT NOT NULL,
+                                `type` ENUM('plus', 'minus') NOT NULL,
+                                `comment` VARCHAR(255) NOT NULL,
+                                `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                                PRIMARY KEY (`id`),
+                                FOREIGN KEY (`user_id`) REFERENCES `coin`(`id`) ON DELETE CASCADE
+);
+
 
 -- FINANCIAL
 -- 1. 계좌 정보
@@ -310,7 +337,25 @@ CREATE TABLE `deposit_list` (
                                 PRIMARY KEY (`id`)
 );
 
--- 9. 펀드 상품 목록
+-- 9. 적금 상품 목록
+DROP TABLE IF EXISTS `installment_list`;
+CREATE TABLE `installment_list` (
+                                    `id` INT NOT NULL AUTO_INCREMENT,
+                                    `installment_bank_name` VARCHAR(255) NOT NULL,
+                                    `installment_product_name` VARCHAR(255) NOT NULL,
+                                    `installment_contract_period` VARCHAR(50) NOT NULL,
+                                    `installment_type` VARCHAR(8) NOT NULL,
+                                    `installment_subscription_amount` VARCHAR(50) NOT NULL,
+                                    `installment_basic_rate` FLOAT(10,2) NOT NULL,
+                                    `installment_max_rate` FLOAT(10,2) NOT NULL,
+                                    `installment_preferential_rate` TEXT NULL,
+                                    `installment_product_features` TEXT NULL,
+                                    `installment_summary` VARCHAR(255) NOT NULL,
+                                    `installment_link` VARCHAR(255) NULL,
+                                    PRIMARY KEY (`id`)
+);
+
+-- 10. 펀드 상품 목록
 DROP TABLE IF EXISTS `fund_list`;
 CREATE TABLE `fund_list` (
                              `id` INT NOT NULL AUTO_INCREMENT,
@@ -327,7 +372,7 @@ CREATE TABLE `fund_list` (
                              PRIMARY KEY (`id`)
 );
 
--- 10. 주식 상품 목록
+-- 11. 주식 상품 목록
 DROP TABLE IF EXISTS `stock_list`;
 CREATE TABLE `stock_list` (
                               `id` INT NOT NULL AUTO_INCREMENT,
@@ -338,18 +383,18 @@ CREATE TABLE `stock_list` (
                               PRIMARY KEY (`id`)
 );
 
--- 11. 찜한 상품 (유저별)
+-- 12. 찜한 상품 (유저별)
 DROP TABLE IF EXISTS `wishlist`;
 CREATE TABLE `wishlist` (
                             `id` INT NOT NULL AUTO_INCREMENT,
                             `user_id` BIGINT NOT NULL,
-                            `product_type` ENUM('DEPOSIT', 'FUND', 'STOCK') NOT NULL,
-                            `product_id` INT NOT NULL,
+                            `product_type` ENUM('DEPOSIT', 'INSTALLMENT', 'FUND', 'STOCK') NOT NULL,
+                            `product_name` VARCHAR(255) NOT NULL,
                             PRIMARY KEY (`id`),
                             FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 
--- 12. 키움증권 rest api 접근 토큰
+-- 13. 키움증권 rest api 접근 토큰
 DROP TABLE IF EXISTS `user_kiwoom_access_token`;
 CREATE TABLE `user_kiwoom_access_token` (
                                             `id`       BIGINT       NOT NULL,
@@ -360,7 +405,7 @@ CREATE TABLE `user_kiwoom_access_token` (
                                             FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 );
 
--- 13. 주식 차트 데이터
+-- 14. 주식 차트 데이터
 DROP TABLE IF EXISTS `stock_chart_cache`;
 CREATE TABLE `stock_chart_cache` (
                                     `stock_code` VARCHAR(20) NOT NULL,
@@ -368,7 +413,6 @@ CREATE TABLE `stock_chart_cache` (
                                     `base_date` VARCHAR(8) NOT NULL,
                                     PRIMARY KEY (`stock_code`)
 );
-
 
 -- CHALLENGE
 -- 1. 챌린지 카테고리 (예: 소비 줄이기, 저축 늘리기 등)

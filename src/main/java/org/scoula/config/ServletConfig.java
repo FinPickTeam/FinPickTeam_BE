@@ -31,6 +31,9 @@ import java.util.List;
         "org.scoula.nhapi.exception",
         "org.scoula.challenge.controller",
         "org.scoula.challenge.exception",
+        "org.scoula.avatar.controller",
+        "org.scoula.avatar.exception",
+        "org.scoula.challenge.exception",
         "org.scoula.account.controller",
         "org.scoula.account.exception",
 })

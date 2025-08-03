@@ -32,7 +32,9 @@ import javax.sql.DataSource;
         "org.scoula.bubble.mapper",
         "org.scoula.news.mapper",
         "org.scoula.challenge.mapper",
-        "org.scoula.account.mapper"
+        "org.scoula.account.mapper",
+        "org.scoula.challenge.mapper",
+        "org.scoula.avatar.mapper",
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",
@@ -54,6 +56,7 @@ import javax.sql.DataSource;
         "org.scoula.challenge.service",
         "org.scoula.challenge.scheduler",
         "org.scoula.user.util",
+        "org.scoula.avatar.service",
         "org.scoula.account.service",
 
 })
