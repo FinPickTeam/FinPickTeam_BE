@@ -65,16 +65,44 @@
     </select>
 
     <select id="getGroupMembersWithAvatar" resultType="org.scoula.challenge.dto.ChallengeMemberDTO">
-    SELECT u.id AS userId,
-           us.nickname AS nickname,
-           (uc.actual_value * 1.0 / c.goal_value) AS progress,
-           a.avatar_image AS avatarImage
-    FROM user_challenge uc
-             JOIN user u ON uc.user_id = u.id
-             JOIN user_status us ON u.id = us.id
-             JOIN challenge c ON uc.challenge_id = c.id
-             LEFT JOIN avatar a ON u.id = a.id
-    WHERE uc.challenge_id = #{challengeId}
-</select>
+        SELECT u.id AS userId,
+               us.nickname AS nickname,
+               (uc.actual_value * 1.0 / c.goal_value) AS progress,
+               a.avatar_image AS avatarImage
+        FROM user_challenge uc
+                 JOIN user u ON uc.user_id = u.id
+                 JOIN user_status us ON u.id = us.id
+                 JOIN challenge c ON uc.challenge_id = c.id
+                 LEFT JOIN avatar a ON u.id = a.id
+        WHERE uc.challenge_id = #{challengeId}
+    </select>
+
+    <update id="incrementParticipantCount">
+        UPDATE challenge
+        SET participant_count = participant_count + 1
+        WHERE id = #{challengeId}
+    </update>
+
+    <update id="updateChallengeStatus">
+        UPDATE challenge
+        SET status = #{status}
+        WHERE id = #{challengeId}
+    </update>
+
+    <select id="findAllChallenges" resultType="org.scoula.challenge.domain.Challenge">
+        SELECT * FROM challenge
+    </select>
+
+    <update id="completeUserChallenges">
+        UPDATE user_challenge
+        SET is_completed = true, updated_at = NOW()
+        WHERE challenge_id = #{challengeId}
+    </update>
+
+    <update id="markChallengeSuccess">
+        UPDATE user_challenge
+        SET is_success = true
+        WHERE challenge_id = #{challengeId}
+    </update>
 
 </mapper>

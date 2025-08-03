@@ -44,8 +44,6 @@ import javax.sql.DataSource;
         "org.scoula.finance.service",
         "org.scoula.finance.util",
         "org.scoula.transactions.service",
-        "org.scoula.transactions.util",
-        "org.scoula.transactions.exception",
         "org.scoula.survey.service",
         "org.scoula.quiz.service",
         "org.scoula.quiz.exception",
@@ -55,7 +53,9 @@ import javax.sql.DataSource;
         "org.scoula.nhapi.service",
         "org.scoula.nhapi.util",
         "org.scoula.challenge.service",
-        "org.scoula.avatar.service"
+        "org.scoula.challenge.scheduler",
+        "org.scoula.user.util",
+        "org.scoula.avatar.service",
 })
 @EnableTransactionManagement
 public class RootConfig {

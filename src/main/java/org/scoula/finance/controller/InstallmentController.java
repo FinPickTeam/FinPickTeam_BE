@@ -29,10 +29,7 @@ public class InstallmentController {
     @ApiOperation(value= "적금 리스트 조회", notes = "적금 리스트를 조회합니다.")
     @GetMapping("/list")
     public CommonResponseDTO<List<InstallmentListDto>> getInstallmentList(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
             @ModelAttribute InstallmentFilterDto filterDto) {
-        System.out.println("유저 ID: " + userDetails.getUserId());
-
         List<InstallmentListDto> dto = installmentService.getInstallmentList(filterDto);
 
         if(dto != null) {
@@ -47,10 +44,7 @@ public class InstallmentController {
     @ApiOperation(value = "적금 상세 조회", notes = "상품명을 기반으로 적금 상세 정보를 조회합니다.")
     @GetMapping("/installmentDetail/{installmentProductName}")
     public CommonResponseDTO<InstallmentDetailDto> getInstallmentDetail(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
             @PathVariable String installmentProductName){
-        System.out.println("유저 ID: " + userDetails.getUserId());
-
         InstallmentDetailDto dto = installmentService.getInstallmentDetail(installmentProductName);
 
         if(dto != null) {
@@ -64,7 +58,6 @@ public class InstallmentController {
     @ApiOperation(value = "적금 추천", notes = "사용자의 투자성향을 참고하여 적금 상품을 추천합니다.")
     @PostMapping("/recommend")
     public CommonResponseDTO<List<InstallmentListDto>> getRecommendInstallmentList(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam int amount,
             @RequestParam int period,
             @RequestBody InstallmentUserConditionDto userConditionDto){

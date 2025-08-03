@@ -38,6 +38,16 @@ public interface ChallengeMapper {
 
     List<ChallengeMemberDTO> getGroupMembersWithAvatar(@Param("challengeId") Long challengeId);
 
+    void incrementParticipantCount(@Param("challengeId") Long challengeId);
+
+    void updateChallengeStatus(@Param("challengeId") Long challengeId,
+                               @Param("status") String status);
+
+    List<Challenge> findAllChallenges(); // 모든 챌린지
+
+    void completeUserChallenges(@Param("challengeId") Long challengeId); // 유저 챌린지 완료 처리
+
+    void markChallengeSuccess(@Param("challengeId") Long challengeId); // 유저 챌린지 성공 처리 (임시)
 
 }
 

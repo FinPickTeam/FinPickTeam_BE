@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.transactions.mapper.CardTransactionMapper">
+
+    <select id="findCardTransactions" resultType="org.scoula.transactions.domain.CardTransaction">
+        SELECT id, user_id, card_id, auth_number, sales_type, approved_at,
+        amount, merchant_name, tpbcd, tpbcd_nm
+        FROM card_transaction
+        WHERE user_id = #{userId}
+        AND card_id = #{cardId}
+        AND is_cancelled = FALSE
+        <if test="from != null">AND approved_at &gt;= #{from}</if>
+        <if test="to != null">AND approved_at &lt;= #{to}</if>
+        ORDER BY approved_at DESC
+    </select>
+
+
+</mapper>
+
