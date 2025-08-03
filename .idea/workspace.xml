@@ -10,24 +10,105 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="60a024bb-732a-441a-adfd-602c9259727c" name="변경" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/artifacts/Gradle___org_scoula___backend_1_0_SNAPSHOT_war__exploded_.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/controller/ChallengeSchedulerController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/dto/ChallengeJoinRequestDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/exception/join/ChallengeAlreadyJoinedException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/exception/join/ChallengeFullException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/exception/join/ChallengeLimitExceededException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/exception/join/ChallengePasswordMismatchException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/exception/join/ChallengeStatusException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/exception/join/InvalidChallengeTypeJoinException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/scheduler/ChallengeScheduler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/config/SchedulerConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/controller/FundController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/controller/WishListController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/dto/fund/FundDetailDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/dto/fund/FundFilterDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/dto/fund/FundListDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/dto/fund/FundRecommendationDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/dto/fund/FundRequestDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/dto/stock/StockCardListDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/dto/wishlist/WishListDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/dto/wishlist/WishListResponseDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/mapper/FundMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/mapper/WishListMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/service/fund/FundService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/service/fund/FundServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/service/fund/python/analyze.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/service/wishlist/WishListService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/service/wishlist/WishListServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/AccountTransactionController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/CardTransactionController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/LedgerController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/domain/CardTransaction.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/domain/Ledger.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/AccountTransactionDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/CardTransactionDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/LedgerDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/AccountTransactionErrorCode.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/AccountTransactionNotFoundException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/CardTransactionErrorCode.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/CardTransactionNotFoundException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/LedgerErrorCode.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/LedgerNotFoundException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/AccountTransactionMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/CardTransactionMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/LedgerMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/AccountTransactionService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/AccountTransactionServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/CardTransactionService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/CardTransactionServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/LedgerService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/LedgerServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/user/domain/UserStatus.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/user/enums/UserLevel.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/user/exception/signup/NicknameGenerationException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/user/mapper/UserStatusMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/org/scoula/user/util/NicknameGenerator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/finance/mapper/FundMapper.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/finance/mapper/WishListMapper.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/AccountTransactionMapper.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/CardTransactionMapper.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/LedgerMapper.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/user/mapper/UserStatusMapper.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/build.gradle" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/database.sql" beforeDir="false" afterPath="$PROJECT_DIR$/database.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/AccountTransactionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/AccountTransactionController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/CardTransactionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/CardTransactionController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/LedgerController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/LedgerController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/LedgerDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/LedgerDto.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/AccountTransactionMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/AccountTransactionMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/CardTransactionMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/CardTransactionMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/LedgerMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/LedgerMapper.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/AccountTransactionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/AccountTransactionService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/AccountTransactionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/AccountTransactionServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/CardTransactionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/CardTransactionService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/CardTransactionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/CardTransactionServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/LedgerService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/LedgerService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/LedgerServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/LedgerServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/AccountTransactionMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/AccountTransactionMapper.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/CardTransactionMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/CardTransactionMapper.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/LedgerMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/LedgerMapper.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/controller/ChallengeController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/controller/ChallengeController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/enums/ChallengeStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/enums/ChallengeStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/mapper/ChallengeMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/mapper/ChallengeMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/service/ChallengeService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/service/ChallengeService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/service/ChallengeServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/challenge/service/ChallengeServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/config/RootConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/config/RootConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/config/WebConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/config/WebConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/finance/controller/DepositController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/controller/DepositController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/finance/controller/InstallmentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/controller/InstallmentController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/finance/controller/StockController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/controller/StockController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/finance/mapper/DepositMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/mapper/DepositMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/finance/service/deposit/DepositServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/service/deposit/DepositServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/finance/service/installment/InstallmentServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/service/installment/InstallmentServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/finance/service/stock/StockService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/service/stock/StockService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/finance/service/stock/StockServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/finance/service/stock/StockServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/TransactionController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/domain/Transaction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/domain/AccountTransaction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/TransactionDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/TransactionDetailDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/LedgerDetailDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/AccountNotFoundException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/TransactionNotFoundException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/exception/UserNotFoundException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/TransactionMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/TransactionService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/TransactionServiceImpl.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/util/RuleBasedAnalyzer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/user/dto/UserResponseDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/user/dto/UserResponseDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/user/service/UserServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/user/service/UserServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/org/scoula/challenge/mapper/ChallengeMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/challenge/mapper/ChallengeMapper.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/org/scoula/finance/mapper/DepositMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/finance/mapper/DepositMapper.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/TransactionMapper.xml" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -47,7 +128,12 @@
         </task>
         <projects_view>
           <tree_state>
-            <expand />
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="backend" type="f1a62948:ProjectNode" />
+              </path>
+            </expand>
             <select />
           </tree_state>
         </projects_view>
@@ -119,7 +205,7 @@
     "Tomcat 서버.Tomcat 9.0.105.executor": "Run",
     "Tomcat 서버.Tomcat 9.0.106.executor": "Run",
     "Tomcat 서버.Tomcat 9.0.107.executor": "Run",
-    "git-widget-placeholder": "feat/#83-wishlist 병합 중",
+    "git-widget-placeholder": "Merging feat/#63-avatar-service",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/park/Desktop/kB_final_project/FinPickTeam_BE/src/main/resources/org/scoula/finance/mapper",
@@ -167,7 +253,7 @@
       </set>
     </option>
   </component>
-  <component name="RunManager" selected="Tomcat 서버.Tomcat 9.0.107">
+  <component name="RunManager" selected="Tomcat Server.Tomcat 9.0.107">
     <configuration default="true" type="JetRunConfigurationType">
       <module name="backend.main" />
       <method v="2">
@@ -358,8 +444,8 @@
       </method>
     </configuration>
     <list>
-      <item itemvalue="Tomcat 서버.Tomcat 9.0.107" />
-      <item itemvalue="TomEE 서버.Tomcat 9.0.106" />
+      <item itemvalue="Tomcat Server.Tomcat 9.0.107" />
+      <item itemvalue="TomEE Server.Tomcat 9.0.106" />
     </list>
   </component>
   <component name="SharedIndexes">
