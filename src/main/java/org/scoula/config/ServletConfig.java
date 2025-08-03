@@ -21,17 +21,21 @@ import java.util.List;
         "org.scoula.user.controller",
         "org.scoula.user.exception",
         "org.scoula.transactions.controller",
+        "org.scoula.transactions.exception",
         "org.scoula.survey.controller",
         "org.scoula.quiz.controller",
         "org.scoula.dictionary.controller",
         "org.scoula.bubble.controller",
         "org.scoula.news.controller",
         "org.scoula.transactions.exception",
-        "org.scoula.nhapi.controller",
+        "org.scoula.nhapi.exception",
         "org.scoula.challenge.controller",
         "org.scoula.challenge.exception",
         "org.scoula.avatar.controller",
-        "org.scoula.avatar.exception"
+        "org.scoula.avatar.exception",
+        "org.scoula.challenge.exception",
+        "org.scoula.account.controller",
+        "org.scoula.account.exception",
 })
 public class ServletConfig implements WebMvcConfigurer {
 

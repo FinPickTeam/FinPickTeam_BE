@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 
 @Data
 @Builder
-public class BalanceResponseDto {
+public class NHBalanceInquiryResponse {
     private String finAccount;
     private BigDecimal balance;
 }
