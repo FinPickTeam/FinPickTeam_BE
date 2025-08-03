@@ -9,7 +9,26 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="60a024bb-732a-441a-adfd-602c9259727c" name="변경" comment="" />
+    <list default="true" id="60a024bb-732a-441a-adfd-602c9259727c" name="변경" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/database.sql" beforeDir="false" afterPath="$PROJECT_DIR$/database.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/AccountTransactionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/AccountTransactionController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/CardTransactionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/CardTransactionController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/LedgerController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/controller/LedgerController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/LedgerDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/dto/LedgerDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/AccountTransactionMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/AccountTransactionMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/CardTransactionMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/CardTransactionMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/LedgerMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/mapper/LedgerMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/AccountTransactionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/AccountTransactionService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/AccountTransactionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/AccountTransactionServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/CardTransactionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/CardTransactionService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/CardTransactionServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/CardTransactionServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/LedgerService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/LedgerService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/LedgerServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/scoula/transactions/service/LedgerServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/AccountTransactionMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/AccountTransactionMapper.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/CardTransactionMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/CardTransactionMapper.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/LedgerMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/org/scoula/transactions/mapper/LedgerMapper.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -38,8 +57,8 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Interface" />
         <option value="Enum" />
+        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -100,10 +119,10 @@
     "Tomcat 서버.Tomcat 9.0.105.executor": "Run",
     "Tomcat 서버.Tomcat 9.0.106.executor": "Run",
     "Tomcat 서버.Tomcat 9.0.107.executor": "Run",
-    "git-widget-placeholder": "refactor/#74-transactions-query",
+    "git-widget-placeholder": "feat/#83-wishlist 병합 중",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/FinPick_BE/src/main/java/org/scoula/common/dto",
+    "last_opened_file_path": "C:/Users/park/Desktop/kB_final_project/FinPickTeam_BE/src/main/resources/org/scoula/finance/mapper",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -126,6 +145,7 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\park\Desktop\kB_final_project\FinPickTeam_BE\src\main\resources\org\scoula\finance\mapper" />
       <recent name="C:\FinPick_BE\src\main\java\org\scoula\common\dto" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
@@ -345,14 +365,15 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-a94e463ab2e7-intellij.indexing.shared.core-IU-243.26053.27" />
-        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-IU-243.26053.27" />
+        <option value="bundled-jdk-9823dce3aa75-fdfe4dae3a2d-intellij.indexing.shared.core-IU-243.21565.193" />
+        <option value="bundled-js-predefined-d6986cc7102b-e768b9ed790e-JavaScript-IU-243.21565.193" />
       </set>
     </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
+      <changelist id="60a024bb-732a-441a-adfd-602c9259727c" name="변경" comment="" />
       <created>1753609094493</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
@@ -373,6 +394,7 @@
       <workItem from="1753853938471" duration="322000" />
       <workItem from="1753854385406" duration="3543000" />
       <workItem from="1753943886997" duration="3304000" />
+      <workItem from="1754118224034" duration="14859000" />
     </task>
     <task id="LOCAL-00001" summary="feat: 거래내역 통합 로그(ledger) 테이블 및 관련 테이블 스키마 수정">
       <option name="closed" value="true" />
