@@ -64,10 +64,11 @@ public class NHApiClient {
     public JSONObject callOpenFinCard(String cardNumber, String birthday) {
         JSONObject body = new JSONObject();
         body.put("Header", buildHeader("OpenFinCardDirect"));
-        body.put("CardNo", cardNumber);
-        body.put("BrdtBrno", birthday);
+        body.put("Cano", cardNumber);
+        body.put("Brdt", birthday);
         return post("/OpenFinCardDirect.nh", body);
     }
+
 
     public JSONObject checkOpenFinCard(String rgno, String birthday) {
         JSONObject body = new JSONObject();

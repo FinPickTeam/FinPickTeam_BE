@@ -27,7 +27,14 @@ public class CardServiceImpl implements CardService {
     public CardRegisterResponseDto registerCard(FinCardRequestDto dto) {
         // 🔹 1단계: 핀카드 발급
         JSONObject res1 = nhApiClient.callOpenFinCard(dto.getCardNumber(), dto.getBirthday());
+        log.info("📦 핀카드 발급 응답: {}", res1.toString());
+
+        if (!res1.has("Rgno")) {
+            throw new BaseException("핀카드 발급 실패: 'Rgno' 없음. 응답 = " + res1.toString(), 500);
+        }
+
         String rgno = res1.getString("Rgno");
+
 
         // 🔹 2단계: 핀카드 확인
         JSONObject res2 = nhApiClient.checkOpenFinCard(rgno, dto.getBirthday());
