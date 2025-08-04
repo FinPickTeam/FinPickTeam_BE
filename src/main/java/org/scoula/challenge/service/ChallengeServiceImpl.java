@@ -34,14 +34,14 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         // 2. 날짜 유효성 체크
         if (req.getStartDate().isAfter(req.getEndDate())) {
-            throw new IllegalArgumentException("시작일은 종료일보다 이후일 수 없습니다.");
+            throw new StartDateAfterEndDateException();
         }
         long days = ChronoUnit.DAYS.between(req.getStartDate(), req.getEndDate()) + 1;
         if (days < 3) {
             throw new ChallengeDurationTooShortException();
         }
         if (days > 30) {
-            throw new IllegalArgumentException("챌린지 기간은 최대 30일까지 가능합니다.");
+            throw new ChallengeDurationTooLongException();
         }
         if (ChronoUnit.DAYS.between(LocalDate.now(), req.getStartDate()) > 7) {
             throw new ChallengeStartTooLateException();
