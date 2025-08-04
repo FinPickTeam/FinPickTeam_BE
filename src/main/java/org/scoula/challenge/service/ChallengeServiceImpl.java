@@ -206,6 +206,10 @@ public class ChallengeServiceImpl implements ChallengeService {
         }
     }
 
+    @Override
+    public ChallengeSummaryResponseDTO getChallengeSummary(Long userId) {
+        return challengeMapper.getChallengeSummary(userId);
+    }
 
 
 }

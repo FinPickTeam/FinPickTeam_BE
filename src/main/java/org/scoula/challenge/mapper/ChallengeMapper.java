@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.scoula.challenge.domain.Challenge;
 import org.scoula.challenge.dto.ChallengeMemberDTO;
+import org.scoula.challenge.dto.ChallengeSummaryResponseDTO;
 import org.scoula.challenge.enums.ChallengeStatus;
 import org.scoula.challenge.enums.ChallengeType;
 
@@ -61,6 +62,7 @@ public interface ChallengeMapper {
 
     String getCategoryNameById(@Param("categoryId") Long categoryId);
 
+    ChallengeSummaryResponseDTO getChallengeSummary(@Param("userId") Long userId);
 
 }
 

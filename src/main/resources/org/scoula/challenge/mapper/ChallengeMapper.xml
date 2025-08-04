@@ -125,5 +125,14 @@
         SELECT name FROM challenge_category WHERE id = #{categoryId}
     </select>
 
+    <select id="getChallengeSummary" resultType="org.scoula.challenge.dto.ChallengeSummaryResponseDTO">
+        SELECT
+            total_challenges AS totalChallenges,
+            success_count AS successCount,
+            achievement_rate AS achievementRate
+        FROM user_challenge_summary
+        WHERE id = #{userId}
+    </select>
+
 
 </mapper>
