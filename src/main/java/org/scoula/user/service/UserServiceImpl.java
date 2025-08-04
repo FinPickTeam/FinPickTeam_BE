@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
         user.setLastPwChangeAt(LocalDateTime.now());
 
         try {
-            userMapper.save(user);
+            userMapper.save(user); // 1. 유저 저장
         } catch (DuplicateKeyException e) {
             log.warn("❌ DB 이메일 중복 에러 발생: {}", user.getEmail());
             throw new DuplicateEmailException();
@@ -84,7 +84,8 @@ public class UserServiceImpl implements UserService {
         status.setId(user.getId());
         status.setNickname(nickname);
         status.setLevel(UserLevel.SEEDLING.getLabel()); // → "금융새싹"
-        userStatusMapper.save(status);
+        userStatusMapper.save(status); // 2. 상태 저장
+        userMapper.insertUserChallengeSummary(user.getId()); // 3. 챌린지 요약 0으로 초기화
 
         return UserResponseDTO.builder()
                 .id(user.getId())

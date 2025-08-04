@@ -86,6 +86,12 @@ public class ChallengeServiceImpl implements ChallengeService {
         // 7. 닉네임 조회
         String nickname = userMapper.findNicknameById(userId);
 
+        // 8. 참여관련 숫자 데이터 수정
+        // 요약 테이블이 없을 수도 있으니 insert or update
+        challengeMapper.insertOrUpdateUserChallengeSummary(userId);
+        challengeMapper.incrementUserTotalChallenges(userId);
+        challengeMapper.updateAchievementRate(userId);
+
         return new ChallengeCreateResponseDTO(challenge.getId(), nickname);
     }
 
@@ -206,6 +212,10 @@ public class ChallengeServiceImpl implements ChallengeService {
         }
     }
 
+    @Override
+    public ChallengeSummaryResponseDTO getChallengeSummary(Long userId) {
+        return challengeMapper.getChallengeSummary(userId);
+    }
 
 
 }

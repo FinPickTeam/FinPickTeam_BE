@@ -72,5 +72,14 @@ public class ChallengeController {
         return CommonResponseDTO.success("챌린지 참여 신청이 완료되었습니다.");
     }
 
+    @GetMapping("/summary")
+    public CommonResponseDTO<ChallengeSummaryResponseDTO> getChallengeSummary(HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
+
+        ChallengeSummaryResponseDTO summary = challengeService.getChallengeSummary(userId);
+        return CommonResponseDTO.success("챌린지 요약 정보 조회 성공", summary);
+    }
+
 
 }
