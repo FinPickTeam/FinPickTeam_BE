@@ -58,10 +58,8 @@ CREATE TABLE `agree` (
                          `id` BIGINT NOT NULL,
                          `login_agreed` BOOLEAN NOT NULL,
                          `mydata_agreed` BOOLEAN NOT NULL,
-                         `push_agreed` BOOLEAN NOT NULL,
                          `login_agreed_at` DATETIME,
                          `mydata_agreed_at` DATETIME,
-                         `push_agreed_at` DATETIME,
                          PRIMARY KEY (`id`),
                          FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
@@ -169,6 +167,17 @@ CREATE TABLE `coin_history` (
 
                                 PRIMARY KEY (`id`),
                                 FOREIGN KEY (`user_id`) REFERENCES `coin`(`id`) ON DELETE CASCADE
+);
+
+-- 14. 알람내역
+DROP TABLE IF EXISTS `ALARMS`;
+CREATE TABLE ALARMS (
+                        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                        user_id BIGINT NOT NULL,
+                        message VARCHAR(500) NOT NULL,
+                        is_read BOOLEAN NOT NULL DEFAULT FALSE,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES USER(id)
 );
 
 
