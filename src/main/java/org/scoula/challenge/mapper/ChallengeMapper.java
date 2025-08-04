@@ -47,7 +47,20 @@ public interface ChallengeMapper {
 
     void completeUserChallenges(@Param("challengeId") Long challengeId); // 유저 챌린지 완료 처리
 
-    void markChallengeSuccess(@Param("challengeId") Long challengeId); // 유저 챌린지 성공 처리 (임시)
+    List<Long> findUserIdsByChallengeId(@Param("challengeId") Long challengeId);
+
+    void updateActualValue(@Param("userId") Long userId,
+                           @Param("challengeId") Long challengeId,
+                           @Param("actualValue") int actualValue);
+
+    void failUserChallenge(@Param("userId") Long userId,
+                           @Param("challengeId") Long challengeId);
+
+    void succeedUserChallenge(@Param("userId") Long userId,
+                              @Param("challengeId") Long challengeId);
+
+    String getCategoryNameById(@Param("categoryId") Long categoryId);
+
 
 }
 
