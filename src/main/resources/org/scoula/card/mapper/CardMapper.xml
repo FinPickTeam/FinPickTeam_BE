@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.card.mapper.CardMapper">
+    <insert id="insertCard" parameterType="org.scoula.card.domain.Card">
+        INSERT INTO card (
+            user_id, fin_card_number, back_code, bank_name, card_name,
+            card_maskednum, card_member_type, card_type
+        ) VALUES (
+                     #{userId}, #{finCardNumber}, #{backCode}, #{bankName}, #{cardName},
+                     #{cardMaskednum}, #{cardMemberType}, #{cardType}
+                 )
+    </insert>
+
+    <select id="findById" resultType="org.scoula.card.domain.Card">
+        SELECT *
+        FROM card
+        WHERE id = #{cardId}
+    </select>
+
+    <select id="findByUserId" resultType="org.scoula.card.domain.Card">
+        SELECT *
+        FROM card
+        WHERE user_id = #{userId}
+    </select>
+
+
+</mapper>

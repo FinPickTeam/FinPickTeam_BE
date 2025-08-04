@@ -61,6 +61,37 @@ public class NHApiClient {
         return post("/InquireTransactionHistory.nh", body);
     }
 
+    public JSONObject callOpenFinCard(String cardNumber, String birthday) {
+        JSONObject body = new JSONObject();
+        body.put("Header", buildHeader("OpenFinCardDirect"));
+        body.put("Cano", cardNumber);
+        body.put("Brdt", birthday);
+        return post("/OpenFinCardDirect.nh", body);
+    }
+
+
+    public JSONObject checkOpenFinCard(String rgno, String birthday) {
+        JSONObject body = new JSONObject();
+        body.put("Header", buildHeader("CheckOpenFinCardDirect"));
+        body.put("Rgno", rgno);
+        body.put("Brdt", birthday);
+        return post("/CheckOpenFinCardDirect.nh", body);
+    }
+
+    public JSONObject callCardTransactionList(String finCard, String fromDate, String toDate, int pageNo) {
+        JSONObject body = new JSONObject();
+        body.put("Header", buildHeader("InquireCreditCardAuthorizationHistory"));
+        body.put("FinCard", finCard);
+        body.put("IousDsnc", "1"); // 고정값
+        body.put("Insymd", fromDate);  // 조회 시작일
+        body.put("Ineymd", toDate);    // 조회 종료일
+        body.put("PageNo", String.valueOf(pageNo));
+        body.put("Dmcnt", "100"); // 한 번에 100건
+        return post("/InquireCreditCardAuthorizationHistory.nh", body);
+    }
+
+
+
     private JSONObject post(String path, JSONObject body) {
         HttpURLConnection conn = null;
         try {
@@ -95,8 +126,9 @@ public class NHApiClient {
         header.put("Iscd", "003131");
         header.put("FintechApsno", "001");
         header.put("ApiSvcCd", switch (apiName) {
-            case "OpenFinAccountDirect", "CheckOpenFinAccountDirect" -> "DrawingTransferA";
+            case "OpenFinAccountDirect", "CheckOpenFinAccountDirect", "OpenFinCardDirect", "CheckOpenFinCardDirect" -> "DrawingTransferA";
             case "InquireBalance", "InquireTransactionHistory" -> "ReceivedTransferA";
+            case "InquireCreditCardAuthorizationHistory" -> "CardInfo";
             default -> throw new NHApiException("지원하지 않는 ApiNm: " + apiName);
         });
         header.put("IsTuno", UUID.randomUUID().toString().substring(0, 20));

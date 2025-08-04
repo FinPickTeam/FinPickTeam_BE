@@ -8,7 +8,7 @@ import org.scoula.account.mapper.AccountMapper;
 import org.scoula.common.exception.BaseException;
 import org.scoula.nhapi.dto.FinAccountRequestDto;
 import org.scoula.nhapi.service.NhAccountService;
-import org.scoula.transactions.service.TransactionSyncProcessor;
+import org.scoula.transactions.service.AccountTransactionService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -22,7 +22,7 @@ public class AccountServiceImpl implements AccountService {
 
     private final NhAccountService nhAccountService;
     private final AccountMapper accountMapper;
-    private final TransactionSyncProcessor transactionSyncProcessor;
+    private final AccountTransactionService accountTransactionService;
 
     @Override
     public AccountRegisterResponseDto registerFinAccount(FinAccountRequestDto dto) {
@@ -46,7 +46,7 @@ public class AccountServiceImpl implements AccountService {
 
         accountMapper.insert(account);
 
-        transactionSyncProcessor.syncAccountTransactions(account, true);
+        accountTransactionService.syncAccountTransactions(account, true);
 
         log.info("✅ 계좌 등록 및 초기화 성공: {}", account);
         return AccountRegisterResponseDto.builder()
@@ -62,7 +62,7 @@ public class AccountServiceImpl implements AccountService {
         if (account == null) throw new BaseException("해당 계좌가 존재하지 않습니다.", 404);
 
         // 거래내역 동기화 (isInitial = false)
-        transactionSyncProcessor.syncAccountTransactions(account, false);
+        accountTransactionService.syncAccountTransactions(account, false);
 
         // 잔액 최신화
         BigDecimal newBalance = nhAccountService.callInquireBalance(account.getPinAccountNumber());
@@ -75,7 +75,7 @@ public class AccountServiceImpl implements AccountService {
     public void syncAllAccountsByUserId(Long userId) {
         List<Account> accounts = accountMapper.findByUserId(userId);
         for (Account acc : accounts) {
-            transactionSyncProcessor.syncAccountTransactions(acc, false);
+            accountTransactionService.syncAccountTransactions(acc, false);
             BigDecimal newBalance = nhAccountService.callInquireBalance(acc.getPinAccountNumber());
             accountMapper.updateBalanceByUser(userId, acc.getPinAccountNumber(), newBalance);
         }

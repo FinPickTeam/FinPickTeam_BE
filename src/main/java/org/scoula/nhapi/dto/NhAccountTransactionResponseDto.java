@@ -10,7 +10,7 @@ import java.time.format.DateTimeFormatter;
 
 @Data
 @Builder
-public class NhTransactionResponseDto {
+public class NhAccountTransactionResponseDto {
     private Long userId;
     private Long accountId;
     private LocalDateTime date;
@@ -24,8 +24,8 @@ public class NhTransactionResponseDto {
     private String category;
     private String analysis;
 
-    public static NhTransactionResponseDto from(JSONObject obj) {
-        return NhTransactionResponseDto.builder()
+    public static NhAccountTransactionResponseDto from(JSONObject obj) {
+        return NhAccountTransactionResponseDto.builder()
                 .date(parseDateTime(obj.getString("Trdd"), obj.getString("Txtm")))
                 .type(parseType(obj.optString("MnrcDrotDsnc")))
                 .amount(new BigDecimal(obj.getString("Tram")))
