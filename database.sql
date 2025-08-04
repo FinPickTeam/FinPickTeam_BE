@@ -58,10 +58,8 @@ CREATE TABLE `agree` (
                          `id` BIGINT NOT NULL,
                          `login_agreed` BOOLEAN NOT NULL,
                          `mydata_agreed` BOOLEAN NOT NULL,
-                         `push_agreed` BOOLEAN NOT NULL,
                          `login_agreed_at` DATETIME,
                          `mydata_agreed_at` DATETIME,
-                         `push_agreed_at` DATETIME,
                          PRIMARY KEY (`id`),
                          FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );

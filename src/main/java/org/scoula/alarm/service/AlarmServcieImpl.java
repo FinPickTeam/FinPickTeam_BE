@@ -13,19 +13,23 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class AlarmServcieImpl implements AlarmService {
+
     private final AlarmMapper alarmMapper;
 
-    //알람DB에 저장하는 메소드
+
+    //특정 유저에게만 알람전송
     @Override
     public void addAlarm(Long userId, String message) {
         alarmMapper.insert(userId, message);
     }
 
+    //모든 유저에게 알람전송
     @Override
     public void addAlarmAll(String message){
         alarmMapper.insertAll(message);
     }
 
+    //알람 조회
     @Override
     public List<AlarmDTO> getAlarms(Long userId) {
 
@@ -37,11 +41,13 @@ public class AlarmServcieImpl implements AlarmService {
         return alarmDTOS;
     }
 
+    //특정 알람만 읽음처리
     @Override
     public void updateAlarm(Long id) {
         alarmMapper.update(id);
     }
 
+    //모든 알람 읽음처리
     @Override
     public void updateAll(Long userId) {
         alarmMapper.updateAll(userId);
