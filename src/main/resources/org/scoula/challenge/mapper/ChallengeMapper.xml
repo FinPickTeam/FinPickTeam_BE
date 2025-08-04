@@ -99,10 +99,31 @@
         WHERE challenge_id = #{challengeId}
     </update>
 
-    <update id="markChallengeSuccess">
+    <select id="findUserIdsByChallengeId" resultType="long">
+        SELECT user_id FROM user_challenge WHERE challenge_id = #{challengeId}
+    </select>
+
+    <update id="updateActualValue">
         UPDATE user_challenge
-        SET is_success = true
-        WHERE challenge_id = #{challengeId}
+        SET actual_value = #{actualValue}
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
     </update>
+
+    <update id="failUserChallenge">
+        UPDATE user_challenge
+        SET is_success = false, is_completed = true, updated_at = NOW()
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </update>
+
+    <update id="succeedUserChallenge">
+        UPDATE user_challenge
+        SET is_success = true, is_completed = true, updated_at = NOW()
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </update>
+
+    <select id="getCategoryNameById" resultType="string">
+        SELECT name FROM challenge_category WHERE id = #{categoryId}
+    </select>
+
 
 </mapper>
