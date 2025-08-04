@@ -378,6 +378,7 @@ CREATE TABLE `stock_list` (
                               `id` INT NOT NULL AUTO_INCREMENT,
                               `stock_name` VARCHAR(255) NOT NULL,
                               `stock_code` VARCHAR(255) NOT NULL,
+                              `stock_returns_data` TEXT NULL,
                               `market_type` ENUM('KOSPI', 'KOSDAQ') NOT NULL,
                               `stock_summary` VARCHAR(20) NOT NULL,
                               PRIMARY KEY (`id`)

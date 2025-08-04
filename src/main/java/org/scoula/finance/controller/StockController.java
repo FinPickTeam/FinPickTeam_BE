@@ -3,11 +3,9 @@ package org.scoula.finance.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.common.dto.CommonResponseDTO;
-import org.scoula.finance.dto.stock.StockAccessTokenDto;
-import org.scoula.finance.dto.stock.StockAccountDto;
-import org.scoula.finance.dto.stock.StockDetailDto;
-import org.scoula.finance.dto.stock.StockListDto;
+import org.scoula.finance.dto.stock.*;
 import org.scoula.finance.service.stock.StockService;
+import org.scoula.security.account.domain.CustomUserDetails;
 import org.scoula.user.domain.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +17,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/stock")
+@RequestMapping("v1/api/stock")
 public class StockController {
     private final StockService stockService;
 
@@ -46,20 +44,20 @@ public class StockController {
     // 주식 목록 가져오기 (필터 포함)
     @GetMapping("/stocks")
     public CommonResponseDTO<List<StockListDto>> getAllStocks(
-            @RequestParam(name = "userId") Long userId,
-            @RequestParam(required = false) String market,
-            @RequestParam(required = false) String sortName,
-            @RequestParam(required = false) String sortPrice) {
+            @AuthenticationPrincipal CustomUserDetails user,
+            @ModelAttribute StockFilterDto filterDto) {
 
-        List<StockListDto> stocks = stockService.getStockList(userId, market, sortName, sortPrice);
+        Long userId = user.getUserId();
+
+        List<StockListDto> stocks = stockService.getStockList(userId, filterDto);
         return CommonResponseDTO.success("주식 목록 조회 성공", stocks);
     }
 
     // 차트 데이터 저장
-    @PutMapping("/stocks/chart-data")
-    public CommonResponseDTO<String> updateChartData(@RequestParam(name = "userId") Long userId) {
+    @PutMapping("/stocks/chart_data")
+    public CommonResponseDTO<String> updateChartData() {
         try {
-            stockService.fetchAndCacheChartData(userId);
+            stockService.updateChartData();
             return CommonResponseDTO.success("차트 데이터 업데이트 성공");
         } catch (Exception e) {
             return CommonResponseDTO.error("차트 업데이트 실패: " + e.getMessage(), 500);
@@ -81,20 +79,16 @@ public class StockController {
 
     //사용자 맞춤 추천 주식 가져오기
     @GetMapping("/recommend")
-    public CommonResponseDTO<List<StockListDto>> getRecommend(@RequestParam(name = "id") Long id, @RequestParam(name = "limit") int limit) {
-        List<StockListDto> recommendData = stockService.getStockRecommendationList(id, limit);
+    public CommonResponseDTO<List<StockListDto>> getRecommend(@AuthenticationPrincipal CustomUserDetails user,
+                                                              @RequestParam(name = "limit") int limit) {
+        Long userId = user.getUserId();
+
+        List<StockListDto> recommendData = stockService.getStockRecommendationList(userId, limit);
 
         if (recommendData == null || recommendData.isEmpty()) {
             return CommonResponseDTO.error("추천 가능한 주식이 없습니다.", 404);
         }
 
         return CommonResponseDTO.success("사용자 맞춤 주식 추천 성공", recommendData);
-    }
-
-    @GetMapping("/test")
-    public CommonResponseDTO<Long> test(@AuthenticationPrincipal User user) {
-        log.info(" 유저 데이터: "+  user.toString());
-        Long userId = user.getId();
-        return CommonResponseDTO.success("유저 아이디 반환", userId);
     }
 }

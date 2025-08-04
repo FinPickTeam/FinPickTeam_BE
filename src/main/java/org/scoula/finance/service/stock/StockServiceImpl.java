@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.scoula.finance.dto.deposit.DepositRecommendationDto;
 import org.scoula.finance.dto.stock.*;
 import org.scoula.finance.mapper.StockMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,20 +14,10 @@ import java.math.BigDecimal;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Service
@@ -47,9 +36,12 @@ public class StockServiceImpl implements StockService {
     @Value("${stock.api-secret}")
     private String stockApiSecret;
 
+    @Value("${external.python.stock}")
+    private String pythonUrl;
+
     @Override
-    public StockAccessTokenDto issueAndSaveToken(Long id){
-        try{
+    public StockAccessTokenDto issueAndSaveToken(Long id) {
+        try {
             String endpoint = "/oauth2/token";
 
             URL url = new URL(createUrl(endpoint));
@@ -64,7 +56,7 @@ public class StockServiceImpl implements StockService {
             String jsonData = createJsonData();
 
             // JSON 데이터 전송
-            try(OutputStream os = connection.getOutputStream()){
+            try (OutputStream os = connection.getOutputStream()) {
                 byte[] input = jsonData.getBytes(StandardCharsets.UTF_8);
                 os.write(input, 0, input.length);
             }
@@ -78,7 +70,8 @@ public class StockServiceImpl implements StockService {
             // 토큰, 만료일 저장
             Map<String, String> responseMap = objectMapper.readValue(
                     response.toString(),
-                    new TypeReference<Map<String, String>>() {}
+                    new TypeReference<>() {
+                    }
             );
 
             String accessToken = responseMap.get("token");
@@ -89,33 +82,36 @@ public class StockServiceImpl implements StockService {
 
             return stockAccessTokenDto;
 
-        } catch (Exception e){log.error(e.getMessage()); return null;}
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return null;
+        }
     }
 
-//   계좌번호, 수익률 전달
-@Override
-public StockAccountDto getAccountReturnRate(Long id) {
-    String userAccount = stockMapper.getUserAccount(id);
-    String token = stockMapper.getUserToken(id);
-    String jsonData = "{\"qry_tp\" : \"1\",\"dmst_stex_tp\" : \"KRX\"}";
+    //   계좌번호, 수익률 전달
+    @Override
+    public StockAccountDto getAccountReturnRate(Long id) {
+        String userAccount = stockMapper.getUserAccount(id);
+        String token = stockMapper.getUserToken(id);
+        String jsonData = "{\"qry_tp\" : \"1\",\"dmst_stex_tp\" : \"KRX\"}";
 
-    try {
-        String response = sendPostRequest("/api/dostk/acnt", token, jsonData, "kt00018");
+        try {
+            String response = sendPostRequest("/api/dostk/acnt", token, jsonData, "kt00018");
 
-        JsonNode root = objectMapper.readTree(response);
-        String totalReturnRateStr = root.path("tot_prft_rt").asText();
-        BigDecimal normalizedRate = new BigDecimal(totalReturnRateStr);
-        return new StockAccountDto(userAccount, normalizedRate.toPlainString());
+            JsonNode root = objectMapper.readTree(response);
+            String totalReturnRateStr = root.path("tot_prft_rt").asText();
+            BigDecimal normalizedRate = new BigDecimal(totalReturnRateStr);
+            return new StockAccountDto(userAccount, normalizedRate.toPlainString());
 
-    } catch (Exception e) {
-        log.error("getAccountReturnRate error: {}", e.getMessage());
-        return null;
+        } catch (Exception e) {
+            log.error("getAccountReturnRate error: {}", e.getMessage());
+            return null;
+        }
     }
-}
 
     //주식 리스트 조회
     @Override
-    public List<StockListDto> getStockList(Long userId, String market, String sortName, String sortPrice) {
+    public List<StockListDto> getStockList(Long userId, StockFilterDto filterDto) {
         List<StockListDataDto> basicList = stockMapper.getStockList();
         List<StockListDto> finalList = new ArrayList<>();
         String token = stockMapper.getUserToken(userId);
@@ -134,18 +130,16 @@ public StockAccountDto getAccountReturnRate(Long id) {
                 StockListDto dto = new StockListDto();
                 dto.setStockCode(stockCode);
                 dto.setStockName(data.getStockName());
+                dto.setStockReturnsData(data.getStockReturnsData());
                 dto.setStockMarketType(data.getStockMarketType());
                 dto.setStockSummary(data.getStockSummary());
                 dto.setStockPredictedPrice(root.path("pred_pre").asText());
                 dto.setStockChangeRate(root.path("flu_rt").asText());
+
                 // 가격 부호 제거
                 String curPriceRaw = root.path("cur_prc").asText();
                 String curPrice = curPriceRaw.replace("[^0-9]", "");
                 dto.setStockPrice(curPrice);
-
-                // 3. 차트 데이터 호출
-                String chartJson = stockMapper.getChartCache(stockCode);
-                dto.setStockChartData(chartJson);
 
                 finalList.add(dto);
 
@@ -153,67 +147,52 @@ public StockAccountDto getAccountReturnRate(Long id) {
                 log.warn("stock parsing failed for code {}: {}", stockCode, e.getMessage());
             }
         }
-        //  마켓 필터 (KOSPI or KOSDAQ)
-        if (market != null && !market.isBlank()) {
-            finalList = finalList.stream()
-                    .filter(dto -> market.equalsIgnoreCase(dto.getStockMarketType()))
-                    .collect(Collectors.toList());
-        }
-
-        // 이름 정렬
-        if ("asc".equalsIgnoreCase(sortName)) {
-            finalList.sort(Comparator.comparing(StockListDto::getStockName));
-        } else if ("desc".equalsIgnoreCase(sortName)) {
-            finalList.sort(Comparator.comparing(StockListDto::getStockName).reversed());
-        }
-
-        // 가격 정렬
-        if ("asc".equalsIgnoreCase(sortPrice)) {
-            finalList.sort(Comparator.comparingInt(dto -> Integer.parseInt(dto.getStockPrice())));
-        } else if ("desc".equalsIgnoreCase(sortPrice)) {
-            finalList.sort(Comparator.comparingInt((StockListDto dto) -> Integer.parseInt(dto.getStockPrice())).reversed());
-        }
 
         return finalList;
     }
 
     // 차트 데이터 DB에 저장
     @Override
-    public void fetchAndCacheChartData(Long id) {
-        String token = stockMapper.getUserToken(id);
-        List<String> stockList = stockMapper.getStockCodeList();
+    public void updateChartData() {
 
-        LocalDate today = LocalDate.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        String baseDate = today.format(formatter);
+        try{
+            // Python 실행
+            ProcessBuilder builder = new ProcessBuilder(
+                    "python",
+                    pythonUrl
+            );
+            builder.redirectErrorStream(true);
+            Process process = builder.start();
 
-        for (String stockCode : stockList) {
-            try {
-                String response = sendPostRequest("/api/dostk/chart", token,
-                        String.format("{\"stk_cd\" : \"%s\", \"base_dt\" : \"%s\", \"upd_stkpc_tp\" : \"1\"}",
-                                stockCode, baseDate), "ka10081");
-
-                JsonNode root = objectMapper.readTree(response);
-                JsonNode outputArray = root.path("stk_dt_pole_chart_qry");
-
-                List<StockPricePointDto> priceList = new ArrayList<>();
-                for (int i = 0; i < 5; i++) {
-                    JsonNode dayData = outputArray.get(i);
-                    String date = dayData.path("dt").asText();
-                    String price = dayData.path("cur_prc").asText();
-
-                    priceList.add(new StockPricePointDto(date, price));
-                }
-
-                String jsonData = objectMapper.writeValueAsString(priceList);
-                StockChartDataDto cacheDto = new StockChartDataDto(stockCode, jsonData, baseDate);
-                stockMapper.saveChartCache(cacheDto);
-
-                Thread.sleep(210); // 1초에 5건 제한 대응
-
-            } catch (Exception e) {
-                log.warn("차트 데이터 저장 실패 - stockCode {}: {}", stockCode, e.getMessage());
+            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println("[Python] " + line);
             }
+
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                throw new RuntimeException("Python 실행 실패(exit code: " + exitCode + ")");
+            }
+
+            // json 파일 DB에 저장
+            String filePath = "./data/stock/output/returns_data.json";
+
+            Map<String, Map<String,Integer>> chartMap = objectMapper.readValue(
+                    new File(filePath),
+                    new TypeReference<>() {
+                    }
+            );
+
+            for (Map.Entry<String, Map<String, Integer>> entry : chartMap.entrySet()) {
+                String stockCode = entry.getKey();
+                String stockReturnsData = objectMapper.writeValueAsString(entry.getValue());
+
+                stockMapper.updateStockReturnsData(stockCode, stockReturnsData);
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
         }
     }
 
@@ -257,58 +236,7 @@ public StockAccountDto getAccountReturnRate(Long id) {
     //주식 추천 로직
     @Override
     public List<StockListDto> getStockRecommendationList(Long id, int limit) {
-        List<String> stockList = stockMapper.getStockCodeList();
-        String prompt = generatePrompt(stockList);
-
-        try {
-            String gptResponse = callOpenAiApi(prompt).trim();
-
-            if (gptResponse.startsWith("```")) {
-                gptResponse = gptResponse.replaceFirst("^```json\\s*", "")
-                        .replaceFirst("\\s*```$", "");
-            }
-
-            JsonNode jsonArray = objectMapper.readTree(gptResponse);
-            Map<String, String> gptRecommendationMap = new HashMap<>(); // GPT 추천결과를 Map<stockCode, reason>으로 저장
-
-            for (JsonNode node : jsonArray) {
-                String stockCode = node.path("stockCode").asText().trim();
-                String reason = node.path("reason").asText().trim();
-                gptRecommendationMap.put(stockCode, reason);
-            }
-
-            // DB에서 추천 종목의 상세 정보 가져오기
-            List<StockListDataDto> baseDataList = stockMapper.getStockList();  // 모든 주식 정보
-            Map<String, StockListDataDto> baseDataMap = baseDataList.stream()
-                    .collect(Collectors.toMap(StockListDataDto::getStockCode, dto -> dto));
-
-            List<StockListDto> finalList = new ArrayList<>();
-
-            for (String code : gptRecommendationMap.keySet()) {
-                StockListDataDto data = baseDataMap.get(code);
-                if (data == null) continue;
-
-                StockDetailDto detail = getStockDetail(id, code);
-                if (detail == null) continue;
-
-                StockListDto dto = new StockListDto();
-                dto.setStockCode(code);
-                dto.setStockName(data.getStockName());
-                dto.setStockChartData(stockMapper.getChartCache(code));
-                dto.setStockPrice(detail.getStockPrice());
-                dto.setStockMarketType(data.getStockMarketType());
-                dto.setStockPredictedPrice(detail.getStockPredictedPrice());
-                dto.setStockChangeRate(detail.getStockChangeRate());
-                dto.setStockSummary(data.getStockSummary());
-                dto.setStockGptReason(gptRecommendationMap.get(code));
-
-                finalList.add(dto);
-            }
-            return finalList;
-        } catch (Exception e) {
-            log.error("GPT 응답 처리 중 오류 발생", e);
-            return Collections.emptyList();  // 예외 시 빈 리스트 반환
-        }
+        return null;
     }
 
     public String createUrl(String endpoint) {
@@ -378,54 +306,5 @@ public StockAccountDto getAccountReturnRate(Long id) {
 
         log.error("sendPostRequest failed after {} attempts", maxRetries);
         return "";
-    }
-
-    // GPT 프롬프트
-    public String generatePrompt(List<String> stockCode){
-        if(stockCode.isEmpty()){
-            return "데이터 없음";
-        }
-
-        //나중에 사용자 데이터 추가 필요
-        StringBuilder sb = new StringBuilder();
-        sb.append("사용자가 ").append(stockCode).append("의 주식중에서 하나를 투자하려고 해")
-                .append("이 주식중에서 5개를 선택해주고 ")
-                .append("이 상품을 왜 추천하는지, 너무 딱딱하지 않고 ")
-                .append("일상적인 말투로 설명해 줘. 사용자 입장에서 공감되도록, ")
-                .append("편하게 말하듯 써줘. 예를 들면 '최근 거래량이 많이 늘었어요!' 같은 말투. ")
-                .append("결과는 아래 JSON 형식으로만:\n")
-                .append("[\n")
-                .append("  { \"stockCode\": \"주식코드1\", \"reason\": \"추천 이유1\" },\n")
-                .append("  { \"stockCode\": \"주식코드2\", \"reason\": \"추천 이유2\" }\n")
-                .append("]\n")
-                .append("다른 말은 하지 말고 JSON 배열만 반환해.");
-
-        return sb.toString();
-    }
-
-    private String callOpenAiApi(String prompt) throws Exception {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getMessageConverters()
-                .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
-
-        String requestBody = objectMapper.writeValueAsString(
-                Map.of(
-                        "model", "gpt-4o",
-                        "messages", List.of(
-                                Map.of("role", "system", "content", "너는 금융상품 전문가야."),
-                                Map.of("role", "user", "content", prompt)
-                        ),
-                        "temperature", 0.7
-                )
-        );
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(openaiApiKey);
-        headers.set("Content-Type", "application/json; charset=UTF-8");
-
-        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
-        ResponseEntity<String> response = restTemplate.exchange(openaiApiUrl, HttpMethod.POST, request, String.class);
-
-        return objectMapper.readTree(response.getBody()).at("/choices/0/message/content").asText();
     }
 }

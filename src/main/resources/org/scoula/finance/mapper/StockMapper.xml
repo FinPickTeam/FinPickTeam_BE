@@ -52,13 +52,11 @@
         FROM stock_list
     </select>
 
-    <insert id="saveChartCache" parameterType="org.scoula.finance.dto.stock.StockChartDataDto">
-        INSERT INTO stock_chart_cache (stock_code, json_data, base_date)
-        VALUES (#{stockCode}, #{jsonData}, #{baseDate})
-            ON DUPLICATE KEY UPDATE
-                                 json_data = #{jsonData},
-                                 base_date = #{baseDate}
-    </insert>
+    <update id="updateStockReturnsData" parameterType="map">
+        UPDATE stock_list
+        SET stock_returns_data = #{stockReturnsData}
+        WHERE stock_code = #{stockCode}
+    </update>
     
     <select id="getStockCodeList" resultType="string">
         SELECT stock_code
