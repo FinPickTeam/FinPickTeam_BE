@@ -53,6 +53,7 @@
           <element id="library" level="project" name="Gradle: io.lettuce:lettuce-core:6.1.10.RELEASE" />
           <element id="library" level="project" name="Gradle: com.opencsv:opencsv:5.7.1" />
           <element id="library" level="project" name="Gradle: org.apache.commons:commons-text:1.10.0" />
+          <element id="library" level="project" name="Gradle: com.squareup.okhttp3:okhttp:4.12.0" />
           <element id="library" level="project" name="Gradle: org.springframework:spring-aop:5.3.37" />
           <element id="library" level="project" name="Gradle: org.springframework:spring-web:5.3.37" />
           <element id="library" level="project" name="Gradle: org.springframework:spring-beans:5.3.37" />
@@ -86,6 +87,7 @@
           <element id="library" level="project" name="Gradle: org.apache.commons:commons-lang3:3.12.0" />
           <element id="library" level="project" name="Gradle: commons-beanutils:commons-beanutils:1.9.4" />
           <element id="library" level="project" name="Gradle: org.apache.commons:commons-collections4:4.4" />
+          <element id="library" level="project" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10" />
           <element id="library" level="project" name="Gradle: org.springframework:spring-jcl:5.3.37" />
           <element id="library" level="project" name="Gradle: io.springfox:springfox-core:2.9.2" />
           <element id="library" level="project" name="Gradle: org.springframework.data:spring-data-commons:2.7.18" />
@@ -96,7 +98,12 @@
           <element id="library" level="project" name="Gradle: org.reactivestreams:reactive-streams:1.0.3" />
           <element id="library" level="project" name="Gradle: commons-logging:commons-logging:1.2" />
           <element id="library" level="project" name="Gradle: commons-collections:commons-collections:3.2.2" />
+          <element id="library" level="project" name="Gradle: com.squareup.okio:okio-jvm:3.6.0" />
+          <element id="library" level="project" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.10" />
+          <element id="library" level="project" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib:1.9.10" />
           <element id="library" level="project" name="Gradle: net.bytebuddy:byte-buddy:1.8.12" />
+          <element id="library" level="project" name="Gradle: org.jetbrains.kotlin:kotlin-stdlib-common:1.9.10" />
+          <element id="library" level="project" name="Gradle: org.jetbrains:annotations:13.0" />
           <element id="library" level="project" name="Gradle: io.jsonwebtoken:jjwt-impl:0.11.5" />
         </element>
       </element>

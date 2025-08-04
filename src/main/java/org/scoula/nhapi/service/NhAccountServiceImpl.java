@@ -6,7 +6,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.scoula.nhapi.client.NHApiClient;
 import org.scoula.nhapi.dto.FinAccountRequestDto;
-import org.scoula.nhapi.dto.NhTransactionResponseDto;
+import org.scoula.nhapi.dto.NhAccountTransactionResponseDto;
 import org.scoula.nhapi.exception.NHApiException;
 import org.springframework.stereotype.Service;
 
@@ -65,7 +65,7 @@ public class NhAccountServiceImpl implements NhAccountService {
     }
 
     @Override
-    public List<NhTransactionResponseDto> callTransactionList(Long userId, Long accountId, String finAcno, String from, String to) {
+    public List<NhAccountTransactionResponseDto> callTransactionList(Long userId, Long accountId, String finAcno, String from, String to) {
         JSONObject res = nhApiClient.callTransactionList(finAcno, from, to);
         String rpcd = res.getJSONObject("Header").getString("Rpcd");
 
@@ -76,16 +76,16 @@ public class NhAccountServiceImpl implements NhAccountService {
         if (!"00000".equals(rpcd)) throw new NHApiException("거래내역 조회 실패");
 
         JSONArray arr = res.getJSONArray("Rec");
-        List<NhTransactionResponseDto> list = new ArrayList<>();
+        List<NhAccountTransactionResponseDto> list = new ArrayList<>();
         for (int i = 0; i < arr.length(); i++) {
-            list.add(NhTransactionResponseDto.from(arr.getJSONObject(i)));
+            list.add(NhAccountTransactionResponseDto.from(arr.getJSONObject(i)));
         }
 
         return list.isEmpty() ? createDummyTransactions(userId, accountId) : list;
     }
 
-    private List<NhTransactionResponseDto> createDummyTransactions(Long userId, Long accountId) {
-        List<NhTransactionResponseDto> dummyList = new ArrayList<>();
+    private List<NhAccountTransactionResponseDto> createDummyTransactions(Long userId, Long accountId) {
+        List<NhAccountTransactionResponseDto> dummyList = new ArrayList<>();
         LocalDateTime base = LocalDateTime.of(2025, 4, 1, 9, 0);
         BigDecimal balance = BigDecimal.valueOf(1000000);
 
@@ -94,7 +94,7 @@ public class NhAccountServiceImpl implements NhAccountService {
             BigDecimal amount = isIncome ? BigDecimal.valueOf(200000 + i * 1000) : BigDecimal.valueOf(10000 + i * 300);
             balance = isIncome ? balance.add(amount) : balance.subtract(amount);
 
-            dummyList.add(NhTransactionResponseDto.builder()
+            dummyList.add(NhAccountTransactionResponseDto.builder()
                     .userId(userId)
                     .accountId(accountId)
                     .date(base.plusDays(i))

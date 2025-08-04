@@ -17,4 +17,5 @@ public class CardTransactionDto {
     private String merchantName;
     private String tpbcd;
     private String tpbcdNm;
+    private Boolean isCancelled;
 }

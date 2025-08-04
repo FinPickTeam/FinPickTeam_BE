@@ -34,7 +34,7 @@
     </select>
 
 
-    <insert id="insert" parameterType="org.scoula.transactions.domain.Ledger">
+    <insert id="accountInsert" parameterType="org.scoula.transactions.domain.Ledger">
         INSERT INTO ledger (
             user_id, source_type, source_name,
             amount, type, category_id, memo, analysis,
@@ -43,6 +43,18 @@
                      #{userId}, #{sourceType}, #{sourceName},
                      #{amount}, #{type}, #{categoryId}, #{memo}, #{analysis},
                      #{date}, #{merchantName}, #{place}, #{accountId}, #{cardId}, #{sourceId}, now()
+                 )
+    </insert>
+
+    <insert id="cardInsert" parameterType="org.scoula.transactions.domain.Ledger">
+        INSERT INTO ledger (
+            user_id, source_id, account_id, card_id, source_type,
+            source_name, type, amount, category_id, memo, analysis,
+            date, merchant_name, place, created_at
+        ) VALUES (
+                     #{userId}, #{sourceId}, #{accountId}, #{cardId}, #{sourceType},
+                     #{sourceName}, #{type}, #{amount}, #{categoryId}, #{memo}, #{analysis},
+                     #{date}, #{merchantName}, #{place}, #{createdAt}
                  )
     </insert>
 

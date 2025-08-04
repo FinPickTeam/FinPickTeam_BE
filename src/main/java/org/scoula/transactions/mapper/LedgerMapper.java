@@ -14,6 +14,7 @@ public interface LedgerMapper {
                              @Param("category") String category);
 
     Ledger findLedgerDetail(@Param("userId") Long userId, @Param("ledgerId") Long ledgerId);
-    void insert(Ledger ledger);
+    void accountInsert(Ledger ledger);
+    void cardInsert(Ledger ledger);
 }
 

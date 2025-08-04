@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
-import org.scoula.nhapi.dto.NhTransactionResponseDto;
+import org.scoula.nhapi.dto.NhAccountTransactionResponseDto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -26,7 +26,7 @@ public class AccountTransaction {
     private Long tuNo;
 
     // ✅ NH DTO → 도메인 변환용 생성자
-    public AccountTransaction(NhTransactionResponseDto dto, Long userId, Long accountId) {
+    public AccountTransaction(NhAccountTransactionResponseDto dto, Long userId, Long accountId) {
         this.userId = userId;
         this.accountId = accountId;
         this.date = dto.getDate();
