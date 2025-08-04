@@ -64,5 +64,12 @@ public interface ChallengeMapper {
 
     ChallengeSummaryResponseDTO getChallengeSummary(@Param("userId") Long userId);
 
+    // 유저별 참여 횟수, 성공률 등 계산하는 메서드
+    void insertOrUpdateUserChallengeSummary(@Param("userId") Long userId);
+    void incrementUserSuccessCount(@Param("userId") Long userId);
+    void incrementUserTotalChallenges(@Param("userId") Long userId);
+    void updateAchievementRate(@Param("userId") Long userId);
+
+
 }
 

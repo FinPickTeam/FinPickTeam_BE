@@ -134,5 +134,29 @@
         WHERE id = #{userId}
     </select>
 
+    <insert id="insertOrUpdateUserChallengeSummary">
+        INSERT INTO user_challenge_summary (id, total_challenges, success_count, achievement_rate)
+        VALUES (#{userId}, 0, 0, 0.00)
+            ON DUPLICATE KEY UPDATE id = id
+    </insert>
+
+    <update id="incrementUserTotalChallenges">
+        UPDATE user_challenge_summary
+        SET total_challenges = total_challenges + 1
+        WHERE id = #{userId}
+    </update>
+
+    <update id="incrementUserSuccessCount">
+        UPDATE user_challenge_summary
+        SET success_count = success_count + 1
+        WHERE id = #{userId}
+    </update>
+
+    <update id="updateAchievementRate">
+        UPDATE user_challenge_summary
+        SET achievement_rate = ROUND(success_count * 100.0 / total_challenges, 2)
+        WHERE id = #{userId} AND total_challenges > 0
+    </update>
+
 
 </mapper>
