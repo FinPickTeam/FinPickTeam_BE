@@ -7,6 +7,7 @@ import org.scoula.challenge.enums.ChallengeStatus;
 import org.scoula.challenge.mapper.ChallengeMapper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.scoula.common.client.LedgerClient;
 
 //import javax.annotation.PostConstruct;
 import java.time.LocalDate;
@@ -18,25 +19,32 @@ import java.util.List;
 public class ChallengeScheduler {
 
     private final ChallengeMapper challengeMapper;
-
-    // 🚀 운영 시 실제 사용: 매일 새벽 3시
-    @Scheduled(cron = "0 0 3 * * *")
-    public void updateChallengeStatuses() {
-        processChallengeStatusUpdate("🕒 [자동 스케줄 실행]");
-    }
-
-    // ✅ 로컬에서 수동 호출용: 테스트할 수 있게 만든 메서드
-    public void updateChallengeStatusesNow() {
-        processChallengeStatusUpdate("🧪 [수동 호출 실행]");
-    }
+    private final LedgerClient ledgerClient;
 
     // 🧪 개발 중엔 서버 켜질 때마다 실행도 가능 (원하면 주석 제거)
     /*
     @PostConstruct
     public void initOnStartup() {
         processChallengeStatusUpdate("🚀 [서버 기동시 초기 실행]");
+        processChallengeSuccessCheck("🕒 [챌린지 성공/실패 자동 평가]");
     }
     */
+
+    // 🚀 운영 시 실제 사용: 매일 새벽 4시
+    @Scheduled(cron = "0 0 4 * * *")
+    public void runDailyChallengeScheduler() {
+        // 1. 성공/실패 먼저 판단
+        processChallengeSuccessCheck("🕒 [챌린지 성공/실패 판별]");
+
+        // 2. 상태 업데이트 (COMPLETED 처리)
+        processChallengeStatusUpdate("🕒 [챌린지 상태 업데이트]");
+    }
+
+
+    // ✅ 로컬에서 수동 호출용: 테스트할 수 있게 만든 메서드
+    public void updateChallengeStatusesNow() {
+        processChallengeStatusUpdate("🧪 [수동 호출 실행]");
+    }
 
     private void processChallengeStatusUpdate(String mode) {
         LocalDate today = LocalDate.now();
@@ -61,10 +69,52 @@ public class ChallengeScheduler {
 
                 // 유저 챌린지도 완료 처리
                 challengeMapper.completeUserChallenges(id);
-                challengeMapper.markChallengeSuccess(id); // 임시 성공 처리
             }
         }
 
         log.info("{} 챌린지 상태 업데이트 완료", mode);
     }
+
+    public void evaluateChallengeSuccessesNow() {
+        processChallengeSuccessCheck("🧪 [수동 챌린지 평가 테스트]");
+    }
+
+    private void processChallengeSuccessCheck(String mode) {
+        LocalDate today = LocalDate.now();
+        log.info("{} 챌린지 성공/실패 평가 시작 - {}", mode, today);
+
+        List<Challenge> allChallenges = challengeMapper.findAllChallenges();
+
+        for (Challenge challenge : allChallenges) {
+            if (challenge.getStatus() != ChallengeStatus.IN_PROGRESS) continue;
+
+            List<Long> userIds = challengeMapper.findUserIdsByChallengeId(challenge.getId());
+            String categoryName = challengeMapper.getCategoryNameById(challenge.getCategoryId());
+
+            for (Long userId : userIds) {
+                int actualAmount = ledgerClient.getTotalExpense(
+                        userId,
+                        categoryName,
+                        challenge.getStartDate(),
+                        challenge.getEndDate()
+                );
+
+                // actual_value 업데이트
+                challengeMapper.updateActualValue(userId, challenge.getId(), actualAmount);
+
+                if (actualAmount > challenge.getGoalValue()) {
+                    // 실패 처리
+                    challengeMapper.failUserChallenge(userId, challenge.getId());
+                    log.info("❌ 조기 실패 처리 - 유저ID: {}, 챌린지ID: {}", userId, challenge.getId());
+                } else if (today.isAfter(challenge.getEndDate())) {
+                    // 성공 처리
+                    challengeMapper.succeedUserChallenge(userId, challenge.getId());
+                    log.info("🎉 성공 처리 - 유저ID: {}, 챌린지ID: {}", userId, challenge.getId());
+                }
+            }
+        }
+
+        log.info("{} 챌린지 성공/실패 평가 완료", mode);
+    }
+
 }
