@@ -174,6 +174,7 @@ CREATE TABLE `coin_history` (
 
 -- FINANCIAL
 -- 1. 계좌 정보
+DROP TABLE IF EXISTS `transaction`;
 DROP TABLE IF EXISTS `account`;
 CREATE TABLE `account` (
                            `id` BIGINT NOT NULL AUTO_INCREMENT,

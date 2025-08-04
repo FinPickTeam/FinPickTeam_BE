@@ -19,4 +19,11 @@ public class ChallengeSchedulerController {
         challengeScheduler.updateChallengeStatusesNow();
         return "챌린지 상태 수동 업데이트 완료!";
     }
+
+    @GetMapping("/scheduler/check-success-now")
+    public String runSuccessCheckNow() {
+        challengeScheduler.evaluateChallengeSuccessesNow();
+        return "챌린지 성공 여부 수동 확인 완료!";
+    }
+
 }
