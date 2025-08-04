@@ -10,7 +10,6 @@ import org.scoula.challenge.enums.ChallengeType;
 
 import java.util.List;
 
-@Mapper
 public interface ChallengeMapper {
     void insertChallenge(Challenge challenge);
 
