@@ -171,6 +171,17 @@ CREATE TABLE `coin_history` (
                                 FOREIGN KEY (`user_id`) REFERENCES `coin`(`id`) ON DELETE CASCADE
 );
 
+-- 14. 알람내역
+DROP TABLE IF EXISTS `ALARMS`;
+CREATE TABLE ALARMS (
+                        id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                        user_id BIGINT NOT NULL,
+                        message VARCHAR(500) NOT NULL,
+                        is_read BOOLEAN NOT NULL DEFAULT FALSE,
+                        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES USER(id)
+);
+
 
 -- FINANCIAL
 -- 1. 계좌 정보

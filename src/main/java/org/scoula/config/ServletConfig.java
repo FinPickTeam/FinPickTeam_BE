@@ -36,6 +36,7 @@ import java.util.List;
         "org.scoula.challenge.exception",
         "org.scoula.account.controller",
         "org.scoula.account.exception",
+        "org.scoula.alarm.controller",
 })
 public class ServletConfig implements WebMvcConfigurer {
 

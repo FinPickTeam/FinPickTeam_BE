@@ -2,6 +2,7 @@ package org.scoula.news.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.scoula.alarm.service.AlarmService;
 import org.scoula.news.domain.NewsVO;
 import org.scoula.news.dto.NaverNewsResponseDTO;
 import org.scoula.news.dto.NewsDTO;
@@ -32,6 +33,7 @@ import java.util.List;
 public class NewsServiceImpl implements NewsService {
 
     final private NewsMapper newsMapper;
+    final private AlarmService alarmService;
     final private RestTemplate restTemplate=new RestTemplate();
 
     @Value("${naver.api.client-id}")
@@ -87,6 +89,9 @@ public class NewsServiceImpl implements NewsService {
         if (!newsVOList.isEmpty()) { // 삽입할 데이터가 있을 경우에만 호출
             newsMapper.insertNews(newsVOList);
         }
+
+        //뉴스 생성 시 알림추가
+        alarmService.addAlarmAll("새로운 뉴스가 도착했습니다. 확인해보세요!");
     }
 
     @Override
