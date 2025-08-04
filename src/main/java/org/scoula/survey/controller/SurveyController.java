@@ -43,6 +43,4 @@ public class SurveyController {
         log.info("ID {}의 투자 성향 타입 조회 성공: {}", userId, surveyDTO.getPropensityType());
         return new ResponseEntity<>(surveyDTO.getPropensityType(), HttpStatus.OK); // 200 OK와 함께 타입 반환
     }
-
-
 }
