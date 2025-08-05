@@ -14,7 +14,12 @@ public interface LedgerMapper {
                              @Param("category") String category);
 
     Ledger findLedgerDetail(@Param("userId") Long userId, @Param("ledgerId") Long ledgerId);
+
     void accountInsert(Ledger ledger);
     void cardInsert(Ledger ledger);
+
+    void updateLedgerCategory(@Param("ledgerId") Long ledgerId, @Param("categoryId") Long categoryId);
+    void updateLedgerMemo(@Param("ledgerId") Long ledgerId, @Param("memo") String memo);
+
 }
 
