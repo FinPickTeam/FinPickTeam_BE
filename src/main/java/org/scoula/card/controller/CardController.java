@@ -1,12 +1,16 @@
 package org.scoula.card.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.scoula.account.dto.AccountDto;
+import org.scoula.card.dto.CardDto;
 import org.scoula.card.dto.CardRegisterResponseDto;
 import org.scoula.card.service.CardService;
 import org.scoula.common.dto.CommonResponseDTO;
 import org.scoula.nhapi.dto.FinCardRequestDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cards")
@@ -42,4 +46,9 @@ public class CardController {
         return ResponseEntity.ok(CommonResponseDTO.success("카드 비활성화 완료"));
     }
 
+    @GetMapping("/users/{userId}/cards")
+    public ResponseEntity<CommonResponseDTO<List<CardDto>>> getActiveCards(@PathVariable Long userId) {
+        List<CardDto> cards = cardService.getActiveCards(userId);
+        return ResponseEntity.ok(CommonResponseDTO.success("카드 목록 조회 성공", cards));
+    }
 }

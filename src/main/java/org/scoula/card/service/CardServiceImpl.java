@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.scoula.card.domain.Card;
+import org.scoula.card.dto.CardDto;
 import org.scoula.card.dto.CardRegisterResponseDto;
 import org.scoula.common.exception.BaseException;
 import org.scoula.common.exception.ForbiddenException;
@@ -14,6 +15,7 @@ import org.scoula.transactions.service.CardTransactionService;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -112,5 +114,15 @@ public class CardServiceImpl implements CardService {
 
         cardMapper.updateIsActive(cardId, false);
     }
+
+    @Override
+    public List<CardDto> getActiveCards(Long userId) {
+        List<Card> cards = cardMapper.findActiveByUserId(userId);
+        return cards.stream()
+                .map(CardDto::from)
+                .collect(Collectors.toList());
+    }
+
+
 
 }

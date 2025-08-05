@@ -55,4 +55,11 @@
         WHERE id = #{id}
     </update>
 
+    <select id="findActiveByUserId" resultType="org.scoula.account.domain.Account">
+        SELECT * FROM account
+        WHERE user_id = #{userId}
+          AND is_active = TRUE
+    </select>
+
+
 </mapper>
