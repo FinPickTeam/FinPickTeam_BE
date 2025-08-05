@@ -228,5 +228,50 @@ public class ChallengeServiceImpl implements ChallengeService {
     }
 
 
+    // 챌린지 결과 확인 관련 로직
+    @Override
+    public ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId) {
+        Challenge challenge = challengeMapper.findChallengeById(challengeId);
+        if (challenge == null) throw new ChallengeNotFoundException();
+
+        int actual = challengeMapper.getActualValue(userId, challengeId);
+        int goal = challenge.getGoalValue();
+        int reward = challengeMapper.getActualRewardPoint(userId, challengeId);
+
+        if (challenge.getStatus() != ChallengeStatus.COMPLETED) {
+            throw new BaseException("아직 결과가 확정되지 않았습니다.", 400);
+        }
+
+        if (actual < goal) {
+            return ChallengeResultResponseDTO.builder()
+                    .resultType("SUCCESS_WIN")
+                    .actualRewardPoint(reward)
+                    .savedAmount(goal - actual)
+                    .stockRecommendation(null) // 추후 연동
+                    .build();
+        } else if (actual == goal) {
+            return ChallengeResultResponseDTO.builder()
+                    .resultType("SUCCESS_EQUAL")
+                    .actualRewardPoint(reward)
+                    .build();
+        } else {
+            return ChallengeResultResponseDTO.builder()
+                    .resultType("FAIL")
+                    .actualRewardPoint(0)
+                    .build();
+        }
+    }
+
+    @Override
+    public void confirmChallengeResult(Long userId, Long challengeId) {
+        challengeMapper.markResultChecked(userId, challengeId);
+    }
+
+    @Override
+    public boolean hasUnconfirmedResult(Long userId) {
+        return challengeMapper.existsUnconfirmedCompletedChallenge(userId);
+    }
+
+
 }
 
