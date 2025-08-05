@@ -32,4 +32,14 @@ public class CardController {
         cardService.syncAllCardsByUserId(userId);
         return ResponseEntity.ok(CommonResponseDTO.success("사용자의 모든 카드 승인내역 동기화 완료"));
     }
+
+    @DeleteMapping("/{cardId}")
+    public ResponseEntity<CommonResponseDTO<Void>> deleteCard(
+            @PathVariable Long cardId,
+            @RequestParam Long userId //TODO 나중에 @AuthenticationPrincipal로 바꾸기
+    ) {
+        cardService.deactivateCard(cardId, userId);
+        return ResponseEntity.ok(CommonResponseDTO.success("카드 비활성화 완료"));
+    }
+
 }

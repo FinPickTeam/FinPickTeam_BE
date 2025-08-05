@@ -199,6 +199,7 @@ CREATE TABLE `account` (
                            `product_name` VARCHAR(255) NOT NULL,
                            `account_type` VARCHAR(50) NOT NULL,
                            `balance` DECIMAL(20,2) NOT NULL,
+                           `is_active` BOOLEAN DEFAULT TRUE,
                            `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                            PRIMARY KEY (`id`),
                            FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
@@ -235,6 +236,7 @@ CREATE TABLE `card` (
                         `card_maskednum` VARCHAR(30) NOT NULL,
                         `card_member_type` ENUM('SELF', 'FAMILY') NOT NULL,
                         `card_type` ENUM('CREDIT', 'DEBIT') NOT NULL,
+                        `is_active` BOOLEAN DEFAULT TRUE,
                         `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                         PRIMARY KEY (`id`),
                         FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE

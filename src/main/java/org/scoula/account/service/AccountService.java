@@ -7,4 +7,5 @@ public interface AccountService {
     AccountRegisterResponseDto registerFinAccount(FinAccountRequestDto dto);
     void syncAccountById(Long accountId);
     void syncAllAccountsByUserId(Long userId);
+    void deactivateAccount(Long accountId, Long userId);
 }

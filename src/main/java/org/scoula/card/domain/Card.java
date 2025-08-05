@@ -19,4 +19,5 @@ public class Card {
     private String cardMaskednum;
     private String cardMemberType;
     private String cardType;
+    private Boolean isActive;
 }

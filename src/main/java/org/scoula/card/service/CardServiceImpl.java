@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import org.scoula.card.domain.Card;
 import org.scoula.card.dto.CardRegisterResponseDto;
 import org.scoula.common.exception.BaseException;
+import org.scoula.common.exception.ForbiddenException;
 import org.scoula.nhapi.dto.FinCardRequestDto;
 import org.scoula.card.mapper.CardMapper;
 import org.scoula.nhapi.client.NHApiClient;
@@ -97,4 +98,19 @@ public class CardServiceImpl implements CardService {
             log.info("✅ 카드 동기화 완료: cardId={}, userId={}", card.getId(), userId);
         }
     }
+    @Override
+    public void deactivateCard(Long cardId, Long userId) {
+        Card card = cardMapper.findById(cardId);
+
+        if (card == null || !card.getUserId().equals(userId)) {
+            throw new ForbiddenException("본인 카드만 삭제할 수 있습니다");
+        }
+
+        if (!Boolean.TRUE.equals(card.getIsActive())) {
+            return;
+        }
+
+        cardMapper.updateIsActive(cardId, false);
+    }
+
 }

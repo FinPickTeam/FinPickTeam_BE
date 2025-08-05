@@ -6,6 +6,7 @@ import org.scoula.account.domain.Account;
 import org.scoula.account.dto.AccountRegisterResponseDto;
 import org.scoula.account.mapper.AccountMapper;
 import org.scoula.common.exception.BaseException;
+import org.scoula.common.exception.ForbiddenException;
 import org.scoula.nhapi.dto.FinAccountRequestDto;
 import org.scoula.nhapi.service.NhAccountService;
 import org.scoula.transactions.service.AccountTransactionService;
@@ -81,5 +82,18 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
+    @Override
+    public void deactivateAccount(Long accountId, Long userId) {
+        Account account = accountMapper.findById(accountId);
 
+        if (account == null || !account.getUserId().equals(userId)) {
+            throw new ForbiddenException("본인 계좌만 삭제할 수 있습니다");
+        }
+
+        if (!Boolean.TRUE.equals(account.getIsActive())) {
+            return; // 이미 비활성화면 그냥 무시
+        }
+
+        accountMapper.updateIsActive(accountId, false);
+    }
 }
