@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.monthreport.mapper.MonthReportMapper">
+
+    <!-- 🗓 거래내역 존재하는 월 목록 (ledger 기준) -->
+    <select id="findTransactionMonths" resultType="string">
+        SELECT DISTINCT DATE_FORMAT(date, '%Y-%m') AS month
+        FROM ledger
+        WHERE user_id = #{userId}
+          AND source_type = 'CARD'
+          AND type = 'EXPENSE'
+        ORDER BY month ASC
+    </select>
+
+    <!-- 📆 이미 생성된 월간 리포트 목록 -->
+    <select id="findExistingReportMonths" resultType="string">
+        SELECT month
+        FROM monthreport
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 💳 해당 월 ledger 조회 -->
+    <select id="findLedgerTransactions" resultType="org.scoula.monthreport.domain.LedgerTransaction">
+        SELECT amount, c.label AS categoryName
+        FROM ledger l
+                 JOIN tr_category c ON l.category_id = c.id
+        WHERE l.user_id = #{userId}
+          AND l.source_type = 'CARD'
+          AND l.type = 'EXPENSE'
+          AND l.date BETWEEN #{from} AND #{to}
+    </select>
+
+    <!-- 🔁 전월 리포트 조회 -->
+    <select id="findMonthReport" resultType="org.scoula.monthreport.domain.MonthReport">
+        SELECT *
+        FROM monthreport
+        WHERE user_id = #{userId}
+          AND month = #{month}
+        LIMIT 1
+    </select>
+
+    <!-- 📈 최근 6개월 리포트 (현재 월 포함) -->
+    <select id="findRecentMonthReportsInclusive" resultType="org.scoula.monthreport.domain.MonthReport">
+        SELECT month, total_expense
+        FROM monthreport
+        WHERE user_id = #{userId}
+        AND month &lt;= #{currentMonth}
+        ORDER BY month DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 🧾 월간 리포트 저장 -->
+    <insert id="insertMonthReport">
+        INSERT INTO monthreport (
+            user_id, month, total_expense, total_saving, saving_rate,
+            compare_expense, compare_saving, category_chart, six_month_chart,
+            feedback, next_goal
+        ) VALUES (
+                     #{userId}, #{month}, #{totalExpense}, #{totalSaving}, #{savingRate},
+                     #{compareExpense}, #{compareSaving}, #{categoryChart}, #{sixMonthChart},
+                     #{feedback}, #{nextGoal}
+                 )
+    </insert>
+
+    <!-- MonthReportMapper.xml -->
+    <select id="findUsersWithCardTransactions" resultType="long">
+        SELECT DISTINCT user_id
+        FROM ledger
+        WHERE source_type = 'CARD'
+          AND type = 'EXPENSE'
+    </select>
+
+
+</mapper>
