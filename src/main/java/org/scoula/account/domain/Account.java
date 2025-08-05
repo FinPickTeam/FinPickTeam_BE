@@ -22,5 +22,6 @@ public class Account {
     private String productName;        // 상품명
     private String accountType;        // DEPOSIT / SAVINGS 등
     private BigDecimal balance;        // 현재 잔액
+    private Boolean isActive;
     private LocalDateTime createdAt;   // 생성일시 (DB default now())
 }

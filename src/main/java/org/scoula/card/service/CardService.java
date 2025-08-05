@@ -7,4 +7,5 @@ public interface CardService {
     CardRegisterResponseDto registerCard(FinCardRequestDto dto);
     void syncCardById(Long cardId);
     void syncAllCardsByUserId(Long userId);
+    void deactivateCard(Long cardId, Long userId);
 }

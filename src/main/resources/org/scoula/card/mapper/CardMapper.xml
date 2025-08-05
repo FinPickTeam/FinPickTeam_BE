@@ -26,5 +26,10 @@
         WHERE user_id = #{userId}
     </select>
 
+    <update id="updateIsActive">
+        UPDATE card
+        SET is_active = #{isActive}
+        WHERE id = #{id}
+    </update>
 
 </mapper>

@@ -12,15 +12,13 @@ import java.util.List;
 public interface AccountMapper {
 
     void insert(Account account);
-
     void updateBalanceByUser(
             @Param("userId") Long userId,
             @Param("pinAccountNumber") String pinAccountNumber,
             @Param("balance") BigDecimal balance
     );
-
     Account findById(Long accountId);// 핀어카운트로 계좌 조회
-
     List<Account> findByUserId(Long userId);
+    void updateIsActive(@Param("id") Long id, @Param("isActive") boolean isActive);
 
 }

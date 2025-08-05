@@ -40,4 +40,14 @@ public class AccountController {
         return ResponseEntity.ok(CommonResponseDTO.success("사용자 전체 계좌 동기화 성공", null));
     }
 
+    @DeleteMapping("/{accountId}")
+    public ResponseEntity<CommonResponseDTO<Void>> deleteAccount(
+            @PathVariable Long accountId,
+            @RequestParam Long userId //TODO 나중에 @AuthenticationPrincipal로 바꾸기
+    ) {
+        accountService.deactivateAccount(accountId, userId);
+        return ResponseEntity.ok(CommonResponseDTO.success("계좌 비활성화 완료"));
+    }
+
+
 }
