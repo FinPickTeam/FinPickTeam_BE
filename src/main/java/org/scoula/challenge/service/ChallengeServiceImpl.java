@@ -33,10 +33,20 @@ public class ChallengeServiceImpl implements ChallengeService {
         if (count >= 3) throw new ChallengeLimitExceededException(req.getType().name());
 
         // 2. 날짜 유효성 체크
-        if (req.getStartDate().isAfter(req.getEndDate())) throw new IllegalArgumentException("시작일은 종료일보다 이후일 수 없습니다.");
+        if (req.getStartDate().isAfter(req.getEndDate())) {
+            throw new StartDateAfterEndDateException();
+        }
         long days = ChronoUnit.DAYS.between(req.getStartDate(), req.getEndDate()) + 1;
-        if (days < 3) throw new ChallengeDurationTooShortException();
-        if (ChronoUnit.DAYS.between(LocalDate.now(), req.getStartDate()) > 7) throw new ChallengeStartTooLateException();
+        if (days < 3) {
+            throw new ChallengeDurationTooShortException();
+        }
+        if (days > 30) {
+            throw new ChallengeDurationTooLongException();
+        }
+        if (ChronoUnit.DAYS.between(LocalDate.now(), req.getStartDate()) > 7) {
+            throw new ChallengeStartTooLateException();
+        }
+
 
         // 3. 목표 금액 검증
         if (req.getGoalValue() < 1000) throw new ChallengeGoalTooSmallException();
@@ -85,6 +95,12 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         // 7. 닉네임 조회
         String nickname = userMapper.findNicknameById(userId);
+
+        // 8. 참여관련 숫자 데이터 수정
+        // 요약 테이블이 없을 수도 있으니 insert or update
+        challengeMapper.insertOrUpdateUserChallengeSummary(userId);
+        challengeMapper.incrementUserTotalChallenges(userId);
+        challengeMapper.updateAchievementRate(userId);
 
         return new ChallengeCreateResponseDTO(challenge.getId(), nickname);
     }
@@ -206,6 +222,10 @@ public class ChallengeServiceImpl implements ChallengeService {
         }
     }
 
+    @Override
+    public ChallengeSummaryResponseDTO getChallengeSummary(Long userId) {
+        return challengeMapper.getChallengeSummary(userId);
+    }
 
 
 }
