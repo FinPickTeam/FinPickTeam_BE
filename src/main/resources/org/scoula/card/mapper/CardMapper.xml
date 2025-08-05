@@ -32,4 +32,11 @@
         WHERE id = #{id}
     </update>
 
+    <select id="findActiveByUserId" resultType="org.scoula.card.domain.Card">
+        SELECT * FROM card
+        WHERE user_id = #{userId}
+          AND is_active = TRUE
+    </select>
+
+
 </mapper>

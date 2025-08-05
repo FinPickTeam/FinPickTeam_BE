@@ -3,6 +3,7 @@ package org.scoula.account.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.account.domain.Account;
+import org.scoula.account.dto.AccountDto;
 import org.scoula.account.dto.AccountRegisterResponseDto;
 import org.scoula.account.mapper.AccountMapper;
 import org.scoula.common.exception.BaseException;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -96,4 +98,13 @@ public class AccountServiceImpl implements AccountService {
 
         accountMapper.updateIsActive(accountId, false);
     }
+
+    @Override
+    public List<AccountDto> getActiveAccounts(Long userId) {
+        List<Account> accounts = accountMapper.findActiveByUserId(userId);
+        return accounts.stream()
+                .map(AccountDto::from)
+                .collect(Collectors.toList());
+    }
+
 }
