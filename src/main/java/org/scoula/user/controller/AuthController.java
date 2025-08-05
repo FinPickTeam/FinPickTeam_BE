@@ -33,6 +33,15 @@ public class AuthController {
         return CommonResponseDTO.success("토큰 재발급 성공", token);
     }
 
+    //@AuthenticationPrincipal도 사용가능
+    @PostMapping("/logout")
+    public CommonResponseDTO<Void> logout(@RequestHeader("Authorization") String bearerToken) {
+
+        userService.logout(bearerToken);
+        // 클라이언트에 성공 응답 전송
+        return CommonResponseDTO.success("로그아웃 성공");
+    }
+
     @GetMapping("/test-redis")
     public String testToken(@RequestParam Long id) {
         return redisService.getRefreshToken(id);
