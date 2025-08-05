@@ -3,6 +3,7 @@ package org.scoula.monthreport.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.scoula.monthreport.domain.MonthReport;
 import org.scoula.monthreport.dto.*;
 import org.scoula.monthreport.mapper.MonthReportMapper;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class MonthReportReadServiceImpl implements MonthReportReadService {
 
     @Override
     public MonthReportDetailDto getReport(Long userId, String month) {
-        MonthReportDTO report = monthReportMapper.findMonthReport(userId, month);
+        MonthReport report = monthReportMapper.findMonthReport(userId, month);
         if (report == null) {
             throw new IllegalArgumentException("리포트가 존재하지 않습니다.");
         }
@@ -47,7 +48,7 @@ public class MonthReportReadServiceImpl implements MonthReportReadService {
                 }).toList();
         dto.setTop3Spending(top3);
 
-        dto.setSpendingPatternLabel(report.getFeedback()); // 예: 감정적 소비형 + 외식 과다형
+        dto.setSpendingPatternLabel(report.getFeedback());
         dto.setSpendingPatternFeedback(generateSpendingAdvice(report.getFeedback()));
         dto.setNextGoal(report.getNextGoal());
 

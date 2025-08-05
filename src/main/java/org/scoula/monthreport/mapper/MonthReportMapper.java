@@ -2,8 +2,8 @@ package org.scoula.monthreport.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.scoula.monthreport.dto.LedgerTransactionDTO;
-import org.scoula.monthreport.dto.MonthReportDTO;
+import org.scoula.monthreport.domain.LedgerTransaction;
+import org.scoula.monthreport.domain.MonthReport;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,20 +13,21 @@ import java.util.List;
 public interface MonthReportMapper {
 
     List<String> findTransactionMonths(@Param("userId") Long userId);
+
     List<String> findExistingReportMonths(@Param("userId") Long userId);
 
-    List<LedgerTransactionDTO> findLedgerTransactions(
+    List<LedgerTransaction> findLedgerTransactions(
             @Param("userId") Long userId,
             @Param("from") LocalDate from,
             @Param("to") LocalDate to
     );
 
-    MonthReportDTO findMonthReport(
+    MonthReport findMonthReport(
             @Param("userId") Long userId,
             @Param("month") String month
     );
 
-    List<MonthReportDTO> findRecentMonthReportsInclusive(
+    List<MonthReport> findRecentMonthReportsInclusive(
             @Param("userId") Long userId,
             @Param("currentMonth") String currentMonth,
             @Param("limit") int limit
@@ -47,5 +48,4 @@ public interface MonthReportMapper {
     );
 
     List<Long> findUsersWithCardTransactions();
-
 }
