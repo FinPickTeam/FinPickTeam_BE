@@ -70,5 +70,12 @@ public interface ChallengeMapper {
     void updateAchievementRate(@Param("userId") Long userId);
 
 
+    // 챌린지 결과 확인 관련 메서드
+    int getActualValue(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
+    int getActualRewardPoint(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
+    void markResultChecked(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
+    boolean existsUnconfirmedCompletedChallenge(@Param("userId") Long userId);
+
+
 }
 

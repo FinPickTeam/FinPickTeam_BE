@@ -81,5 +81,31 @@ public class ChallengeController {
         return CommonResponseDTO.success("챌린지 요약 정보 조회 성공", summary);
     }
 
+    @GetMapping("/{id}/result")
+    public CommonResponseDTO<ChallengeResultResponseDTO> getChallengeResult(@PathVariable("id") Long challengeId,
+                                                                            HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
+        ChallengeResultResponseDTO result = challengeService.getChallengeResult(userId, challengeId);
+        return CommonResponseDTO.success("챌린지 결과 조회 성공", result);
+    }
+
+    @PatchMapping("/{id}/result/confirm")
+    public CommonResponseDTO<?> confirmChallengeResult(@PathVariable("id") Long challengeId,
+                                                       HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
+        challengeService.confirmChallengeResult(userId, challengeId);
+        return CommonResponseDTO.success("챌린지 결과 확인 처리 완료");
+    }
+
+    @GetMapping("/has-unconfirmed")
+    public CommonResponseDTO<Boolean> hasUnconfirmedChallengeResult(HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
+        boolean result = challengeService.hasUnconfirmedResult(userId);
+        return CommonResponseDTO.success("미확인 결과 존재 여부 확인", result);
+    }
+
 
 }

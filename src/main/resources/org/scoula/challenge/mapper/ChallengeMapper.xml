@@ -158,5 +158,31 @@
         WHERE id = #{userId} AND total_challenges > 0
     </update>
 
+    <select id="getActualValue" resultType="int">
+        SELECT actual_value FROM user_challenge
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </select>
+
+    <select id="getActualRewardPoint" resultType="int">
+        SELECT actual_reward_point FROM user_challenge
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </select>
+
+    <update id="markResultChecked">
+        UPDATE user_challenge
+        SET result_checked = 1
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </update>
+
+    <select id="existsUnconfirmedCompletedChallenge" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM user_challenge uc
+                              JOIN challenge c ON uc.challenge_id = c.id
+            WHERE uc.user_id = #{userId}
+              AND uc.result_checked = 0
+              AND c.status = 'COMPLETED'
+        )
+    </select>
+
 
 </mapper>

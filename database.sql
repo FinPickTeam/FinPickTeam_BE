@@ -154,6 +154,7 @@ CREATE TABLE `coin` (
                         FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 ALTER TABLE `coin` MODIFY COLUMN `amount` BIGINT NOT NULL;
+ALTER TABLE coin ADD COLUMN monthly_cumulative_amount BIGINT NOT NULL DEFAULT 0;
 
 -- 13. 재화내역
 DROP TABLE IF EXISTS `coin_history`;
@@ -168,6 +169,10 @@ CREATE TABLE `coin_history` (
                                 PRIMARY KEY (`id`),
                                 FOREIGN KEY (`user_id`) REFERENCES `coin`(`id`) ON DELETE CASCADE
 );
+ALTER TABLE coin_history DROP COLUMN comment;
+ALTER TABLE coin_history
+    ADD COLUMN coin_type ENUM('QUIZ', 'CHALLENGE', 'AVATAR', 'GIFTICON') NOT NULL;
+
 
 -- 14. 알람내역
 DROP TABLE IF EXISTS `ALARMS`;
@@ -460,6 +465,8 @@ CREATE TABLE `challenge` (
 ALTER TABLE challenge ADD use_password BOOLEAN DEFAULT FALSE;
 ALTER TABLE challenge ADD COLUMN participant_count INT DEFAULT 0;
 
+ALTER TABLE challenge ADD COLUMN reward_point INT NOT NULL;
+
 
 -- 3. 유저-챌린지 매핑 (참여 내역)
 DROP TABLE IF EXISTS `user_challenge`;
@@ -479,6 +486,9 @@ CREATE TABLE `user_challenge` (
 );
 
 ALTER TABLE user_challenge CHANGE joined_at created_at DATETIME DEFAULT CURRENT_TIMESTAMP;
+
+ALTER TABLE user_challenge ADD COLUMN result_checked TINYINT(1) DEFAULT 0;
+ALTER TABLE user_challenge ADD COLUMN actual_reward_point INT DEFAULT 0;
 
 
 -- 4. 챌린지 진행 통계 (유저별 집계)
