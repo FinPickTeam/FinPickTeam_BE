@@ -58,4 +58,17 @@
                  )
     </insert>
 
+    <update id="updateLedgerCategory">
+        UPDATE ledger
+        SET category_id = #{categoryId}
+        WHERE id = #{ledgerId}
+    </update>
+
+    <update id="updateLedgerMemo">
+        UPDATE ledger
+        SET memo = #{memo}
+        WHERE id = #{ledgerId}
+    </update>
+
+
 </mapper>
