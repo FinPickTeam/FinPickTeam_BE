@@ -70,8 +70,8 @@ public class AvatarController {
 
     @ApiOperation(value="유저재화조회", notes="현재 유저가 보유 중인 재화를 조회합니다.")
     @GetMapping("/getCurCoin/userId={userId}")
-    public ResponseEntity<CommonResponseDTO<Long>> getCurCoin(@PathVariable Long userId) {
-        Long curCoin=avatarService.getCoin(userId);
+    public ResponseEntity<CommonResponseDTO<Integer>> getCurCoin(@PathVariable Long userId) {
+        int curCoin=avatarService.getCoin(userId);
         return ResponseEntity.ok(CommonResponseDTO.success("유저재화 조회 성공", curCoin));
     }
 }

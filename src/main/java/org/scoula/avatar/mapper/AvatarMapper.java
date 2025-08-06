@@ -33,13 +33,4 @@ public interface AvatarMapper {
     //clothe테이블의 is_wearing 갱신
     void updateClothe(@Param("userId") Long userId, @Param("isWearing") Boolean isWearing, @Param("items") Long[] items);
 
-    //재화차감
-    void updateMoney(@Param("userId") Long userId,@Param("cost") int cost);
-
-    //재화변동내역 삽입
-    void insertCoinHistory(@Param("userId") Long userId, @Param("amount") int amount, @Param("type") String type, @Param("comment") String comment);
-
-    //유저 재화 조회
-    Long getUserCoin(Long userId);
-
 }

@@ -9,6 +9,7 @@ import org.scoula.avatar.dto.AvatarDTO;
 import org.scoula.avatar.dto.UserClothesDTO;
 import org.scoula.avatar.exception.InsufficientCoinException;
 import org.scoula.avatar.mapper.AvatarMapper;
+import org.scoula.coin.mapper.CoinMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +24,7 @@ import java.util.Map;
 public class AvatarServiceImpl implements AvatarService {
 
     final private AvatarMapper mapper;
+    final private CoinMapper coinMapper;
 
     @Override
     public void insertAvatar(Long userId) {
@@ -93,7 +95,8 @@ public class AvatarServiceImpl implements AvatarService {
     public void insertClothe(Long userId, Long itemId) {
         //유저 재화와 아이템 가격 조회
         ItemsVO itemsVO=mapper.getItem(itemId);
-        Long curAmount=mapper.getUserCoin(userId);
+//        Long curAmount=mapper.getUserCoin(userId);
+        int curAmount=coinMapper.getUserCoin(userId);
         int itemCost=itemsVO.getCost();
 
         //재화가 아이템 가격보다 적으면 예외
@@ -102,14 +105,15 @@ public class AvatarServiceImpl implements AvatarService {
         }
 
         //예외 통과하면 유저재화를 갱신하고 옷장에 의상 삽입
-        mapper.updateMoney(userId,itemCost); //재화 갱신
-        mapper.insertCoinHistory(userId, itemCost, "minus",itemsVO.getName()+" 구매"); //재화소비내역 삽입
         mapper.insertClothe(userId, itemId); //의상소유내역 삽입
+        coinMapper.subtractCoin(userId, itemCost);
+        coinMapper.insertCoinHistory(userId,itemCost,"minus","AVATAR");
+
     }
 
     @Override
-    public Long getCoin(Long userId) {
-        return mapper.getUserCoin(userId);
+    public int getCoin(Long userId) {
+        return coinMapper.getUserCoin(userId);
     }
 }
 

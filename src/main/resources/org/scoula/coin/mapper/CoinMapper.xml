@@ -7,9 +7,7 @@
 
     <update id="subtractCoin">
         UPDATE coin
-        SET amount = amount - #{amount},
-            cumulative_amount = cumulative_amount - #{amount},
-            monthly_cumulative_amount = monthly_cumulative_amount - #{amount}
+        SET amount = amount - #{amount}
         WHERE id = #{userId}
     </update>
 
