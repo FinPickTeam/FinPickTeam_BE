@@ -2,6 +2,9 @@ package org.scoula.transactions.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.scoula.card.domain.Card;
+import org.scoula.card.mapper.CardMapper;
+import org.scoula.common.exception.BaseException;
 import org.scoula.nhapi.dto.NhCardTransactionResponseDto;
 import org.scoula.nhapi.service.NhCardService;
 import org.scoula.transactions.domain.CardTransaction;
@@ -25,13 +28,21 @@ public class CardTransactionServiceImpl implements CardTransactionService {
     private final NhCardService nhCardService;
     private final CardTransactionMapper mapper;
     private final LedgerMapper ledgerMapper;
+    private final CardMapper cardMapper;
 
     @Override
     public List<CardTransactionDto> getCardTransactions(Long userId, Long cardId, String from, String to) {
+        Card card = cardMapper.findById(cardId);
+        if (card == null) throw new BaseException("해당 카드가 존재하지 않습니다.", 404);
+        if (!Boolean.TRUE.equals(card.getIsActive())) {
+            throw new BaseException("비활성화된 카드입니다.", 400);
+        }
+
         List<CardTransaction> txList = mapper.findCardTransactions(userId, cardId, from, to);
         if (txList == null || txList.isEmpty()) {
             throw new CardTransactionNotFoundException();
         }
+
         return txList.stream().map(this::toDto).toList();
     }
 

@@ -15,7 +15,8 @@
             account_number,
             product_name,
             account_type,
-            balance
+            balance,
+            is_active
         ) VALUES (
                      #{userId},
                      #{pinAccountNumber},
@@ -23,7 +24,7 @@
                      #{accountNumber},
                      #{productName},
                      #{accountType},
-                     #{balance}
+                     #{balance}, TRUE
                  )
     </insert>
 
@@ -34,7 +35,6 @@
         WHERE user_id = #{userId}
           AND pin_account_number = #{pinAccountNumber}
     </update>
-
 
     <select id="findById" resultType="org.scoula.account.domain.Account">
         SELECT *
@@ -47,6 +47,7 @@
                product_name, account_type, balance, created_at
         FROM account
         WHERE user_id = #{userId}
+          AND is_active = TRUE
     </select>
 
     <update id="updateIsActive">
@@ -55,10 +56,13 @@
         WHERE id = #{id}
     </update>
 
-    <select id="findActiveByUserId" resultType="org.scoula.account.domain.Account">
+    <select id="findByIdList" resultType="org.scoula.account.domain.Account">
         SELECT * FROM account
-        WHERE user_id = #{userId}
-          AND is_active = TRUE
+        WHERE is_active = TRUE
+        AND id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
     </select>
 
 

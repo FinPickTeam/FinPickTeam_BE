@@ -18,7 +18,7 @@ public interface AccountMapper {
             @Param("balance") BigDecimal balance
     );
     Account findById(Long accountId);// 핀어카운트로 계좌 조회
-    List<Account> findByUserId(Long userId);
     void updateIsActive(@Param("id") Long id, @Param("isActive") boolean isActive);
     List<Account> findActiveByUserId(Long userId);
+    List<Account> findByIdList(List<Long> ids);
 }

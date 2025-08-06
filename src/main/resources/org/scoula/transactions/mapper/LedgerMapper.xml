@@ -10,11 +10,15 @@
         SELECT
         l.id, l.user_id, l.source_type, l.source_name,
         l.amount, l.type,
-        c.label AS category,  <!-- label = 사용자 노출용 -->
+        c.label AS category,
         l.date, l.merchant_name
         FROM ledger l
         JOIN tr_category c ON l.category_id = c.id
+        LEFT JOIN account a ON l.account_id = a.id
+        LEFT JOIN card cd ON l.card_id = cd.id
         WHERE l.user_id = #{userId}
+        AND (l.account_id IS NULL OR a.is_active = TRUE)
+        AND (l.card_id IS NULL OR cd.is_active = TRUE)
         <if test="from != null">AND l.date &gt;= #{from}</if>
         <if test="to != null">AND l.date &lt;= #{to}</if>
         <if test="category != null">AND c.name = #{category}</if>

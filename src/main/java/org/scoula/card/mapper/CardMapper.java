@@ -11,7 +11,7 @@ import java.util.List;
 public interface CardMapper {
     void insertCard(Card card);
     Card findById(Long cardId);
-    List<Card> findByUserId(Long userId);
     void updateIsActive(@Param("id") Long id, @Param("isActive") boolean isActive);
     List<Card> findActiveByUserId(Long userId);
+    List<Card> findByIdList(List<Long> ids);
 }
