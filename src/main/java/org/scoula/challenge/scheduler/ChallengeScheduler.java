@@ -110,7 +110,13 @@ public class ChallengeScheduler {
                     // 성공 처리
                     challengeMapper.succeedUserChallenge(userId, challenge.getId());
                     log.info("🎉 성공 처리 - 유저ID: {}, 챌린지ID: {}", userId, challenge.getId());
+
+                    // ✅ 성공 횟수 +1 및 성공률 갱신
+                    challengeMapper.insertOrUpdateUserChallengeSummary(userId);
+                    challengeMapper.incrementUserSuccessCount(userId);
+                    challengeMapper.updateAchievementRate(userId);
                 }
+
             }
         }
 

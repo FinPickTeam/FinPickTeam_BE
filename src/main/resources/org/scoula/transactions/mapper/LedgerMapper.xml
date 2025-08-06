@@ -10,11 +10,15 @@
         SELECT
         l.id, l.user_id, l.source_type, l.source_name,
         l.amount, l.type,
-        c.label AS category,  <!-- label = 사용자 노출용 -->
+        c.label AS category,
         l.date, l.merchant_name
         FROM ledger l
         JOIN tr_category c ON l.category_id = c.id
+        LEFT JOIN account a ON l.account_id = a.id
+        LEFT JOIN card cd ON l.card_id = cd.id
         WHERE l.user_id = #{userId}
+        AND (l.account_id IS NULL OR a.is_active = TRUE)
+        AND (l.card_id IS NULL OR cd.is_active = TRUE)
         <if test="from != null">AND l.date &gt;= #{from}</if>
         <if test="to != null">AND l.date &lt;= #{to}</if>
         <if test="category != null">AND c.name = #{category}</if>
@@ -34,7 +38,7 @@
     </select>
 
 
-    <insert id="insert" parameterType="org.scoula.transactions.domain.Ledger">
+    <insert id="accountInsert" parameterType="org.scoula.transactions.domain.Ledger">
         INSERT INTO ledger (
             user_id, source_type, source_name,
             amount, type, category_id, memo, analysis,
@@ -45,5 +49,30 @@
                      #{date}, #{merchantName}, #{place}, #{accountId}, #{cardId}, #{sourceId}, now()
                  )
     </insert>
+
+    <insert id="cardInsert" parameterType="org.scoula.transactions.domain.Ledger">
+        INSERT INTO ledger (
+            user_id, source_id, account_id, card_id, source_type,
+            source_name, type, amount, category_id, memo, analysis,
+            date, merchant_name, place, created_at
+        ) VALUES (
+                     #{userId}, #{sourceId}, #{accountId}, #{cardId}, #{sourceType},
+                     #{sourceName}, #{type}, #{amount}, #{categoryId}, #{memo}, #{analysis},
+                     #{date}, #{merchantName}, #{place}, #{createdAt}
+                 )
+    </insert>
+
+    <update id="updateLedgerCategory">
+        UPDATE ledger
+        SET category_id = #{categoryId}
+        WHERE id = #{ledgerId}
+    </update>
+
+    <update id="updateLedgerMemo">
+        UPDATE ledger
+        SET memo = #{memo}
+        WHERE id = #{ledgerId}
+    </update>
+
 
 </mapper>

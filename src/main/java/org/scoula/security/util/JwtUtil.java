@@ -72,4 +72,11 @@ public class JwtUtil {
                 .getBody();
     }
 
+    public Date getExpirationDateFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(secretKey)
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.getExpiration();
+    }
 }

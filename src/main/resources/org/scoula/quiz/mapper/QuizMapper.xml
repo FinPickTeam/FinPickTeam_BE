@@ -13,7 +13,7 @@
     </resultMap>
 
 
-    <insert id="insertHistory">
+    <insert id="insertHistory" parameterType="org.scoula.quiz.domain.QuizHistoryVO">
         INSERT INTO `quiz_history` (
             `user_id`,
             `quiz_id`,

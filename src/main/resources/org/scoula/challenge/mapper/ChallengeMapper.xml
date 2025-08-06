@@ -125,5 +125,82 @@
         SELECT name FROM challenge_category WHERE id = #{categoryId}
     </select>
 
+    <select id="getChallengeSummary" resultType="org.scoula.challenge.dto.ChallengeSummaryResponseDTO">
+        SELECT
+            total_challenges AS totalChallenges,
+            success_count AS successCount,
+            achievement_rate AS achievementRate
+        FROM user_challenge_summary
+        WHERE id = #{userId}
+    </select>
+
+    <insert id="insertOrUpdateUserChallengeSummary">
+        INSERT INTO user_challenge_summary (id, total_challenges, success_count, achievement_rate)
+        VALUES (#{userId}, 0, 0, 0.00)
+            ON DUPLICATE KEY UPDATE id = id
+    </insert>
+
+    <update id="incrementUserTotalChallenges">
+        UPDATE user_challenge_summary
+        SET total_challenges = total_challenges + 1
+        WHERE id = #{userId}
+    </update>
+
+    <update id="incrementUserSuccessCount">
+        UPDATE user_challenge_summary
+        SET success_count = success_count + 1
+        WHERE id = #{userId}
+    </update>
+
+    <update id="updateAchievementRate">
+        UPDATE user_challenge_summary
+        SET achievement_rate = ROUND(success_count * 100.0 / total_challenges, 2)
+        WHERE id = #{userId} AND total_challenges > 0
+    </update>
+
+    <select id="getActualValue" resultType="int">
+        SELECT actual_value FROM user_challenge
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </select>
+
+    <select id="getActualRewardPoint" resultType="int">
+        SELECT actual_reward_point FROM user_challenge
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </select>
+
+    <update id="markResultChecked">
+        UPDATE user_challenge
+        SET result_checked = 1
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </update>
+
+    <select id="existsUnconfirmedCompletedChallenge" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM user_challenge uc
+                              JOIN challenge c ON uc.challenge_id = c.id
+            WHERE uc.user_id = #{userId}
+              AND uc.result_checked = 0
+              AND c.status = 'COMPLETED'
+        )
+    </select>
+
+    <select id="isResultChecked" resultType="boolean">
+        SELECT result_checked FROM user_challenge
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </select>
+
+    <!-- 성공한 유저 수 조회 -->
+    <select id="countSuccessMembers" resultType="int">
+        SELECT COUNT(*) FROM user_challenge
+        WHERE challenge_id = #{challengeId} AND is_success = 1
+    </select>
+
+    <!-- actual_reward_point 저장 -->
+    <update id="saveActualRewardPoint">
+        UPDATE user_challenge
+        SET actual_reward_point = #{actualRewardPoint}
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </update>
+
 
 </mapper>

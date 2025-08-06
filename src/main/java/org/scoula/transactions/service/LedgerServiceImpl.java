@@ -1,6 +1,11 @@
 package org.scoula.transactions.service;
 
 import lombok.RequiredArgsConstructor;
+import org.scoula.account.domain.Account;
+import org.scoula.account.mapper.AccountMapper;
+import org.scoula.card.domain.Card;
+import org.scoula.card.mapper.CardMapper;
+import org.scoula.common.exception.BaseException;
 import org.scoula.transactions.domain.Ledger;
 import org.scoula.transactions.dto.LedgerDetailDto;
 import org.scoula.transactions.dto.LedgerDto;
@@ -18,6 +23,8 @@ import java.util.List;
 public class LedgerServiceImpl implements LedgerService {
 
     private final LedgerMapper ledgerMapper;
+    private final AccountMapper accountMapper;
+    private final CardMapper cardMapper;
 
     @Override
     public List<LedgerDto> getLedgers(Long userId, String from, String to, String category) {
@@ -36,9 +43,21 @@ public class LedgerServiceImpl implements LedgerService {
     public LedgerDetailDto getLedgerDetail(Long userId, Long ledgerId) {
         Ledger ledger = ledgerMapper.findLedgerDetail(userId, ledgerId);
 
-        if (ledger == null) {
-            throw new LedgerNotFoundException();
+        if (ledger == null) throw new LedgerNotFoundException();
+
+        if (ledger.getAccountId() != null) {
+            Account acc = accountMapper.findById(ledger.getAccountId());
+            if (!Boolean.TRUE.equals(acc.getIsActive())) {
+                throw new BaseException("비활성화된 계좌입니다.", 400);
+            }
         }
+        if (ledger.getCardId() != null) {
+            Card card = cardMapper.findById(ledger.getCardId());
+            if (!Boolean.TRUE.equals(card.getIsActive())) {
+                throw new BaseException("비활성화된 카드입니다.", 400);
+            }
+        }
+
 
         return convertToDetailDto(ledger);
     }

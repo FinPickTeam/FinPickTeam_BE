@@ -24,6 +24,8 @@ public class ChallengeDetailResponseDTO {
     private Boolean isMine;
     private Double myProgress;
     private Integer participantsCount;
+    private Boolean isResultCheck;
+    private String categoryName; // 추가
 
     // GROUP 전용
     private List<ChallengeMemberDTO> members;

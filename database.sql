@@ -27,6 +27,8 @@ ALTER TABLE `user`
 ALTER TABLE `user`
     ADD CONSTRAINT uq_user_email UNIQUE (`email`);
 
+ALTER TABLE `user`
+    ADD COLUMN auth_pw VARBINARY(255);
 
 -- 2. 유저 상태 (닉네임, 레벨)
 DROP TABLE IF EXISTS `user_status`;
@@ -54,14 +56,19 @@ CREATE TABLE `investment_types` (
 
 -- 4. 유저의 약관 동의
 DROP TABLE IF EXISTS `agree`;
-CREATE TABLE `agree` (
-                         `id` BIGINT NOT NULL,
-                         `login_agreed` BOOLEAN NOT NULL,
-                         `mydata_agreed` BOOLEAN NOT NULL,
-                         `login_agreed_at` DATETIME,
-                         `mydata_agreed_at` DATETIME,
-                         PRIMARY KEY (`id`),
-                         FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
+CREATE TABLE agree (
+                       `id` BIGINT NOT NULL,
+                       `open_banking_agreed` BOOLEAN DEFAULT false,
+                       `personal_info_agreed` BOOLEAN DEFAULT false,
+                       `ars_agreed` BOOLEAN DEFAULT false,
+                       `open_banking_agreed_at` DATETIME NULL,
+                       `personal_info_agreed_at` DATETIME NULL,
+                       `ars_agreed_at` DATETIME NULL,
+                       PRIMARY KEY (id),
+
+                       CONSTRAINT fk_agree_user_id FOREIGN KEY (id) REFERENCES user (id)
+                               ON DELETE CASCADE
+                               ON UPDATE CASCADE
 );
 
 -- 5. mydata 정보
@@ -154,6 +161,7 @@ CREATE TABLE `coin` (
                         FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 ALTER TABLE `coin` MODIFY COLUMN `amount` BIGINT NOT NULL;
+ALTER TABLE coin ADD COLUMN monthly_cumulative_amount BIGINT NOT NULL DEFAULT 0;
 
 -- 13. 재화내역
 DROP TABLE IF EXISTS `coin_history`;
@@ -168,6 +176,10 @@ CREATE TABLE `coin_history` (
                                 PRIMARY KEY (`id`),
                                 FOREIGN KEY (`user_id`) REFERENCES `coin`(`id`) ON DELETE CASCADE
 );
+ALTER TABLE coin_history DROP COLUMN comment;
+ALTER TABLE coin_history
+    ADD COLUMN coin_type ENUM('QUIZ', 'CHALLENGE', 'AVATAR', 'GIFTICON') NOT NULL;
+
 
 -- 14. 알람내역
 DROP TABLE IF EXISTS `ALARMS`;
@@ -194,6 +206,7 @@ CREATE TABLE `account` (
                            `product_name` VARCHAR(255) NOT NULL,
                            `account_type` VARCHAR(50) NOT NULL,
                            `balance` DECIMAL(20,2) NOT NULL,
+                           `is_active` BOOLEAN DEFAULT TRUE,
                            `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                            PRIMARY KEY (`id`),
                            FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
@@ -230,6 +243,7 @@ CREATE TABLE `card` (
                         `card_maskednum` VARCHAR(30) NOT NULL,
                         `card_member_type` ENUM('SELF', 'FAMILY') NOT NULL,
                         `card_type` ENUM('CREDIT', 'DEBIT') NOT NULL,
+                        `is_active` BOOLEAN DEFAULT TRUE,
                         `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                         PRIMARY KEY (`id`),
                         FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
@@ -467,6 +481,8 @@ CREATE TABLE `challenge` (
 ALTER TABLE challenge ADD use_password BOOLEAN DEFAULT FALSE;
 ALTER TABLE challenge ADD COLUMN participant_count INT DEFAULT 0;
 
+ALTER TABLE challenge ADD COLUMN reward_point INT NOT NULL;
+
 
 -- 3. 유저-챌린지 매핑 (참여 내역)
 DROP TABLE IF EXISTS `user_challenge`;
@@ -487,6 +503,9 @@ CREATE TABLE `user_challenge` (
 
 ALTER TABLE user_challenge CHANGE joined_at created_at DATETIME DEFAULT CURRENT_TIMESTAMP;
 
+ALTER TABLE user_challenge ADD COLUMN result_checked TINYINT(1) DEFAULT 0;
+ALTER TABLE user_challenge ADD COLUMN actual_reward_point INT DEFAULT 0;
+
 
 -- 4. 챌린지 진행 통계 (유저별 집계)
 DROP TABLE IF EXISTS `user_challenge_summary`;
@@ -500,7 +519,7 @@ CREATE TABLE `user_challenge_summary` (
                                           FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 
--- 5. 챌린지 랭킹
+-- 5. 챌린지 랭킹 (실시간)
 DROP TABLE IF EXISTS `challenge_rank`;
 CREATE TABLE `challenge_rank` (
                                   `ID` BIGINT NOT NULL AUTO_INCREMENT,
@@ -511,6 +530,56 @@ CREATE TABLE `challenge_rank` (
                                   PRIMARY KEY (`ID`),
                                   FOREIGN KEY (`user_challenge_id`) REFERENCES `user_challenge`(`ID`) ON DELETE CASCADE
 );
+
+
+-- 6. 챌린지 랭킹 스냅샷 (월별 최종 랭킹)
+DROP TABLE IF EXISTS `challenge_rank_snapshot`;
+CREATE TABLE `challenge_rank_snapshot` (
+                                           `id` BIGINT NOT NULL AUTO_INCREMENT,
+                                           `user_challenge_id` BIGINT NOT NULL,
+                                           `month` VARCHAR(7) NOT NULL COMMENT '예: 2025-08',
+                                           `rank` INT NOT NULL,
+                                           `progress_rate` DECIMAL(5,2) NOT NULL DEFAULT 0,
+                                           `is_checked` TINYINT(1) NOT NULL DEFAULT 0,
+                                           `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                           PRIMARY KEY (`id`),
+                                            FOREIGN KEY (`user_challenge_id`) REFERENCES `user_challenge`(`ID`) ON DELETE CASCADE
+);
+
+
+-- 7. 챌린지 누적 포인트 랭킹 (실시간)
+DROP TABLE IF EXISTS `challenge_coin_rank`;
+CREATE TABLE `challenge_coin_rank` (
+                                       `id` BIGINT NOT NULL AUTO_INCREMENT,
+                                       `user_id` BIGINT NOT NULL,
+                                       `month` VARCHAR(7) NOT NULL COMMENT '예: 2025-08',
+                                       `rank` INT NOT NULL,
+                                       `cumulative_point` BIGINT NOT NULL,
+                                       `challenge_count` INT NOT NULL,
+                                       `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                                       PRIMARY KEY (`id`),
+                                       UNIQUE KEY `uniq_user_month` (`user_id`, `month`),
+                                       FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ;
+
+-- 8. 챌린지 누적 포인트 랭킹 스냅샷 (월별 최종 랭킹)
+DROP TABLE IF EXISTS `challenge_coin_rank_snapshot`;
+CREATE TABLE `challenge_coin_rank_snapshot` (
+                                    `id` BIGINT NOT NULL AUTO_INCREMENT,
+                                    `user_id` BIGINT NOT NULL,
+                                    `month` VARCHAR(7) NOT NULL COMMENT '예: 2025-08',
+                                    `rank` INT NOT NULL,
+                                    `cumulative_point` BIGINT NOT NULL,
+                                    `challenge_count` INT NOT NULL,
+                                    `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+                                    PRIMARY KEY (`id`),
+                                    UNIQUE KEY `uniq_user_month` (`user_id`, `month`),
+                                    FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+) ;
+
+
+
+
 
 
 -- CONTENT

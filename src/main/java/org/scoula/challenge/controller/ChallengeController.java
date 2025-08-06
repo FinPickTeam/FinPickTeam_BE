@@ -40,12 +40,13 @@ public class ChallengeController {
     public CommonResponseDTO<List<ChallengeListResponseDTO>> getChallenges(
             @RequestParam(value = "type", required = false) ChallengeType type,
             @RequestParam(value = "status", required = false) ChallengeStatus status,
+            @RequestParam(value = "participating", required = false) Boolean participating,
             HttpServletRequest request) {
 
         String bearer = request.getHeader("Authorization");
         Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
 
-        List<ChallengeListResponseDTO> challenges = challengeService.getChallenges(userId, type, status);
+        List<ChallengeListResponseDTO> challenges = challengeService.getChallenges(userId, type, status, participating);
         return CommonResponseDTO.success("챌린지 리스트 조회 성공", challenges);
     }
 
@@ -72,5 +73,39 @@ public class ChallengeController {
         return CommonResponseDTO.success("챌린지 참여 신청이 완료되었습니다.");
     }
 
+    @GetMapping("/summary")
+    public CommonResponseDTO<ChallengeSummaryResponseDTO> getChallengeSummary(HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
+
+        ChallengeSummaryResponseDTO summary = challengeService.getChallengeSummary(userId);
+        return CommonResponseDTO.success("챌린지 요약 정보 조회 성공", summary);
+    }
+
+    @GetMapping("/{id}/result")
+    public CommonResponseDTO<ChallengeResultResponseDTO> getChallengeResult(@PathVariable("id") Long challengeId,
+                                                                            HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
+        ChallengeResultResponseDTO result = challengeService.getChallengeResult(userId, challengeId);
+        return CommonResponseDTO.success("챌린지 결과 조회 성공", result);
+    }
+
+    @PatchMapping("/{id}/result/confirm")
+    public CommonResponseDTO<?> confirmChallengeResult(@PathVariable("id") Long challengeId,
+                                                       HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
+        challengeService.confirmChallengeResult(userId, challengeId);
+        return CommonResponseDTO.success("챌린지 결과 확인 처리 완료");
+    }
+
+    @GetMapping("/has-unconfirmed")
+    public CommonResponseDTO<Boolean> hasUnconfirmedChallengeResult(HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
+        boolean result = challengeService.hasUnconfirmedResult(userId);
+        return CommonResponseDTO.success("미확인 결과 존재 여부 확인", result);
+    }
 
 }

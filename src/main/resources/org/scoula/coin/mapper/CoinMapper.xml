@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.coin.mapper.CoinMapper">
+
+    <update id="subtractCoin">
+        UPDATE coin
+        SET amount = amount - #{amount}
+        WHERE id = #{userId}
+    </update>
+
+    <update id="addCoinAmount">
+        UPDATE coin
+        SET amount = amount + #{amount},
+            cumulative_amount = cumulative_amount + #{amount},
+            monthly_cumulative_amount = monthly_cumulative_amount + #{amount}
+        WHERE id = #{userId}
+    </update>
+
+    <insert id="insertCoinHistory">
+        INSERT INTO coin_history (user_id, amount, type, coin_type)
+        VALUES (#{userId}, #{amount}, #{type}, #{coinType})
+    </insert>
+
+    <select id="getUserCoin" resultType="int">
+        SELECT amount FROM coin WHERE id = #{userId}
+    </select>
+
+    <insert id="insertInitialCoin">
+        INSERT INTO coin (id, amount, cumulative_amount, monthly_cumulative_amount)
+        VALUES (#{userId}, 0, 0, 0)
+    </insert>
+
+
+</mapper>

@@ -29,4 +29,14 @@
         WHERE email = #{email}
     </update>
 
+    <insert id="insertUserChallengeSummary">
+        INSERT INTO user_challenge_summary (id, total_challenges, success_count, achievement_rate)
+        VALUES (#{userId}, 0, 0, 0.00)
+    </insert>
+
+    <update id="updateIsActive">
+        UPDATE user
+        SET is_active = false
+        WHERE id = #{id}
+    </update>
 </mapper>

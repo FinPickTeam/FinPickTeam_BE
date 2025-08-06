@@ -35,7 +35,12 @@ import javax.sql.DataSource;
         "org.scoula.account.mapper",
         "org.scoula.challenge.mapper",
         "org.scoula.avatar.mapper",
-        "org.scoula.alarm.mapper"
+        "org.scoula.card.mapper",
+        "org.scoula.alarm.mapper",
+        "org.scoula.monthreport.mapper",
+        "org.scoula.coin.mapper",
+        "org.scoula.agree.mapper",
+        "org.scoula.challenge.rank.mapper"
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",
@@ -54,13 +59,22 @@ import javax.sql.DataSource;
         "org.scoula.news.service",
         "org.scoula.nhapi.service",
         "org.scoula.nhapi.client",
+        "org.scoula.nhapi.parser",
         "org.scoula.challenge.service",
         "org.scoula.challenge.scheduler",
         "org.scoula.user.util",
         "org.scoula.avatar.service",
         "org.scoula.account.service",
         "org.scoula.alarm.service",
-})
+        "org.scoula.card.service",
+        "org.scoula.monthreport.service",
+        "org.scoula.monthreport.scheduler",
+        "org.scoula.monthreport.util",
+        "org.scoula.agree.service",
+        "org.scoula.challenge.rank.scheduler",
+        "org.scoula.challenge.rank.service",
+        "org.scoula.challenge.rank.util"
+        })
 @EnableTransactionManagement
 public class RootConfig {
 

@@ -4,12 +4,12 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.scoula.challenge.domain.Challenge;
 import org.scoula.challenge.dto.ChallengeMemberDTO;
+import org.scoula.challenge.dto.ChallengeSummaryResponseDTO;
 import org.scoula.challenge.enums.ChallengeStatus;
 import org.scoula.challenge.enums.ChallengeType;
 
 import java.util.List;
 
-@Mapper
 public interface ChallengeMapper {
     void insertChallenge(Challenge challenge);
 
@@ -61,6 +61,29 @@ public interface ChallengeMapper {
 
     String getCategoryNameById(@Param("categoryId") Long categoryId);
 
+    ChallengeSummaryResponseDTO getChallengeSummary(@Param("userId") Long userId);
+
+    // 유저별 참여 횟수, 성공률 등 계산하는 메서드
+    void insertOrUpdateUserChallengeSummary(@Param("userId") Long userId);
+    void incrementUserSuccessCount(@Param("userId") Long userId);
+    void incrementUserTotalChallenges(@Param("userId") Long userId);
+    void updateAchievementRate(@Param("userId") Long userId);
+
+
+    // 챌린지 결과 확인 관련 메서드
+    int getActualValue(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
+    int getActualRewardPoint(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
+    void markResultChecked(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
+    boolean existsUnconfirmedCompletedChallenge(@Param("userId") Long userId);
+    Boolean isResultChecked(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
+
+    // 챌린지 결과 계산
+
+    int countSuccessMembers(@Param("challengeId") Long challengeId);
+
+    void saveActualRewardPoint(@Param("userId") Long userId,
+                               @Param("challengeId") Long challengeId,
+                               @Param("actualRewardPoint") int actualRewardPoint);
 
 }
 
