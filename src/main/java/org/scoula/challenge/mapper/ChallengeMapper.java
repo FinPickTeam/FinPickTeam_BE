@@ -75,7 +75,15 @@ public interface ChallengeMapper {
     int getActualRewardPoint(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
     void markResultChecked(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
     boolean existsUnconfirmedCompletedChallenge(@Param("userId") Long userId);
+    Boolean isResultChecked(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
 
+    // 챌린지 결과 계산
+
+    int countSuccessMembers(@Param("challengeId") Long challengeId);
+
+    void saveActualRewardPoint(@Param("userId") Long userId,
+                               @Param("challengeId") Long challengeId,
+                               @Param("actualRewardPoint") int actualRewardPoint);
 
 }
 

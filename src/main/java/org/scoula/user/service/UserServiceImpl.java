@@ -1,6 +1,7 @@
 package org.scoula.user.service;
 
 import lombok.RequiredArgsConstructor;
+import org.scoula.coin.mapper.CoinMapper;
 import org.scoula.common.redis.RedisService;
 import org.scoula.user.domain.User;
 import org.scoula.user.domain.UserStatus;
@@ -31,6 +32,7 @@ import java.util.UUID;
 public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UserStatusMapper userStatusMapper;
+    private final CoinMapper coinMapper;
     private final JwtUtil jwtUtil;
     private final RedisService redisService;
     private final PasswordEncoder encoder;
@@ -85,7 +87,12 @@ public class UserServiceImpl implements UserService {
         status.setNickname(nickname);
         status.setLevel(UserLevel.SEEDLING.getLabel()); // → "금융새싹"
         userStatusMapper.save(status); // 2. 상태 저장
-        userMapper.insertUserChallengeSummary(user.getId()); // 3. 챌린지 요약 0으로 초기화
+
+        // 3. coin row 초기화
+        coinMapper.insertInitialCoin(user.getId());
+
+        // 4. 챌린지 요약 초기화
+        userMapper.insertUserChallengeSummary(user.getId());
 
         return UserResponseDTO.builder()
                 .id(user.getId())

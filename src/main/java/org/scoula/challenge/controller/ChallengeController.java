@@ -40,12 +40,13 @@ public class ChallengeController {
     public CommonResponseDTO<List<ChallengeListResponseDTO>> getChallenges(
             @RequestParam(value = "type", required = false) ChallengeType type,
             @RequestParam(value = "status", required = false) ChallengeStatus status,
+            @RequestParam(value = "participating", required = false) Boolean participating,
             HttpServletRequest request) {
 
         String bearer = request.getHeader("Authorization");
         Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
 
-        List<ChallengeListResponseDTO> challenges = challengeService.getChallenges(userId, type, status);
+        List<ChallengeListResponseDTO> challenges = challengeService.getChallenges(userId, type, status, participating);
         return CommonResponseDTO.success("챌린지 리스트 조회 성공", challenges);
     }
 
@@ -106,6 +107,5 @@ public class ChallengeController {
         boolean result = challengeService.hasUnconfirmedResult(userId);
         return CommonResponseDTO.success("미확인 결과 존재 여부 확인", result);
     }
-
 
 }

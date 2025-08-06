@@ -184,5 +184,23 @@
         )
     </select>
 
+    <select id="isResultChecked" resultType="boolean">
+        SELECT result_checked FROM user_challenge
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </select>
+
+    <!-- 성공한 유저 수 조회 -->
+    <select id="countSuccessMembers" resultType="int">
+        SELECT COUNT(*) FROM user_challenge
+        WHERE challenge_id = #{challengeId} AND is_success = 1
+    </select>
+
+    <!-- actual_reward_point 저장 -->
+    <update id="saveActualRewardPoint">
+        UPDATE user_challenge
+        SET actual_reward_point = #{actualRewardPoint}
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </update>
+
 
 </mapper>

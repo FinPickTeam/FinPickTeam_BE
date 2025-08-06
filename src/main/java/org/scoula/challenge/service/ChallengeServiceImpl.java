@@ -9,7 +9,9 @@ import org.scoula.challenge.exception.*;
 import org.scoula.challenge.exception.ChallengeLimitExceededException;
 import org.scoula.challenge.exception.join.*;
 import org.scoula.challenge.mapper.ChallengeMapper;
+import org.scoula.coin.exception.InsufficientCoinException;
 import org.scoula.common.exception.BaseException;
+import org.scoula.coin.mapper.CoinMapper;
 import org.scoula.user.mapper.UserMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 
     private final ChallengeMapper challengeMapper;
     private final UserMapper userMapper;
+    private final CoinMapper coinMapper;
 
     @Override
     public ChallengeCreateResponseDTO createChallenge(Long userId, ChallengeCreateRequestDTO req) {
@@ -50,6 +53,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         // 3. 목표 금액 검증
         if (req.getGoalValue() < 1000) throw new ChallengeGoalTooSmallException();
+        if (req.getGoalValue() > 10000000) throw new ChallengeGoalTooBigException();
 
         // 4. 비밀번호 검증
         if (Boolean.TRUE.equals(req.getUsePassword())) {
@@ -61,7 +65,32 @@ public class ChallengeServiceImpl implements ChallengeService {
             }
         }
 
-        // 5. Challenge 생성
+        // 5. 기본 포인트 계산
+        int rewardPoint;
+        switch (req.getType()) {
+            case PERSONAL:
+                rewardPoint = 10 * (int) days;
+                break;
+            case GROUP:
+                rewardPoint = 20 * (int) days;
+                break;
+            case COMMON:
+                rewardPoint = 600; // 고정
+                break;
+            default:
+                rewardPoint = 0;
+        }
+
+        // 참가비 공제 (GROUP)
+        if (req.getType() != ChallengeType.PERSONAL) {
+            int coin = coinMapper.getUserCoin(userId);
+            if (coin < 100) throw new InsufficientCoinException();
+
+            coinMapper.subtractCoin(userId, 100);
+            coinMapper.insertCoinHistory(userId, 100, "minus", "CHALLENGE");
+        }
+
+        // 6. Challenge 생성
         Challenge challenge = new Challenge();
         challenge.setTitle(req.getTitle());
         challenge.setCategoryId(req.getCategoryId());
@@ -75,6 +104,7 @@ public class ChallengeServiceImpl implements ChallengeService {
         challenge.setWriterId(userId);
         challenge.setMaxParticipants(req.getType() == ChallengeType.GROUP ? 6 : 1);
         challenge.setGoalType("소비");
+        challenge.setRewardPoint(rewardPoint);
 
         // 챌린지 상태 및 초기 참여 인원 조건 분기
         if (req.getType() == ChallengeType.PERSONAL) {
@@ -90,13 +120,13 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         challengeMapper.insertChallenge(challenge);
 
-        // 6. UserChallenge 생성 (is_creator = true)
+        // 7. UserChallenge 생성 (is_creator = true)
         challengeMapper.insertUserChallenge(userId, challenge.getId(), true, false, 0, false);
 
-        // 7. 닉네임 조회
+        // 8. 닉네임 조회
         String nickname = userMapper.findNicknameById(userId);
 
-        // 8. 참여관련 숫자 데이터 수정
+        // 9. 참여관련 숫자 데이터 수정
         // 요약 테이블이 없을 수도 있으니 insert or update
         challengeMapper.insertOrUpdateUserChallengeSummary(userId);
         challengeMapper.incrementUserTotalChallenges(userId);
@@ -106,34 +136,53 @@ public class ChallengeServiceImpl implements ChallengeService {
     }
 
     @Override
-    public List<ChallengeListResponseDTO> getChallenges(Long userId, ChallengeType type, ChallengeStatus status) {
+    public List<ChallengeListResponseDTO> getChallenges(Long userId, ChallengeType type, ChallengeStatus status, Boolean participating) {
         List<Challenge> challenges = challengeMapper.findChallenges(type, status);
-
         List<Long> userChallengeIds = challengeMapper.findUserChallengeIds(userId);
 
-        return challenges.stream().map(challenge -> {
-            boolean isParticipating = userChallengeIds.contains(challenge.getId());
+        return challenges.stream()
+                .filter(challenge -> {
+                    boolean isParticipating = userChallengeIds.contains(challenge.getId());
 
-            Double myProgress = null;
+                    if (participating == null) return true; // 필터 안 씀
+                    if (participating) return isParticipating; // 참여한 챌린지만
+                    else return !isParticipating;              // 참여 안 한 챌린지만
+                })
+                .map(challenge -> {
+                    boolean isParticipating = userChallengeIds.contains(challenge.getId());
+                    String categoryName = challengeMapper.getCategoryNameById(challenge.getCategoryId());
 
-            if (challenge.getType() == ChallengeType.PERSONAL && isParticipating) {
-                myProgress = challengeMapper.getUserProgress(userId, challenge.getId());
-            } else if (challenge.getType() == ChallengeType.GROUP && isParticipating) {
-                myProgress = challengeMapper.getGroupAverageProgress(challenge.getId());
-            }
+                    // 참여한 챌린지인 경우만 결과 확인 여부 조회
+                    Boolean resultChecked = false;
+                    if (isParticipating) {
+                        resultChecked = Boolean.TRUE.equals(challengeMapper.isResultChecked(userId, challenge.getId()));
+                    }
 
-            return ChallengeListResponseDTO.builder()
-                    .id(challenge.getId())
-                    .title(challenge.getTitle())
-                    .type(challenge.getType())
-                    .startDate(challenge.getStartDate())
-                    .endDate(challenge.getEndDate())
-                    .isParticipating(isParticipating)
-                    .myProgressRate(myProgress)
-                    .participantsCount(challenge.getParticipantCount())
-                    .build();
-        }).collect(Collectors.toList());
+                    Double myProgress = null;
+                    if (isParticipating) {
+                        if (challenge.getType() == ChallengeType.PERSONAL) {
+                            myProgress = challengeMapper.getUserProgress(userId, challenge.getId());
+                        } else if (challenge.getType() == ChallengeType.GROUP) {
+                            myProgress = challengeMapper.getGroupAverageProgress(challenge.getId());
+                        }
+                    }
+
+                    return ChallengeListResponseDTO.builder()
+                            .id(challenge.getId())
+                            .title(challenge.getTitle())
+                            .categoryName(categoryName)
+                            .type(challenge.getType())
+                            .startDate(challenge.getStartDate())
+                            .endDate(challenge.getEndDate())
+                            .isParticipating(isParticipating)
+                            .myProgressRate(myProgress)
+                            .participantsCount(challenge.getParticipantCount())
+                            .isResultCheck(resultChecked)
+                            .build();
+                }).collect(Collectors.toList());
     }
+
+
 
     @Override
     public ChallengeDetailResponseDTO getChallengeDetail(Long userId, Long challengeId) {
@@ -142,6 +191,12 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         boolean isMine = challenge.getWriterId().equals(userId);
         boolean isParticipating = challengeMapper.isUserParticipating(userId, challengeId);
+
+        // 참여한 경우만 조회, 아니면 기본값 false
+        Boolean resultChecked = false;
+        if (isParticipating) {
+            resultChecked = Boolean.TRUE.equals(challengeMapper.isResultChecked(userId, challenge.getId()));
+        }
 
         Double myProgress = null;
         List<ChallengeMemberDTO> members = null;
@@ -154,11 +209,14 @@ public class ChallengeServiceImpl implements ChallengeService {
             members = challengeMapper.getGroupMembersWithAvatar(challengeId);
         }
 
+        String categoryName = challengeMapper.getCategoryNameById(challenge.getCategoryId());
+
         return ChallengeDetailResponseDTO.builder()
                 .id(challenge.getId())
                 .title(challenge.getTitle())
                 .description(challenge.getDescription())
                 .type(challenge.getType())
+                .categoryName(categoryName)
                 .status(challenge.getStatus())
                 .startDate(challenge.getStartDate())
                 .endDate(challenge.getEndDate())
@@ -168,6 +226,7 @@ public class ChallengeServiceImpl implements ChallengeService {
                 .isParticipating(isParticipating)
                 .myProgress(myProgress)
                 .participantsCount(challenge.getParticipantCount())
+                .isResultCheck(resultChecked)
                 .members(members)
                 .build();
     }
@@ -212,6 +271,15 @@ public class ChallengeServiceImpl implements ChallengeService {
             }
         }
 
+        // 챌린지 참여 비용 확인
+        if (challenge.getType() != ChallengeType.PERSONAL) {
+            int coin = coinMapper.getUserCoin(userId);
+            if (coin < 100) throw new InsufficientCoinException();
+
+            coinMapper.subtractCoin(userId, 100);
+            coinMapper.insertCoinHistory(userId, 100, "minus", "CHALLENGE");
+        }
+
         // 참여 처리
         challengeMapper.insertUserChallenge(userId, challengeId, false, false, 0, false);
         challengeMapper.incrementParticipantCount(challengeId);
@@ -234,25 +302,48 @@ public class ChallengeServiceImpl implements ChallengeService {
         Challenge challenge = challengeMapper.findChallengeById(challengeId);
         if (challenge == null) throw new ChallengeNotFoundException();
 
+        // 목표 금액과 소비 금액
         int actual = challengeMapper.getActualValue(userId, challengeId);
         int goal = challenge.getGoalValue();
-        int reward = challengeMapper.getActualRewardPoint(userId, challengeId);
 
-        if (challenge.getStatus() != ChallengeStatus.COMPLETED) {
-            throw new BaseException("아직 결과가 확정되지 않았습니다.", 400);
+        // 기본 포인트와 최종 받는 포인트
+        int baseReward = challenge.getRewardPoint();
+        int finalReward = baseReward;
+
+        // 포인트 계산 로직
+        // GROUP 챌린지 포인트 n빵 로직 (예외 방지 + 반올림 처리)
+        // PERSONAL은 baseReward 그대로
+        // COMMON 챌린지는 baseReward = 600으로 고정
+        // 이미 baseReward에 저장되어 있으므로 별도 계산 불필요
+        if (challenge.getType() == ChallengeType.GROUP) {
+            int successMembers = challengeMapper.countSuccessMembers(challenge.getId());
+
+            if (successMembers > 0) {
+                int totalEntryFee = 100 * challenge.getParticipantCount();
+                int bonus = (int) Math.round((double) totalEntryFee / successMembers);
+                finalReward += bonus;
+            }
+            // 성공자가 0명이면 추가 보상 없음 (기본 포인트만 유지)
         }
+
+        // actual_reward_point 저장
+        challengeMapper.saveActualRewardPoint(userId, challengeId, finalReward);
+
+        // coin 지급 및 history 기록
+        coinMapper.addCoinAmount(userId, finalReward);
+        coinMapper.insertCoinHistory(userId, finalReward, "plus", "CHALLENGE");
 
         if (actual < goal) {
             return ChallengeResultResponseDTO.builder()
                     .resultType("SUCCESS_WIN")
-                    .actualRewardPoint(reward)
+                    .actualRewardPoint(finalReward)
                     .savedAmount(goal - actual)
                     .stockRecommendation(null) // 추후 연동
                     .build();
         } else if (actual == goal) {
             return ChallengeResultResponseDTO.builder()
                     .resultType("SUCCESS_EQUAL")
-                    .actualRewardPoint(reward)
+                    .actualRewardPoint(finalReward)
                     .build();
         } else {
             return ChallengeResultResponseDTO.builder()
@@ -271,7 +362,6 @@ public class ChallengeServiceImpl implements ChallengeService {
     public boolean hasUnconfirmedResult(Long userId) {
         return challengeMapper.existsUnconfirmedCompletedChallenge(userId);
     }
-
 
 }
 

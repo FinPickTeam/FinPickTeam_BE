@@ -37,7 +37,8 @@ import javax.sql.DataSource;
         "org.scoula.avatar.mapper",
         "org.scoula.card.mapper",
         "org.scoula.alarm.mapper",
-        "org.scoula.monthreport.mapper"
+        "org.scoula.monthreport.mapper",
+        "org.scoula.coin.mapper"
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",
