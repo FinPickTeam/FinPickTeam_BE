@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.challenge.rank.mapper.ChallengeCoinRankMapper">
+
+    <select id="getTop5CoinRank" resultType="org.scoula.challenge.rank.dto.ChallengeCoinRankResponseDTO">
+        SELECT u.id AS userId, us.nickname, cr.rank, cr.cumulative_point, cr.challenge_count
+        FROM challenge_coin_rank cr
+                 JOIN user u ON u.id = cr.user_id
+                 JOIN user_status us ON us.id = u.id
+        WHERE cr.month = #{month}
+        ORDER BY cr.rank ASC
+            LIMIT 5
+    </select>
+
+    <select id="getMyCoinRank" resultType="org.scoula.challenge.rank.dto.ChallengeCoinRankResponseDTO">
+        SELECT u.id AS userId, us.nickname, cr.rank, cr.cumulative_point, cr.challenge_count
+        FROM challenge_coin_rank cr
+                 JOIN user u ON u.id = cr.user_id
+                 JOIN user_status us ON us.id = u.id
+        WHERE cr.month = #{month}
+          AND cr.user_id = #{userId}
+    </select>
+
+    <select id="getAllUserIdsInMonth" resultType="long">
+        SELECT user_id
+        FROM challenge_coin_rank
+        WHERE month = #{month}
+    </select>
+
+    <insert id="insertOrUpdateRank">
+        INSERT INTO challenge_coin_rank (user_id, month, cumulative_point, challenge_count, rank, updated_at)
+        VALUES (#{userId}, #{month}, #{cumulativePoint}, #{challengeCount}, #{rank}, NOW())
+            ON DUPLICATE KEY UPDATE
+                                 cumulative_point = #{cumulativePoint},
+                                 challenge_count = #{challengeCount},
+                                 rank = #{rank},
+                                 updated_at = NOW()
+    </insert>
+
+    <select id="getCoinRankSnapshotTop5WithMyRank" resultType="org.scoula.challenge.rank.dto.ChallengeCoinRankSnapshotResponseDTO">
+        SELECT
+            cr.id, u.id as user_id, us.nickname, cr.rank, cr.total_coin, cr.month
+        FROM (
+                 SELECT * FROM challenge_coin_rank_snapshot
+                 WHERE month = #{month}
+                 ORDER BY rank ASC
+                     LIMIT 5
+             ) cr
+                 JOIN user u ON cr.user_id = u.id
+                 JOIN user_status us ON u.id = us.id
+
+        UNION ALL
+
+        SELECT
+            cr.id, u.id as user_id, us.nickname, cr.rank, cr.total_coin, cr.month
+        FROM challenge_coin_rank_snapshot cr
+                 JOIN user u ON cr.user_id = u.id
+                 JOIN user_status us ON u.id = us.id
+        WHERE cr.month = #{month} AND cr.user_id = #{userId}
+    </select>
+
+    <update id="markCoinRankSnapshotChecked">
+        UPDATE challenge_coin_rank_snapshot
+        SET is_checked = 1
+        WHERE month = #{month} AND user_id = #{userId}
+    </update>
+
+
+</mapper>
