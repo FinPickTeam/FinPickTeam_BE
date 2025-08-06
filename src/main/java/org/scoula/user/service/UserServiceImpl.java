@@ -19,6 +19,7 @@ import org.scoula.user.util.NicknameGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -108,6 +109,12 @@ public class UserServiceImpl implements UserService {
         if (!encoder.matches(req.getPassword(), u.getPassword())) {
             throw new InvalidPasswordException();
         }
+
+        // 계정이 활성화 상태인지 확인합니다.
+        if (!u.getIsActive()) {
+            throw new DisabledException("비활성화된 계정입니다.");
+        }
+
 
         String at = jwtUtil.generateAccessToken(u.getId(), u.getEmail());
         String rt = jwtUtil.generateRefreshToken(u.getId(), u.getEmail());

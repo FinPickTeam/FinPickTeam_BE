@@ -4,6 +4,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.scoula.common.redis.RedisService;
+import org.scoula.security.Exception.BlackListException;
 import org.scoula.security.util.JwtUtil;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -45,9 +46,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (bearerToken != null && bearerToken.startsWith(BEARER_PREFIX)) {
             String token = bearerToken.substring(BEARER_PREFIX.length());
 
-            if(redisService.isTokenBlacklisted(token)){
-                throw new ExpiredJwtException(null, null, "블랙리스트에 등록된 토큰입니다.");
-            }
+            //블랙리스트에 등록된 access 토큰인 경우 예외처리
+//            if(redisService.isTokenBlacklisted(token)){
+//                throw new BlackListException("블랙리스트에 등록된 토큰입니다.");
+//            }
 
             if (jwtUtil.validateToken(token)) {
                 Authentication authentication = getAuthentication(token);
