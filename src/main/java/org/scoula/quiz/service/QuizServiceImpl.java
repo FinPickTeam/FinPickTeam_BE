@@ -8,6 +8,7 @@ import org.scoula.quiz.domain.QuizVO;
 import org.scoula.quiz.dto.QuizDTO;
 import org.scoula.quiz.dto.QuizHistoryDTO;
 import org.scoula.quiz.dto.QuizHistoryDetailDTO;
+import org.scoula.quiz.dto.QuizSubmitRequestDTO;
 import org.scoula.quiz.exception.QuizAlreadyTakenTodayException;
 import org.scoula.quiz.exception.QuizNotFoundException;
 import org.scoula.quiz.mapper.QuizMapper;
@@ -44,7 +45,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
-    public void submit(QuizHistoryDTO dto) {
+    public void submit(QuizSubmitRequestDTO dto) {
         QuizHistoryVO vo = dto.toVO();
         coinMapper.addCoinAmount(dto.getUserId(),10);
         coinMapper.insertCoinHistory(dto.getUserId(), 10, "plus", "QUIZ");
