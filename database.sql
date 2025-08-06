@@ -56,14 +56,19 @@ CREATE TABLE `investment_types` (
 
 -- 4. 유저의 약관 동의
 DROP TABLE IF EXISTS `agree`;
-CREATE TABLE `agree` (
-                         `id` BIGINT NOT NULL,
-                         `login_agreed` BOOLEAN NOT NULL,
-                         `mydata_agreed` BOOLEAN NOT NULL,
-                         `login_agreed_at` DATETIME,
-                         `mydata_agreed_at` DATETIME,
-                         PRIMARY KEY (`id`),
-                         FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
+CREATE TABLE agree (
+                       `id` BIGINT NOT NULL,
+                       `open_banking_agreed` BOOLEAN NOT NULL,
+                       `personal_info_agreed` BOOLEAN NOT NULL,
+                       `ars_agreed` BOOLEAN NOT NULL,
+                       `open_banking_agreed_at` DATETIME NULL,
+                       `personal_info_agreed_at` DATETIME NULL,
+                       `ars_agreed_at` DATETIME NULL,
+                       PRIMARY KEY (id),
+
+                       CONSTRAINT fk_agree_user_id FOREIGN KEY (id) REFERENCES user (id)
+                               ON DELETE CASCADE
+                               ON UPDATE CASCADE
 );
 
 -- 5. mydata 정보
