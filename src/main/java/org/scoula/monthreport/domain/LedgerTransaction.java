@@ -8,4 +8,7 @@ import java.math.BigDecimal;
 public class LedgerTransaction {
     private BigDecimal amount;
     private String categoryName;
+    private String sourceType;
+    private Long accountId;
+    private Long cardId;
 }

@@ -3,6 +3,8 @@ package org.scoula.transactions.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.account.domain.Account;
+import org.scoula.account.mapper.AccountMapper;
+import org.scoula.common.exception.BaseException;
 import org.scoula.nhapi.dto.NhAccountTransactionResponseDto;
 import org.scoula.nhapi.service.NhAccountService;
 import org.scoula.transactions.domain.AccountTransaction;
@@ -26,11 +28,17 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
     private final NhAccountService nhAccountService;
     private final AccountTransactionMapper accountTransactionMapper;
     private final LedgerMapper ledgerMapper;
+    private final AccountMapper accountMapper;
 
     @Override
     public List<AccountTransactionDto> getTransactions(Long userId, Long accountId, String from, String to) {
-        List<AccountTransaction> txList = accountTransactionMapper.findAccountTransactions(userId, accountId, from, to);
+        Account acc = accountMapper.findById(accountId);
+        if (acc == null) throw new BaseException("해당 계좌가 존재하지 않습니다.", 404);
+        if (!Boolean.TRUE.equals(acc.getIsActive())) {
+            throw new BaseException("비활성화된 계좌입니다.", 400);
+        }
 
+        List<AccountTransaction> txList = accountTransactionMapper.findAccountTransactions(userId, accountId, from, to);
         if (txList == null || txList.isEmpty()) {
             throw new AccountTransactionNotFoundException();
         }

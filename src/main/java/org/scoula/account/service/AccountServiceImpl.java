@@ -63,7 +63,9 @@ public class AccountServiceImpl implements AccountService {
     public void syncAccountById(Long accountId) {
         Account account = accountMapper.findById(accountId);
         if (account == null) throw new BaseException("해당 계좌가 존재하지 않습니다.", 404);
-
+        if (!Boolean.TRUE.equals(account.getIsActive())) {
+            throw new BaseException("비활성화된 계좌입니다.", 400);
+        }
         // 거래내역 동기화 (isInitial = false)
         accountTransactionService.syncAccountTransactions(account, false);
 
@@ -76,7 +78,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public void syncAllAccountsByUserId(Long userId) {
-        List<Account> accounts = accountMapper.findByUserId(userId);
+        List<Account> accounts = accountMapper.findActiveByUserId(userId);
         for (Account acc : accounts) {
             accountTransactionService.syncAccountTransactions(acc, false);
             BigDecimal newBalance = nhAccountService.callInquireBalance(acc.getPinAccountNumber());

@@ -3,6 +3,8 @@ package org.scoula.monthreport.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.scoula.account.mapper.AccountMapper;
+import org.scoula.card.mapper.CardMapper;
 import org.scoula.monthreport.domain.LedgerTransaction;
 import org.scoula.monthreport.domain.MonthReport;
 import org.scoula.monthreport.mapper.MonthReportMapper;
@@ -21,6 +23,8 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
 
     private final MonthReportMapper monthReportMapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final AccountMapper accountMapper;
+    private final CardMapper cardMapper;
 
     @Override
     public void generate(Long userId, String monthStr) {
@@ -31,11 +35,27 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
         List<LedgerTransaction> txList = monthReportMapper.findLedgerTransactions(userId, from, to);
         if (txList.isEmpty()) return;
 
-        BigDecimal totalExpense = txList.stream()
+        List<LedgerTransaction> filteredTxList = txList.stream()
+                .filter(tx -> {
+                    if ("ACCOUNT".equals(tx.getSourceType()) && tx.getAccountId() != null) {
+                        var acc = accountMapper.findById(tx.getAccountId());
+                        return acc != null && Boolean.TRUE.equals(acc.getIsActive());
+                    }
+                    if ("CARD".equals(tx.getSourceType()) && tx.getCardId() != null) {
+                        var card = cardMapper.findById(tx.getCardId());
+                        return card != null && Boolean.TRUE.equals(card.getIsActive());
+                    }
+                    return false;
+                })
+                .toList();
+
+        if (filteredTxList.isEmpty()) return;
+
+        BigDecimal totalExpense = filteredTxList.stream()
                 .map(LedgerTransaction::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        Map<String, BigDecimal> categoryMap = txList.stream()
+        Map<String, BigDecimal> categoryMap = filteredTxList.stream()
                 .collect(Collectors.groupingBy(
                         LedgerTransaction::getCategoryName,
                         Collectors.reducing(BigDecimal.ZERO, LedgerTransaction::getAmount, BigDecimal::add)

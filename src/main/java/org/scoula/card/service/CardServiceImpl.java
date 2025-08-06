@@ -70,7 +70,13 @@ public class CardServiceImpl implements CardService {
     @Override
     public void syncCardById(Long cardId) {
         Card card = cardMapper.findById(cardId);
-        if (card == null) throw new BaseException("해당 카드가 존재하지 않습니다.", 404);
+        if (card == null) {
+            throw new BaseException("해당 카드가 존재하지 않습니다.", 404);
+        }
+
+        if (!Boolean.TRUE.equals(card.getIsActive())) {
+            throw new BaseException("비활성화된 카드입니다.", 400);
+        }
 
         cardTransactionService.syncCardTransactions(
                 card.getUserId(),
@@ -84,7 +90,7 @@ public class CardServiceImpl implements CardService {
 
     @Override
     public void syncAllCardsByUserId(Long userId) {
-        List<Card> cards = cardMapper.findByUserId(userId);
+        List<Card> cards = cardMapper.findActiveByUserId(userId);
         if (cards == null || cards.isEmpty()) {
             log.info("❗️ 동기화할 카드가 없습니다. userId={}", userId);
             return;
