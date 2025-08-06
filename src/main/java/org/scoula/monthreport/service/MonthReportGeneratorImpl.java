@@ -3,7 +3,9 @@ package org.scoula.monthreport.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.scoula.account.domain.Account;
 import org.scoula.account.mapper.AccountMapper;
+import org.scoula.card.domain.Card;
 import org.scoula.card.mapper.CardMapper;
 import org.scoula.monthreport.domain.LedgerTransaction;
 import org.scoula.monthreport.domain.MonthReport;
@@ -35,14 +37,33 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
         List<LedgerTransaction> txList = monthReportMapper.findLedgerTransactions(userId, from, to);
         if (txList.isEmpty()) return;
 
+        // 해당 month가지 결제된 계좌/카드 ID 수집
+        Set<Long> accountIds = txList.stream()
+                .filter(tx -> "ACCOUNT".equals(tx.getSourceType()) && tx.getAccountId() != null)
+                .map(LedgerTransaction::getAccountId)
+                .collect(Collectors.toSet());
+
+        Set<Long> cardIds = txList.stream()
+                .filter(tx -> "CARD".equals(tx.getSourceType()) && tx.getCardId() != null)
+                .map(LedgerTransaction::getCardId)
+                .collect(Collectors.toSet());
+
+        Map<Long, Account> accountMap = accountIds.isEmpty() ? Collections.emptyMap() :
+                accountMapper.findByIdList(new ArrayList<>(accountIds)).stream()
+                        .collect(Collectors.toMap(Account::getId, a -> a));
+
+        Map<Long, Card> cardMap = cardIds.isEmpty() ? Collections.emptyMap() :
+                cardMapper.findByIdList(new ArrayList<>(cardIds)).stream()
+                        .collect(Collectors.toMap(Card::getId, c -> c));
+
         List<LedgerTransaction> filteredTxList = txList.stream()
                 .filter(tx -> {
                     if ("ACCOUNT".equals(tx.getSourceType()) && tx.getAccountId() != null) {
-                        var acc = accountMapper.findById(tx.getAccountId());
+                        Account acc = accountMap.get(tx.getAccountId());
                         return acc != null && Boolean.TRUE.equals(acc.getIsActive());
                     }
                     if ("CARD".equals(tx.getSourceType()) && tx.getCardId() != null) {
-                        var card = cardMapper.findById(tx.getCardId());
+                        Card card = cardMap.get(tx.getCardId());
                         return card != null && Boolean.TRUE.equals(card.getIsActive());
                     }
                     return false;
@@ -68,7 +89,7 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
         MonthReport prev = monthReportMapper.findMonthReport(userId, prevMonth.toString());
 
         BigDecimal compareExpense = (prev != null) ? totalExpense.subtract(prev.getTotalExpense()) : BigDecimal.ZERO;
-        BigDecimal totalSaving = new BigDecimal("300000"); // FIXME: 나중에 동적으로 바꾸는 게 좋음
+        BigDecimal totalSaving = new BigDecimal("300000"); // FIXME: 동적으로 설정할 것
         BigDecimal compareSaving = (prev != null) ? totalSaving.subtract(prev.getTotalSaving()) : BigDecimal.ZERO;
 
         BigDecimal denominator = totalExpense.add(totalSaving);
