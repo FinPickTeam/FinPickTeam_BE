@@ -45,4 +45,10 @@ public class UserController {
         return CommonResponseDTO.success("임시 비밀번호가 발급되었습니다.", tempPassword);
     }
 
+    @PutMapping("/withdrwal")
+    public CommonResponseDTO<Void> withdrawal(@RequestHeader("Authorization") String token) {
+        userService.withdrawal(token);
+        return CommonResponseDTO.success("회원 탈퇴가 완료되었습니다.");
+    }
+
 }

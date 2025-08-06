@@ -34,4 +34,9 @@
         VALUES (#{userId}, 0, 0, 0.00)
     </insert>
 
+    <update id="updateIsActive">
+        UPDATE user
+        SET is_active = false
+        WHERE id = #{id}
+    </update>
 </mapper>

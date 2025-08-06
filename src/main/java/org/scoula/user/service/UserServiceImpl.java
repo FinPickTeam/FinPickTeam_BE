@@ -20,6 +20,7 @@ import org.scoula.user.util.NicknameGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -116,6 +117,12 @@ public class UserServiceImpl implements UserService {
             throw new InvalidPasswordException();
         }
 
+        // 계정이 활성화 상태인지 확인합니다.
+        if (!u.getIsActive()) {
+            throw new DisabledException("비활성화된 계정입니다.");
+        }
+
+
         String at = jwtUtil.generateAccessToken(u.getId(), u.getEmail());
         String rt = jwtUtil.generateRefreshToken(u.getId(), u.getEmail());
         redisService.saveRefreshToken(u.getId(), rt);
@@ -140,6 +147,30 @@ public class UserServiceImpl implements UserService {
         return new TokenResponseDTO(at, rt);
     }
 
+    // 로그아웃 시, refreshToken 삭제 및 블랙리스트에 accessToken 추가
+    public void logout(String bearerToken){
+
+        if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
+            log.warn("로그아웃 요청 실패: 유효하지 않은 토큰 형식");
+            throw new InvalidTokenException();
+        }
+        log.info("로그아웃 시도: {}", bearerToken);
+
+        //1. 토큰 검증
+        if (bearerToken.startsWith("Bearer ")) {
+
+            String token = bearerToken.substring("Bearer ".length());
+
+            // 2. 토큰에서 사용자 ID 추출
+            Long userId = jwtUtil.getIdFromToken(token);
+
+            // 3. Redis에서 refreshToken 삭제 및 블랙리스트에 accessToken 추가
+            redisService.deleteRefreshToken(userId);
+            redisService.blacklistAccessToken(token);
+            log.info("로그아웃 성공: {},{}", token, userId);
+        }
+    }
+
     public String resetPassword(String email) {
         log.info("🔒 비밀번호 재발급 시도: {}", email);
         User u = userMapper.findByEmail(email);
@@ -148,5 +179,21 @@ public class UserServiceImpl implements UserService {
         u.setPassword(encoder.encode(temp)); // 암호화
         userMapper.updatePassword(u); // DB에 저장
         return temp;  // TODO: 이메일 발송으로 대체
+    }
+
+
+    public void withdrawal(String bearerToken) {
+
+        String token = bearerToken.substring("Bearer ".length());
+
+        if (!jwtUtil.validateToken(token))
+            throw new InvalidTokenException();
+
+        Long id = jwtUtil.getIdFromToken(token);
+        log.info("회원 탈퇴 시도: {}",id);
+
+        userMapper.updateIsActive(id);
+        redisService.deleteRefreshToken(id);
+        redisService.blacklistAccessToken(token);
     }
 }
