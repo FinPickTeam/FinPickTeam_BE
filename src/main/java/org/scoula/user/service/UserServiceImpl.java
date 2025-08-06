@@ -1,6 +1,8 @@
 package org.scoula.user.service;
 
 import lombok.RequiredArgsConstructor;
+import org.scoula.agree.mapper.AgreeMapper;
+import org.scoula.avatar.mapper.AvatarMapper;
 import org.scoula.coin.mapper.CoinMapper;
 import org.scoula.common.redis.RedisService;
 import org.scoula.user.domain.User;
@@ -38,7 +40,8 @@ public class UserServiceImpl implements UserService {
     private final RedisService redisService;
     private final PasswordEncoder encoder;
     private final NicknameGenerator nicknameGenerator;
-
+    private final AvatarMapper avatarMapper;
+    private final AgreeMapper agreeMapper;
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
 
@@ -94,6 +97,12 @@ public class UserServiceImpl implements UserService {
 
         // 4. 챌린지 요약 초기화
         userMapper.insertUserChallengeSummary(user.getId());
+
+        // 5. 내 아바타 초기화
+        avatarMapper.insertAvatar(user.getId());
+
+        // 6. 동의정보 초기화
+        agreeMapper.insert(user.getId());
 
         return UserResponseDTO.builder()
                 .id(user.getId())

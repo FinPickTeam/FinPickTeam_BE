@@ -22,7 +22,7 @@ public class AlarmController {
     final private AlarmService alarmService;
 
     @ApiOperation(value="알람 조회", notes="현재 존재하는 알람들을 조회합니다.")
-    @PostMapping("/userId={userId}")
+    @GetMapping("/userId={userId}")
     public ResponseEntity<CommonResponseDTO<List<AlarmDTO>>> getAlarm(@PathVariable Long userId) {
         List<AlarmDTO> alarmDTO=alarmService.getAlarms(userId);
         return ResponseEntity.ok(CommonResponseDTO.success("알람 조회 성공", alarmDTO));
