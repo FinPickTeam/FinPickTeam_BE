@@ -67,6 +67,7 @@ import javax.sql.DataSource;
         "org.scoula.card.service",
         "org.scoula.monthreport.service",
         "org.scoula.monthreport.scheduler",
+        "org.scoula.monthreport.util",
         })
 @EnableTransactionManagement
 public class RootConfig {

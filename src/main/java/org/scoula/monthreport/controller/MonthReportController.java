@@ -6,12 +6,16 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.scoula.common.dto.CommonResponseDTO;
+import org.scoula.common.exception.BaseException;
 import org.scoula.monthreport.dto.MonthReportDetailDto;
 import org.scoula.monthreport.service.MonthReportGenerator;
 import org.scoula.monthreport.service.MonthReportInitService;
 import org.scoula.monthreport.service.MonthReportReadService;
+import org.scoula.monthreport.util.MonthReportPdfGenerator;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 @Api(tags = "monthreport-controller")
@@ -23,6 +27,7 @@ public class MonthReportController {
     private final MonthReportInitService monthReportInitService;
     private final MonthReportReadService monthReportReadService;
     private final MonthReportGenerator monthReportGenerator;
+    private final MonthReportPdfGenerator pdfGenerator;
 
     @ApiOperation(value = "월간 리포트 상세 조회", notes = "해당 월의 전체 리포트 데이터를 조회합니다.")
     @GetMapping("/{userId}/{month}")
@@ -56,4 +61,26 @@ public class MonthReportController {
     public static class InitRequest {
         private Long userId;
     }
+
+    @ApiOperation(value = "월간 리포트 PDF 다운로드", notes = "선택한 월의 리포트를 PDF로 저장합니다.")
+    @GetMapping("/export/{userId}")
+    public void exportReport(@PathVariable Long userId,
+                             @RequestParam String month,
+                             @RequestParam String format,
+                             HttpServletResponse response) throws IOException {
+
+        if (!"pdf".equalsIgnoreCase(format)) {
+            throw new BaseException("지원하지 않는 포맷입니다", 400);
+        }
+
+        MonthReportDetailDto dto = monthReportReadService.getReport(userId, month);
+        String html = pdfGenerator.buildHtmlFromDto(dto);
+        byte[] pdfBytes = pdfGenerator.generateHtmlPdf(html);
+
+        response.setContentType("application/pdf");
+        response.setHeader("Content-Disposition", "attachment; filename=monthreport_" + month + ".pdf");
+        response.getOutputStream().write(pdfBytes);
+    }
+
+
 }
