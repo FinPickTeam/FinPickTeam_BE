@@ -65,27 +65,9 @@
     </insert>
 
 
-    <!-- 유저재화차감 -->
-    <update id="updateMoney">
-        UPDATE coin SET amount = amount - #{cost} WHERE id = #{userId}
-    </update>
-
-
-    <!-- 유저재화 조회 -->
-    <select id="getUserCoin" parameterType="Long" resultType="Long">
-        SELECT amount FROM coin WHERE id=#{userId}
-    </select>
-
-
     <!-- 아이템 가격 조회 -->
     <select id="getItem" resultType="org.scoula.avatar.domain.ItemsVO">
         SELECT * FROM item where id=#{itemId}
     </select>
-
-    <!-- 아이템 구매 내역 삽입 -->
-    <insert id="insertCoinHistory">
-        INSERT INTO coin_history (user_id, amount, type, comment)
-        VALUES (#{userId}, #{amount}, #{type}, #{comment})
-    </insert>
 
 </mapper>

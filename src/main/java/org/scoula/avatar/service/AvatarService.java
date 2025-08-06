@@ -17,5 +17,5 @@ public interface AvatarService{
 
     void insertClothe(Long userId, Long itemId);
 
-    Long getCoin(Long userId);
+    int getCoin(Long userId);
 }
