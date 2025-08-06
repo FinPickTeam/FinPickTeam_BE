@@ -28,6 +28,9 @@ ALTER TABLE `user`
     ADD CONSTRAINT uq_user_email UNIQUE (`email`);
 
 
+ALTER TABLE `user`
+    ADD COLUMN auth_pw VARBINARY(255) NOT NULL ;
+
 -- 2. 유저 상태 (닉네임, 레벨)
 DROP TABLE IF EXISTS `user_status`;
 CREATE TABLE `user_status` (
