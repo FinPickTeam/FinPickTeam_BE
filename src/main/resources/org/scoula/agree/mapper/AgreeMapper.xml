@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.agree.mapper.AgreeMapper">
+
+    <insert id="insert">
+        INSERT INTO agree(id) VALUES (#{userId});
+    </insert>
+
+    <update id="updateOpenBanking" parameterType="org.scoula.agree.domain.AgreeVO">
+        UPDATE agree SET open_banking_agreed=#{openBankingAgreed}, open_banking_agreed_at=Now() where id=#{id}
+    </update>
+
+    <update id="updatePersonalInfo" parameterType="org.scoula.agree.domain.AgreeVO">
+        UPDATE agree SET personal_info_agreed=#{personalInfoAgreed}, personal_info_agreed_at=Now() where id=#{id}
+    </update>
+
+    <update id="updateArs" parameterType="org.scoula.agree.domain.AgreeVO">
+        UPDATE agree SET ars_agreed=#{arsAgreed}, ars_agreed_at=Now() where id=#{id}
+    </update>
+
+</mapper>

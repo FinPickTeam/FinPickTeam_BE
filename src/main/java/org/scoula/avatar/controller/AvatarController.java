@@ -24,6 +24,7 @@ public class AvatarController {
     final private AvatarService avatarService;
 
     //아바타 생성
+    //swagger 테스트용
     @ApiOperation(value="아바타 생성", notes="아바타를 생성합니다.")
     @PostMapping("/userId={userId}")
     public ResponseEntity<CommonResponseDTO<String>> insertAvatar(@PathVariable Long userId) {

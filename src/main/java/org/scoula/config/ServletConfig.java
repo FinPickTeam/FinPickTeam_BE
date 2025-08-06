@@ -40,6 +40,7 @@ import java.util.List;
         "org.scoula.card.exception",
         "org.scoula.alarm.controller",
         "org.scoula.monthreport.controller",
+        "org.scoula.agree.controller",
 })
 public class ServletConfig implements WebMvcConfigurer {
 
