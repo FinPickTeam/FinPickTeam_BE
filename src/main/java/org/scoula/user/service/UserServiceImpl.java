@@ -25,9 +25,11 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -204,5 +206,20 @@ public class UserServiceImpl implements UserService {
         userMapper.updateIsActive(id);
         redisService.deleteRefreshToken(id);
         redisService.blacklistAccessToken(token);
+    }
+
+    @Override
+    @Transactional
+    public void checkAndLevelUp(Long userId){
+        int culAmount= coinMapper.getCumulativeAmount(userId);
+        UserStatus userStatus = userStatusMapper.get(userId);
+        UserLevel level = UserLevel.getLevelForPoints(culAmount);
+
+        if(!Objects.equals(userStatus.getLevel(), level.getLabel())){
+            log.info("누적포인트가 {}입니다. {}로 승급하셨습니다.", culAmount, level.getLabel());
+            userStatusMapper.update(level.getLabel());
+        } else {
+            log.info("포인트는 증가했으나, 승급에는 실패했습니다.");
+        }
     }
 }

@@ -13,5 +13,5 @@ public interface UserService {
     String resetPassword(String email);
     void logout(String token);
     void withdrawal(String token);
-
+    void checkAndLevelUp(Long userId);
 }

@@ -10,8 +10,16 @@
         VALUES (#{id}, #{nickname}, #{level})
     </insert>
 
+    <update id="update">
+        UPDATE user_status set level=#{level}
+    </update>
+
     <select id="isNicknameDuplicated" resultType="boolean">
         SELECT EXISTS(SELECT 1 FROM user_status WHERE nickname = #{nickname})
+    </select>
+
+    <select id="get" resultType="org.scoula.user.domain.UserStatus">
+        SELECT * from user_status where id=#{userId}
     </select>
 
 </mapper>

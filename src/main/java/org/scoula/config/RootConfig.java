@@ -9,10 +9,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
@@ -73,9 +70,11 @@ import javax.sql.DataSource;
         "org.scoula.agree.service",
         "org.scoula.challenge.rank.scheduler",
         "org.scoula.challenge.rank.service",
-        "org.scoula.challenge.rank.util"
+        "org.scoula.challenge.rank.util",
+        "org.scoula.common.aop",
         })
 @EnableTransactionManagement
+@EnableAspectJAutoProxy
 public class RootConfig {
 
     @Autowired

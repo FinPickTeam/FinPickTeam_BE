@@ -15,4 +15,11 @@ public enum UserLevel {
     public String getLabel() {
         return label;
     }
+
+    public static UserLevel getLevelForPoints(int points) {
+        if (points >= 60000) return MASTER;
+        if (points >= 40000) return WIZARD;
+        if (points >= 20000) return TRAINEE;
+        return SEEDLING;
+    }
 }
