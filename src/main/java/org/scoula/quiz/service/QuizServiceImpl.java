@@ -1,12 +1,14 @@
 package org.scoula.quiz.service;
 
 import lombok.RequiredArgsConstructor;
+import org.scoula.coin.mapper.CoinMapper;
 import org.scoula.quiz.domain.QuizHistoryDetailVO;
 import org.scoula.quiz.domain.QuizHistoryVO;
 import org.scoula.quiz.domain.QuizVO;
 import org.scoula.quiz.dto.QuizDTO;
 import org.scoula.quiz.dto.QuizHistoryDTO;
 import org.scoula.quiz.dto.QuizHistoryDetailDTO;
+import org.scoula.quiz.dto.QuizSubmitRequestDTO;
 import org.scoula.quiz.exception.QuizAlreadyTakenTodayException;
 import org.scoula.quiz.exception.QuizNotFoundException;
 import org.scoula.quiz.mapper.QuizMapper;
@@ -21,6 +23,7 @@ import java.util.List;
 public class QuizServiceImpl implements QuizService {
 
     final private QuizMapper quizMapper;
+    final private CoinMapper coinMapper;
 
     @Override
     public QuizDTO getQuiz(Long userId) {
@@ -42,10 +45,11 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
-    public void submit(QuizHistoryDTO quizHistoryDTO) {
-        QuizHistoryVO quizHistoryVO = quizHistoryDTO.toVO();
-        //tq
-        quizMapper.insertHistory(quizHistoryVO);
+    public void submit(QuizSubmitRequestDTO dto) {
+        QuizHistoryVO vo = dto.toVO();
+        coinMapper.addCoinAmount(dto.getUserId(),10);
+        coinMapper.insertCoinHistory(dto.getUserId(), 10, "plus", "QUIZ");
+        quizMapper.insertHistory(vo);
     }
 
     @Override

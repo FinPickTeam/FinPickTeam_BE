@@ -9,6 +9,7 @@ import org.scoula.quiz.domain.QuizHistoryDetailVO;
 import org.scoula.quiz.dto.QuizDTO;
 import org.scoula.quiz.dto.QuizHistoryDTO;
 import org.scoula.quiz.dto.QuizHistoryDetailDTO;
+import org.scoula.quiz.dto.QuizSubmitRequestDTO;
 import org.scoula.quiz.service.QuizService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,8 +35,8 @@ public class QuizController {
 
     @ApiOperation(value = "퀴즈응시기록 저장", notes = "퀴즈응시기록을 저장합니다.")
     @PostMapping("/submit")
-    public ResponseEntity<CommonResponseDTO<QuizDTO>> submit(@ModelAttribute QuizHistoryDTO quizHistoryDTO) {
-        quizService.submit(quizHistoryDTO);
+    public ResponseEntity<CommonResponseDTO<QuizDTO>> submit(@RequestBody QuizSubmitRequestDTO quizSubmitRequestDTO) {
+        quizService.submit(quizSubmitRequestDTO);
         return ResponseEntity.ok(CommonResponseDTO.success("저장성공"));
     }
 
