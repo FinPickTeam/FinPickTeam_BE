@@ -38,7 +38,7 @@ public class FundController {
     }
 
     @ApiOperation(value = "펀드 상세 조회", notes = "상품명을 기반으로 펀드 상세 정보를 조회합니다.")
-    @GetMapping("/fund_detail/{fundProductName}")
+    @GetMapping("/fundDetail/{fundProductName}")
     public CommonResponseDTO<FundDetailDto> FundDetail(@PathVariable String fundProductName) {
         if(fundProductName == null){
             return CommonResponseDTO.error("펀드 상세정보를 불러오는데 실패했습니다.", 400);

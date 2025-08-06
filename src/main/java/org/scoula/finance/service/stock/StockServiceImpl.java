@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.finance.dto.stock.*;
 import org.scoula.finance.mapper.StockMapper;
+import org.scoula.finance.util.PythonExecutorUtil;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.*;
@@ -26,11 +27,6 @@ public class StockServiceImpl implements StockService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final StockMapper stockMapper;
 
-    @Value("${openai.api-key}")
-    private String openaiApiKey;
-    @Value("${openai.api-url}")
-    private String openaiApiUrl;
-
     @Value("${stock.api-key}")
     private String stockApiKey;
     @Value("${stock.api-secret}")
@@ -38,6 +34,10 @@ public class StockServiceImpl implements StockService {
 
     @Value("${external.python.stock}")
     private String pythonUrl;
+    @Value("${external.python.getFactor}")
+    private String pythonFactor;
+    @Value("${external.python.calcStock}")
+    private String calcStock;
 
     @Override
     public StockAccessTokenDto issueAndSaveToken(Long id) {
@@ -112,7 +112,7 @@ public class StockServiceImpl implements StockService {
     //주식 리스트 조회
     @Override
     public List<StockListDto> getStockList(Long userId, StockFilterDto filterDto) {
-        List<StockListDataDto> basicList = stockMapper.getStockList();
+        List<StockListDataDto> basicList = stockMapper.getStockList(filterDto);
         List<StockListDto> finalList = new ArrayList<>();
         String token = stockMapper.getUserToken(userId);
 
@@ -138,7 +138,7 @@ public class StockServiceImpl implements StockService {
 
                 // 가격 부호 제거
                 String curPriceRaw = root.path("cur_prc").asText();
-                String curPrice = curPriceRaw.replace("[^0-9]", "");
+                String curPrice = curPriceRaw.replaceAll("[^0-9]", "");
                 dto.setStockPrice(curPrice);
 
                 finalList.add(dto);
@@ -157,23 +157,7 @@ public class StockServiceImpl implements StockService {
 
         try{
             // Python 실행
-            ProcessBuilder builder = new ProcessBuilder(
-                    "python",
-                    pythonUrl
-            );
-            builder.redirectErrorStream(true);
-            Process process = builder.start();
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println("[Python] " + line);
-            }
-
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                throw new RuntimeException("Python 실행 실패(exit code: " + exitCode + ")");
-            }
+            PythonExecutorUtil.runPythonScript(pythonUrl);
 
             // json 파일 DB에 저장
             String filePath = "./data/stock/output/returns_data.json";
@@ -196,14 +180,39 @@ public class StockServiceImpl implements StockService {
         }
     }
 
+    // 팩터 계산 및 DB 저장
+    @Override
+    public void updateFactor(String analyzeDate, String resultDate, String startDate){
+        try{
+            // Python 실행
+            PythonExecutorUtil.runPythonScript(pythonFactor, analyzeDate, resultDate, startDate);
+
+            // json 읽기
+            String filePath = "./data/stock/output/factor_result.json";
+            StockFactorDto factorDto = objectMapper.readValue(
+                    new File(filePath),
+                    new TypeReference<>() {
+                    }
+            );
+            
+            // DB 저장
+            stockMapper.insertStockFactorData(factorDto);
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
     // 주식 상세 정보 조회
     @Override
     public StockDetailDto getStockDetail(Long id, String stockCode) {
         String token = stockMapper.getUserToken(id);
-        String jsonData = String.format("{\"stk_cd\" : \"%s\"}", stockCode);
 
         try {
-            String response = sendPostRequest("/api/dostk/stkinfo", token, jsonData, "ka10001");
+            String response = sendPostRequest("/api/dostk/stkinfo", token,
+                    String.format("{\"stk_cd\" : \"%s\"}", stockCode), "ka10001");
+
+            StockListDataDto listDto = stockMapper.getStockListDataByStockCode(stockCode);
 
             JsonNode root = objectMapper.readTree(response);
             StockDetailDto dto = new StockDetailDto();
@@ -212,7 +221,7 @@ public class StockServiceImpl implements StockService {
             dto.setStockName(root.path("stk_nm").asText());
             dto.setStockPredictedPrice(root.path("pred_pre").asText());
             dto.setStockChangeRate(root.path("flu_rt").asText());
-            dto.setStockChartData(stockMapper.getChartCache(stockCode));
+            dto.setStockChartData(listDto.getStockReturnsData());
             dto.setStockYearHigh(root.path("oyr_hgst").asText());
             dto.setStockYearLow(root.path("oyr_lwst").asText());
             dto.setStockFaceValue(root.path("fav").asText());
@@ -222,7 +231,7 @@ public class StockServiceImpl implements StockService {
 
             // 가격 부호 제거
             String curPriceRaw = root.path("cur_prc").asText();
-            String curPrice = curPriceRaw.replace("[^0-9]", "");
+            String curPrice = curPriceRaw.replaceAll("[^0-9]", "");
             dto.setStockPrice(curPrice);
 
             return dto;
@@ -235,8 +244,66 @@ public class StockServiceImpl implements StockService {
 
     //주식 추천 로직
     @Override
-    public List<StockListDto> getStockRecommendationList(Long id, int limit) {
-        return null;
+    public List<StockListDto> getStockRecommendationList(Long userId, int limit) {
+        List<StockFactorDto> factorDto = stockMapper.getStockFactorData();
+        List<Map<String,Object>> stockCodeList = stockMapper.getStockCodeList();
+        List<StockListDto> recommendedStocks = new ArrayList<>();
+        String token = stockMapper.getUserToken(userId);
+
+        try{
+            objectMapper.writeValue(new File("factor_input.json"), factorDto);
+            objectMapper.writeValue(new File("stock_code_list.json"), stockCodeList);
+
+            System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(factorDto));
+            System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(stockCodeList));
+
+
+            PythonExecutorUtil.runPythonScript(calcStock, "factor_input.json", "stock_code_list.json");
+
+            File resultFile = new File("./data/stock/output/calc_result.json");
+
+            Map<String, Double> resultMap = objectMapper.readValue(
+                    resultFile,
+                    new TypeReference<>() {
+                    }
+            );
+
+            int count = 0;
+            for(Map.Entry<String, Double> entry : resultMap.entrySet()){
+                if(count >= limit) break;
+
+                String stockCode = entry.getKey();
+
+                String response = sendPostRequest("/api/dostk/stkinfo", token,
+                        String.format("{\"stk_cd\" : \"%s\"}", stockCode), "ka10001");
+
+                JsonNode root = objectMapper.readTree(response);
+
+                StockListDataDto dto = stockMapper.getStockListDataByStockCode(stockCode);
+
+                StockListDto listDto = new StockListDto();
+
+                listDto.setStockCode(stockCode);
+                listDto.setStockName(dto.getStockName());
+                listDto.setStockReturnsData(dto.getStockReturnsData());
+                listDto.setStockMarketType(dto.getStockMarketType());
+                listDto.setStockPredictedPrice(root.path("pred_pre").asText());
+                listDto.setStockChangeRate(root.path("flu_rt").asText());
+                listDto.setStockSummary(dto.getStockSummary());
+
+                String curPriceRaw = root.path("cur_prc").asText();
+                String curPrice = curPriceRaw.replaceAll("[^0-9]", "");
+                listDto.setStockPrice(curPrice);
+
+                recommendedStocks.add(listDto);
+                count++;
+            }
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        return recommendedStocks;
     }
 
     public String createUrl(String endpoint) {

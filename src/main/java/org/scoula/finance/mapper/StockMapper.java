@@ -1,13 +1,12 @@
 package org.scoula.finance.mapper;
 
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
-import org.scoula.finance.dto.stock.StockAccessTokenDto;
-import org.scoula.finance.dto.stock.StockAccountDto;
-import org.scoula.finance.dto.stock.StockChartDataDto;
-import org.scoula.finance.dto.stock.StockListDataDto;
+import org.scoula.finance.dto.stock.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface StockMapper {
@@ -18,13 +17,18 @@ public interface StockMapper {
 
     String getUserToken(Long userId);
 
-    List<StockListDataDto> getStockList();
+    List<StockListDataDto> getStockList(StockFilterDto filter);
 
 
-    int updateStockReturnsData(@Param("stockCode") String stockCode,
-                               @Param("stockReturnsData") String stockReturnsData);
+    void updateStockReturnsData(@Param("stockCode") String stockCode,
+                                @Param("stockReturnsData") String stockReturnsData);
 
-    List<String> getStockCodeList();
+    @MapKey("stock_code")
+    List<Map<String,Object>> getStockCodeList();
 
-    String getChartCache(String stockCode);
+    StockListDataDto getStockListDataByStockCode(String stockCode);
+
+    void insertStockFactorData(StockFactorDto stockFactorDto);
+
+    List<StockFactorDto> getStockFactorData();
 }

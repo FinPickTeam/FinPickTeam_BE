@@ -416,14 +416,20 @@ CREATE TABLE `user_kiwoom_access_token` (
                                             FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 );
 
--- 14. 주식 차트 데이터
-DROP TABLE IF EXISTS `stock_chart_cache`;
-CREATE TABLE `stock_chart_cache` (
-                                    `stock_code` VARCHAR(20) NOT NULL,
-                                    `json_data` TEXT NOT NULL,
-                                    `base_date` VARCHAR(8) NOT NULL,
-                                    PRIMARY KEY (`stock_code`)
-);
+-- 14. 팩터값
+DROP TABLE IF EXISTS `factor_list`;
+CREATE TABLE `factor_list`(
+                              `id` INT NOT NULL AUTO_INCREMENT,
+                              `date` VARCHAR(8) NOT NULL,
+                              `smb` DECIMAL(10, 6) NOT NULL,
+                              `hml` DECIMAL(10, 6) NOT NULL,
+                              `mom` DECIMAL(10, 6) NOT NULL,
+                              `kospi` DECIMAL(10, 6) NOT NULL,
+                              `kosdaq` DECIMAL(10, 6) NOT NULL,
+                              PRIMARY KEY (`id`)
+
+)
+
 
 -- CHALLENGE
 -- 1. 챌린지 카테고리 (예: 소비 줄이기, 저축 늘리기 등)

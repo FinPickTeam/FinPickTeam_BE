@@ -17,6 +17,9 @@ public interface StockService {
     // 차트 데이터 DB에 저장
     void updateChartData();
 
+    // 팩터 계산 및 DB에 저장
+    void updateFactor(String analyzeDate, String resultDate, String startDate);
+
     // 주식 상세 정보 조회
     StockDetailDto getStockDetail(Long userId, String stockCode);
 

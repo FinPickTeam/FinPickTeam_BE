@@ -25,7 +25,7 @@ public class DepositController {
 
     //  예금 목록 조회
     @ApiOperation(value= "예금 리스트 조회", notes = "예금 리스트를 조회합니다.")
-    @GetMapping
+    @GetMapping("/list")
     public CommonResponseDTO<List<DepositListDto>> getDeposits(@ModelAttribute DepositFilterDto filterDto) {
         List<DepositListDto> dto = depositService.getDeposits(filterDto);
         return CommonResponseDTO.success("예금 목록 조회에 성공했습니다.", dto);
@@ -46,7 +46,6 @@ public class DepositController {
         }
     }
 
-    //나중에 pathvariable로 수정 예정
 //    예금 추천
     @PostMapping("/recommend")
     public CommonResponseDTO<List<DepositListDto>> recommend(

@@ -1,5 +1,7 @@
 package org.scoula.finance.controller;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.common.dto.CommonResponseDTO;
@@ -17,13 +19,16 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@Api(tags = {"주식 API"})
 @RequestMapping("v1/api/stock")
 public class StockController {
     private final StockService stockService;
 
     // 사용자 키움증권 rest api 접근 토큰 발급 및 저장
-    @PostMapping("/token/{userId}")
-    public CommonResponseDTO<StockAccessTokenDto> issueAndSaveToken(@PathVariable Long userId) {
+    @PostMapping("/token/user")
+    public CommonResponseDTO<StockAccessTokenDto> issueAndSaveToken(@AuthenticationPrincipal CustomUserDetails user) {
+        Long userId = user.getUserId();
+
         StockAccessTokenDto token = stockService.issueAndSaveToken(userId);
         if (token == null) {
             return CommonResponseDTO.error("토큰 발급에 실패했습니다.", 500);
@@ -32,8 +37,10 @@ public class StockController {
     }
 
     // 사용자 계좌 수익률 정보 가져오기
-    @GetMapping("/account/{userId}")
-    public CommonResponseDTO<StockAccountDto> getAccountInfo(@PathVariable Long userId) {
+    @GetMapping("/account/user")
+    public CommonResponseDTO<StockAccountDto> getAccountInfo(@AuthenticationPrincipal CustomUserDetails user) {
+        Long userId = user.getUserId();
+
         StockAccountDto dto = stockService.getAccountReturnRate(userId);
         if (dto == null) {
             return CommonResponseDTO.error("계좌 수익률 정보를 찾을 수 없습니다.", 404);
@@ -42,7 +49,8 @@ public class StockController {
     }
 
     // 주식 목록 가져오기 (필터 포함)
-    @GetMapping("/stocks")
+    @ApiOperation(value = "주식 목록 가져오기", notes = "주식 목록을 가져옵니다.")
+    @GetMapping("/list")
     public CommonResponseDTO<List<StockListDto>> getAllStocks(
             @AuthenticationPrincipal CustomUserDetails user,
             @ModelAttribute StockFilterDto filterDto) {
@@ -54,7 +62,8 @@ public class StockController {
     }
 
     // 차트 데이터 저장
-    @PutMapping("/stocks/chart_data")
+    @ApiOperation(value = "차트 데이터 업데이트", notes = "차트 데이터를 새로 가져옵니다.")
+    @PutMapping("/stocks/chartData")
     public CommonResponseDTO<String> updateChartData() {
         try {
             stockService.updateChartData();
@@ -63,12 +72,31 @@ public class StockController {
             return CommonResponseDTO.error("차트 업데이트 실패: " + e.getMessage(), 500);
         }
     }
+    
+    // 팩터 리밸런싱
+    @ApiOperation(value = "팩터 리밸런싱", notes = "팩터값을 리밸런싱 합니다.")
+    @PostMapping("/factor/calculate")
+    public CommonResponseDTO<Double> calculateFactor(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestParam String analyzeDate,
+            @RequestParam String resultDate,
+            @RequestParam String startDate
+    ){
+        try{
+            stockService.updateFactor(analyzeDate, resultDate, startDate);
+            return  CommonResponseDTO.success("팩터 리밸런싱 성공");
+        } catch(Exception e){
+            return CommonResponseDTO.error("팩터 리밸런싱 실패 " + e.getMessage(), 500);
+        }
+    }
 
     //주식 상세 정보 가져오기
+    @ApiOperation(value = "주식 상세 정보 조회", notes = "주식코드로 상세 정보를 조회합니다.")
     @GetMapping("/stocks/{stockCode}")
     public CommonResponseDTO<StockDetailDto> getStockDetail(
-            @RequestParam(name = "userId") Long userId,
+            @AuthenticationPrincipal CustomUserDetails user,
             @PathVariable String stockCode) {
+        Long userId = user.getUserId();
 
         StockDetailDto detail = stockService.getStockDetail(userId, stockCode);
         if (detail == null) {
@@ -77,7 +105,8 @@ public class StockController {
         return CommonResponseDTO.success("주식 상세 정보 조회 성공", detail);
     }
 
-    //사용자 맞춤 추천 주식 가져오기
+    //추천 주식 가져오기
+    @ApiOperation(value = "추천 주식 가져오기", notes = "내부 수식을 통해 추천된 주식을 가져옵니다.")
     @GetMapping("/recommend")
     public CommonResponseDTO<List<StockListDto>> getRecommend(@AuthenticationPrincipal CustomUserDetails user,
                                                               @RequestParam(name = "limit") int limit) {
