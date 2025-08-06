@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface ChallengeService {
     ChallengeCreateResponseDTO createChallenge(Long userId, ChallengeCreateRequestDTO req);
-    List<ChallengeListResponseDTO> getChallenges(Long userId, ChallengeType type, ChallengeStatus status);
+    List<ChallengeListResponseDTO> getChallenges(Long userId, ChallengeType type, ChallengeStatus status, Boolean participating);
     ChallengeDetailResponseDTO getChallengeDetail(Long userId, Long challengeId);
     void joinChallenge(Long userId, Long challengeId, Integer password);
     ChallengeSummaryResponseDTO getChallengeSummary(Long userId);
