@@ -47,9 +47,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = bearerToken.substring(BEARER_PREFIX.length());
 
             //블랙리스트에 등록된 access 토큰인 경우 예외처리
-//            if(redisService.isTokenBlacklisted(token)){
-//                throw new BlackListException("블랙리스트에 등록된 토큰입니다.");
-//            }
+            if(redisService.isTokenBlacklisted(token)){
+                throw new BlackListException("블랙리스트에 등록된 토큰입니다.");
+            }
 
             if (jwtUtil.validateToken(token)) {
                 Authentication authentication = getAuthentication(token);
