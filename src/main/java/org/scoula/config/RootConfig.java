@@ -40,6 +40,7 @@ import javax.sql.DataSource;
         "org.scoula.monthreport.mapper",
         "org.scoula.coin.mapper",
         "org.scoula.agree.mapper",
+        "org.scoula.challenge.rank.mapper"
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",
@@ -70,6 +71,9 @@ import javax.sql.DataSource;
         "org.scoula.monthreport.scheduler",
         "org.scoula.monthreport.util",
         "org.scoula.agree.service",
+        "org.scoula.challenge.rank.scheduler",
+        "org.scoula.challenge.rank.service",
+        "org.scoula.challenge.rank.util"
         })
 @EnableTransactionManagement
 public class RootConfig {

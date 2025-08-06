@@ -41,6 +41,7 @@ import java.util.List;
         "org.scoula.alarm.controller",
         "org.scoula.monthreport.controller",
         "org.scoula.agree.controller",
+        "org.scoula.challenge.rank.controller"
 })
 public class ServletConfig implements WebMvcConfigurer {
 
