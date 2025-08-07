@@ -41,7 +41,7 @@ public class AvatarServiceImpl implements AvatarService {
     //특정 아이템으로만 아바타 수정
     public void updateAvatarByItemId(Long userId, Long itemId) {
         AvatarVO curAvatarVO = mapper.getAvatar(userId);
-        Long[] curItems = {curAvatarVO.getAvatarImage(),
+        Long[] curItems = {curAvatarVO.getLevelId(),
                 curAvatarVO.getTopId(),
                 curAvatarVO.getShoesId(),
                 curAvatarVO.getAccessoryId(),
