@@ -1,20 +1,18 @@
 package org.scoula.finance.service.deposit;
 
-import com.opencsv.CSVReader;
 import lombok.RequiredArgsConstructor;
 import org.scoula.finance.dto.deposit.*;
-import org.scoula.finance.dto.installment.InstallmentRecommendationDto;
 import org.scoula.finance.util.CsvUtils;
+import org.scoula.finance.util.PythonExecutorUtil;
 import org.scoula.finance.util.SavingConditionUtils;
 import org.scoula.finance.util.UtilityCalculator;
-import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.finance.mapper.DepositMapper;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Slf4j
@@ -25,8 +23,6 @@ public class DepositServiceImpl implements DepositService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final SavingConditionUtils savingConditionUtils = new SavingConditionUtils();
     private final CsvUtils csvUtils = new CsvUtils();
-    @Value("${python.script-path}")
-    private String pythonUrl;
 
     //예금 전체 조회
     @Override
@@ -69,23 +65,12 @@ public class DepositServiceImpl implements DepositService {
             objectMapper.writeValue(inputFile, payload);
             System.out.println("✅ input.json 저장 완료: " + inputFile.getAbsolutePath());
 
+            ClassPathResource resource = new ClassPathResource("python/deposit/analyze.py");
+            File pythonFile = resource.getFile();
+            String path = pythonFile.getAbsolutePath();
+
             // 3. Python 실행
-            ProcessBuilder builder = new ProcessBuilder("python",
-                    pythonUrl
-            );
-            builder.redirectErrorStream(true);
-            Process process = builder.start();
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println("[Python] " + line);
-            }
-
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                throw new RuntimeException("Python 실행 실패(exit code: " + exitCode + ")");
-            }
+            PythonExecutorUtil.runPythonScript(path);
 
             // 4. CSV 결과 파싱
             File outputFile = new File("data/output/output.csv");

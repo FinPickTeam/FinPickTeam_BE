@@ -6,13 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.scoula.finance.dto.fund.*;
 import org.scoula.finance.mapper.FundMapper;
 import org.scoula.finance.util.CsvUtils;
+import org.scoula.finance.util.PythonExecutorUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Slf4j
@@ -22,8 +21,6 @@ public class FundServiceImpl  implements FundService {
     private final FundMapper fundMapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final CsvUtils csvUtils;
-    @Value("${external.python.fund}")
-    private String pythonUrl;
 
     // 펀드 리스트 조회 (필터 포함)
     @Override
@@ -54,26 +51,13 @@ public class FundServiceImpl  implements FundService {
             inputFile.getParentFile().mkdirs();
             objectMapper.writeValue(inputFile, productPayload);
             System.out.printf("펀트 input.json 저장 완료" + inputFile.getAbsolutePath());
-            
-            // 3. python 실행
-            ProcessBuilder builder = new ProcessBuilder(
-                    "python",
-                    pythonUrl
-            );
-            builder.redirectErrorStream(true);
-            Process process = builder.start();
 
-            // 작동 확인용
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
-            String line;
-            while((line = reader.readLine()) != null){
-                System.out.println("[Python] " + line);
-            }
+            ClassPathResource resource = new ClassPathResource("python/fund/analyze.py");
+            File pythonFile = resource.getFile();
+            String path = pythonFile.getAbsolutePath();
 
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-                throw new RuntimeException("Python 실행 실패(exit code: " + exitCode + ")");
-            }
+            // 3. Python 실행
+            PythonExecutorUtil.runPythonScript(path);
 
             // 4. csv 결과 파싱
             File outputFile = new File("data/fund/output/output.csv");
