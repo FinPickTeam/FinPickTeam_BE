@@ -66,5 +66,24 @@
         WHERE card_id = #{cardId}
     </select>
 
+    <select id="sumMonthlySpending" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM card_transaction
+        WHERE user_id = #{userId}
+        AND is_cancelled = FALSE
+        AND approved_at &gt;= #{start}
+        AND approved_at &lt;= #{end}
+    </select>
+
+    <select id="sumMonthlySpendingByCard" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount),0)
+        FROM card_transaction
+        WHERE user_id = #{userId}
+          AND card_id = #{cardId}
+          AND is_cancelled = FALSE
+          AND approved_at &gt;= #{start}
+          AND approved_at &lt;= #{end}
+    </select>
+
 
 </mapper>

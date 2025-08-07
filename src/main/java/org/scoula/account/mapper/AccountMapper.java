@@ -4,7 +4,6 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.scoula.account.domain.Account;
 
-import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -21,4 +20,5 @@ public interface AccountMapper {
     void updateIsActive(@Param("id") Long id, @Param("isActive") boolean isActive);
     List<Account> findActiveByUserId(Long userId);
     List<Account> findByIdList(List<Long> ids);
+    BigDecimal sumBalanceByUserId(Long userId);
 }

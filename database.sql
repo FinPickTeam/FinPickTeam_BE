@@ -182,8 +182,8 @@ ALTER TABLE coin_history
 
 
 -- 14. 알람내역
-DROP TABLE IF EXISTS `ALARMS`;
-CREATE TABLE ALARMS (
+DROP TABLE IF EXISTS `alarms`;
+CREATE TABLE alarms (
                         id BIGINT AUTO_INCREMENT PRIMARY KEY,
                         user_id BIGINT NOT NULL,
                         message VARCHAR(500) NOT NULL,
@@ -442,7 +442,7 @@ CREATE TABLE `factor_list`(
                               `kosdaq` DECIMAL(10, 6) NOT NULL,
                               PRIMARY KEY (`id`)
 
-)
+);
 
 
 -- CHALLENGE

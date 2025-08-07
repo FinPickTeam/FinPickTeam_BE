@@ -7,9 +7,11 @@ import org.scoula.card.dto.CardRegisterResponseDto;
 import org.scoula.card.service.CardService;
 import org.scoula.common.dto.CommonResponseDTO;
 import org.scoula.nhapi.dto.FinCardRequestDto;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.YearMonth;
 import java.util.List;
 
 @RestController
@@ -46,9 +48,12 @@ public class CardController {
         return ResponseEntity.ok(CommonResponseDTO.success("카드 비활성화 완료"));
     }
 
-    @GetMapping("/users/{userId}/cards")
-    public ResponseEntity<CommonResponseDTO<List<CardDto>>> getActiveCards(@PathVariable Long userId) {
-        List<CardDto> cards = cardService.getActiveCards(userId);
-        return ResponseEntity.ok(CommonResponseDTO.success("카드 목록 조회 성공", cards));
+    @GetMapping("/users/{userId}/list")
+    public ResponseEntity<CommonResponseDTO<List<CardDto>>> getCardsWithTotal(@PathVariable Long userId,
+                                                                              @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
+        YearMonth targetMonth = month != null ? month : YearMonth.now();
+        List<CardDto> result = cardService.getCardsWithMonth(userId, targetMonth);
+        return ResponseEntity.ok(CommonResponseDTO.success("카드 목록 조회 성공", result));
     }
+
 }

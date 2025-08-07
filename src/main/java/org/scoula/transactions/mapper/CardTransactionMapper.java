@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.scoula.transactions.domain.CardTransaction;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -21,5 +22,10 @@ public interface CardTransactionMapper {
             @Param("approvedAt") String approvedAt
     );
     LocalDateTime findLastTransactionDate(Long cardId);
+    BigDecimal sumMonthlySpending(@Param("userId") Long userId,
+                                  @Param("start") LocalDateTime start,
+                                  @Param("end") LocalDateTime end);
+    BigDecimal sumMonthlySpendingByCard(@Param("userId") Long userId, @Param("cardId") Long cardId, @Param("start") String start, @Param("end") String end);
+
 }
 
