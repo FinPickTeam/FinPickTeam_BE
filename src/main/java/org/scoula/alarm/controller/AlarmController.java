@@ -7,7 +7,9 @@ import lombok.extern.log4j.Log4j2;
 import org.scoula.alarm.dto.AlarmDTO;
 import org.scoula.alarm.service.AlarmService;
 import org.scoula.common.dto.CommonResponseDTO;
+import org.scoula.security.account.domain.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,9 +24,9 @@ public class AlarmController {
     final private AlarmService alarmService;
 
     @ApiOperation(value="알람 조회", notes="현재 존재하는 알람들을 조회합니다.")
-    @GetMapping("/userId={userId}")
-    public ResponseEntity<CommonResponseDTO<List<AlarmDTO>>> getAlarm(@PathVariable Long userId) {
-        List<AlarmDTO> alarmDTO=alarmService.getAlarms(userId);
+    @GetMapping("")
+    public ResponseEntity<CommonResponseDTO<List<AlarmDTO>>> getAlarm(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        List<AlarmDTO> alarmDTO=alarmService.getAlarms(userDetails.getUserId());
         return ResponseEntity.ok(CommonResponseDTO.success("알람 조회 성공", alarmDTO));
     }
 
@@ -37,8 +39,8 @@ public class AlarmController {
 
     @ApiOperation(value="모든 알람 읽음여부 수정", notes = "유저에게 전달된 모든 알람의 읽음여부를 true로 변경합니다.")
     @PutMapping("/updateAll")
-    public ResponseEntity<CommonResponseDTO<String>> updateAll(@RequestParam Long userId) {
-        alarmService.updateAll(userId);
+    public ResponseEntity<CommonResponseDTO<String>> updateAll(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        alarmService.updateAll(userDetails.getUserId());
         return ResponseEntity.ok(CommonResponseDTO.success("전체알람상태 수정 성공"));
     }
 }

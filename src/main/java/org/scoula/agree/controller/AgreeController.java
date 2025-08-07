@@ -4,9 +4,13 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.scoula.agree.dto.AgreeDTO;
 import org.scoula.agree.service.AgreeService;
 import org.scoula.common.dto.CommonResponseDTO;
+import org.scoula.common.exception.BaseException;
+import org.scoula.security.account.domain.CustomUserDetails;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -21,29 +25,29 @@ public class AgreeController {
 
     @ApiOperation(value="약관동의정보 생성", notes="유저별로 약관동의와 관련한 기본정보들을 생성합니다.")
     @PostMapping("")
-    public ResponseEntity<CommonResponseDTO<String>> createAgree(@RequestParam Long userId) {
-        agreeService.createAgree(userId);
+    public ResponseEntity<CommonResponseDTO<String>> createAgree( @AuthenticationPrincipal CustomUserDetails userDetails) throws BaseException {
+        agreeService.createAgree(userDetails.getUserId());
         return ResponseEntity.ok(CommonResponseDTO.success("약관동의정보 생성 성공"));
     }
 
     @ApiOperation(value="오픈뱅킹약관 동의", notes="오픈뱅킹약관에 동의한 내용을 저장합니다.")
     @PutMapping("/openbanking")
-    public ResponseEntity<CommonResponseDTO<String>> agreeOpenbanking(@RequestParam Long userId) {
-        agreeService.updateOpenBankingAgree(userId);
+    public ResponseEntity<CommonResponseDTO<String>> agreeOpenbanking( @AuthenticationPrincipal CustomUserDetails userDetails) {
+        agreeService.updateOpenBankingAgree(userDetails.getUserId());
         return ResponseEntity.ok(CommonResponseDTO.success("오픈뱅킹약관 동의 성공"));
     }
 
     @ApiOperation(value="개인정보약관 동의", notes="개인정보약관에 동의한 내용을 저장합니다.")
     @PutMapping("/personalInfo")
-    public ResponseEntity<CommonResponseDTO<String>> agreePersonalInfo(@RequestParam Long userId) {
-        agreeService.updatePersonalInfoAgree(userId);
+    public ResponseEntity<CommonResponseDTO<String>> agreePersonalInfo(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        agreeService.updatePersonalInfoAgree(userDetails.getUserId());
         return ResponseEntity.ok(CommonResponseDTO.success("개인정보약관 동의 성공"));
     }
 
     @ApiOperation(value="ars 동의", notes="ars약관에 동의한 내용을 저장합니다.")
     @PutMapping("/ars")
-    public ResponseEntity<CommonResponseDTO<String>> agreeArs(@RequestParam Long userId) {
-        agreeService.updateArsAgree(userId);
+    public ResponseEntity<CommonResponseDTO<String>> agreeArs(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        agreeService.updateArsAgree(userDetails.getUserId());
         return ResponseEntity.ok(CommonResponseDTO.success("ars약관 동의 성공"));
     }
 

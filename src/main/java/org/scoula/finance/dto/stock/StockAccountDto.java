@@ -11,9 +11,4 @@ public class StockAccountDto {
     private Long id;
     String stockAccount;
     String totalAccountReturnRate;
-
-    public StockAccountDto(String userAccount, String totalReturnRate) {
-        this.stockAccount = userAccount;
-        this.totalAccountReturnRate = totalReturnRate;
-    }
 }

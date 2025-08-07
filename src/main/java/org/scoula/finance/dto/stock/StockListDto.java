@@ -13,7 +13,7 @@ public class StockListDto {
     private String stockCode;
     private String stockName;
     private String stockReturnsData;
-    private String stockPrice;
+    private int stockPrice;
     private String stockMarketType;
     private String stockPredictedPrice;
     private String stockChangeRate;

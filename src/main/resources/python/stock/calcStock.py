@@ -32,7 +32,6 @@ def get_risk_free_rate_series(start_date: str, end_date: str) -> pd.Series:
             rf_list.append(daily_rate)
     rf_series = pd.Series(rf_list, index=dates)
     return rf_series.ffill()
-
 # ===== 메인 =====
 def main():
     base_dir = os.path.dirname(__file__)
@@ -45,7 +44,7 @@ def main():
         stockCodeList = json.load(f)
 
     # 날짜 인덱스 정의
-    date_index = pd.to_datetime([item["date"] for item in factorDto])
+    date_index = pd.to_datetime([item["date"] for item in factorDto], format="%Y%m%d").normalize()
     min_date = date_index.min()
     max_date = date_index.max()
     start_date = min_date.strftime("%Y%m%d")
@@ -63,7 +62,7 @@ def main():
 
     # 무위험 수익률 계산
     daily_rf = get_risk_free_rate_series(start_date, end_date)
-    weekly_rf = daily_rf.resample("W-FRI").mean().dropna()
+    weekly_rf = daily_rf.resample("W-THU").apply(lambda x: (1 + x).prod() - 1)
 
     recommendations = {}
     errors = {}
@@ -78,7 +77,7 @@ def main():
             price = stock.get_market_ohlcv_by_date(start_date, end_date, code)["종가"]
             print(f"[{code}] 종가 개수: {len(price)}")
 
-            weekly_price = price.resample("W-FRI").last()
+            weekly_price = price.resample("W-THU").last()
             print(f"[{code}] 리샘플된 주간 종가 개수: {len(weekly_price)}")
 
             weekly_return = weekly_price.pct_change()
@@ -98,7 +97,7 @@ def main():
                 "hml": factor_common["hml"],
                 "mom": factor_common["mom"]
             })
-            weekly_factor = factor_df.resample("W-FRI").mean().dropna()
+            weekly_factor = factor_df.reindex(weekly_return.index).dropna()
 
             # 공통 날짜로 정리
             common_dates = weekly_return.index.intersection(weekly_rf.index).intersection(weekly_factor.index)

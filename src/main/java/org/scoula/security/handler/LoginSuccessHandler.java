@@ -9,6 +9,7 @@ import org.scoula.security.account.dto.AuthResultDTO;
 import org.scoula.security.account.dto.UserInfoDTO;
 import org.scoula.security.account.domain.CustomUserDetails;
 import org.scoula.security.util.JsonResponse;
+import org.scoula.user.mapper.UserStatusMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,7 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtUtil jwtUtil;
     private final RedisService redisService;
+    private final UserStatusMapper userStatusMapper;
 
     @Override
     public void onAuthenticationSuccess(
@@ -50,9 +52,10 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
 
         // 유저 정보 DTO 변환
         UserInfoDTO userInfo = UserInfoDTO.from(userDetails.getUser());
+        String nickname=userStatusMapper.getNickname(id);
 
         // 응답용 DTO 생성
-        AuthResultDTO authResult = new AuthResultDTO(accessToken, refreshToken, userInfo);
+        AuthResultDTO authResult = new AuthResultDTO(accessToken, refreshToken, userInfo,nickname);
         CommonResponseDTO<AuthResultDTO> responseDTO = CommonResponseDTO.success("로그인 성공", authResult);
 
         // JSON 응답 전송
