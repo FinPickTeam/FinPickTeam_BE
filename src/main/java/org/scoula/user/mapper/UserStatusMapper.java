@@ -7,4 +7,5 @@ import org.scoula.user.domain.UserStatus;
 public interface UserStatusMapper {
     void save(UserStatus status);
     boolean isNicknameDuplicated(String nickname);
+    String getNickname(Long userId);
 }

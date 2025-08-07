@@ -12,7 +12,7 @@ public interface QuizService {
 
      QuizDTO getQuiz(Long userId);
 
-     void submit(QuizSubmitRequestDTO quizSubmitRequestDTO);
+     void submit(Long userId, QuizSubmitRequestDTO quizSubmitRequestDTO);
 
      QuizHistoryDetailDTO getHistoryDetail(Long historyId);
 
