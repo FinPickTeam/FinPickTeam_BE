@@ -3,11 +3,13 @@ package org.scoula.monthreport.util;
 import com.openhtmltopdf.outputdevice.helper.BaseRendererBuilder;
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import org.scoula.monthreport.dto.MonthReportDetailDto;
+import org.scoula.monthreport.dto.SpendingPatternDto;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.stream.Collectors;
 
 @Component
 public class MonthReportPdfGenerator {
@@ -81,9 +83,26 @@ public class MonthReportPdfGenerator {
         // 🧠 소비 성향
         sb.append("<div class='section'>");
         sb.append("<h3>🧠 소비 성향 분석</h3>");
-        sb.append("<p><span class='label'>소비 성향:</span> ").append(dto.getSpendingPatternLabel()).append("</p>");
+        sb.append("<p><span class='label'>소비 성향:</span> ");
+        if (dto.getSpendingPatterns() != null && !dto.getSpendingPatterns().isEmpty()) {
+            sb.append(
+                    dto.getSpendingPatterns().stream()
+                            .map(SpendingPatternDto::getLabel)
+                            .collect(Collectors.joining(" / "))
+            );
+        } else {
+            sb.append("없음");
+        }
+        sb.append("</p>");
+// 상세 설명도 보여주고 싶으면 아래처럼
+        sb.append("<ul>");
+        dto.getSpendingPatterns().forEach(p ->
+                sb.append("<li>").append(p.getDesc()).append("</li>")
+        );
+        sb.append("</ul>");
         sb.append("<p>").append(dto.getSpendingPatternFeedback()).append("</p>");
         sb.append("</div>");
+
 
         // 🎯 챌린지
         sb.append("<div class='section'>");

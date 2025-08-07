@@ -13,21 +13,20 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MonthReportDetailDto {
-
-    private String month; // ex) "2025-07"
-
+    private String month;
     private BigDecimal totalExpense;
-    private BigDecimal compareExpense;
+    private CompareExpenseDto compareExpense; // <--- 객체로 확장
+    private MainCategoryDto mainCategory;     // <--- 주 소비 카테고리 추가
 
     private List<MonthExpenseDto> sixMonthChart;
     private List<CategoryRatioDto> categoryChart;
     private List<CategoryAmountDto> top3Spending;
 
-    private String spendingPatternLabel;
+    private List<SpendingPatternDto> spendingPatterns; // <--- 복수 패턴 + desc
     private String spendingPatternFeedback;
 
     private String nextGoal;
-
     private List<RecommendedChallengeDto> recommendedChallenges;
 }
+
 
