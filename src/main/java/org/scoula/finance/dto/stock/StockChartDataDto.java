@@ -9,6 +9,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StockChartDataDto {
     private String stockCode;
-    private String jsonData;
-    private String baseDate;
+    private String stockReturnsData;
 }

@@ -45,29 +45,82 @@
 
     <select id="getStockList" resultType="org.scoula.finance.dto.stock.StockListDataDto">
         SELECT
+        stock_code AS stockCode,
+        stock_name AS stockName,
+        stock_returns_data AS stockReturnsData,
+        market_type AS stockMarketType,
+        stock_summary AS stockSummary
+        FROM stock_list
+        WHERE 1=1
+        <if test="marketType != null and marketType != ''">
+            AND market_type = UPPER(#{marketType})
+        </if>
+
+        <choose>
+            <when test="sortByStockName != null and sortByStockName != ''">
+                ORDER BY stock_name
+                <if test="sortByStockName == 'desc'">
+                    DESC
+                </if>
+                <if test="sortByStockName == 'asc'">
+                    ASC
+                </if>
+            </when>
+            <when test="sortByStockPrice != null and sortByStockPrice != ''">
+                ORDER BY stock_returns_data
+                <if test="sortByStockPrice == 'desc'">
+                    DESC
+                </if>
+                <if test="sortByStockPrice == 'asc'">
+                    ASC
+                </if>
+            </when>
+            <otherwise>
+                ORDER BY stock_name ASC
+            </otherwise>
+        </choose>
+    </select>
+
+    <update id="updateStockReturnsData" parameterType="map">
+        UPDATE stock_list
+        SET stock_returns_data = #{stockReturnsData}
+        WHERE stock_code = #{stockCode}
+    </update>
+    
+    <select id="getStockCodeList" resultType="map">
+        SELECT
+            stock_code,
+            market_type AS stock_market
+        FROM stock_list
+    </select>
+
+    <select id="getStockListDataByStockCode" resultType="org.scoula.finance.dto.stock.StockListDataDto">
+        SELECT
             stock_code AS stockCode,
             stock_name AS stockName,
+            stock_returns_data AS stockReturnsData,
             market_type AS stockMarketType,
             stock_summary AS stockSummary
         FROM stock_list
-    </select>
-
-    <insert id="saveChartCache" parameterType="org.scoula.finance.dto.stock.StockChartDataDto">
-        INSERT INTO stock_chart_cache (stock_code, json_data, base_date)
-        VALUES (#{stockCode}, #{jsonData}, #{baseDate})
-            ON DUPLICATE KEY UPDATE
-                                 json_data = #{jsonData},
-                                 base_date = #{baseDate}
-    </insert>
-    
-    <select id="getStockCodeList" resultType="string">
-        SELECT stock_code
-        FROM stock_list
-    </select>
-
-    <select id="getChartCache" resultType="string">
-        SELECT json_data
-        FROM stock_chart_cache
         WHERE stock_code = #{stockCode}
+    </select>
+
+    <insert id="insertStockFactorData" parameterType="org.scoula.finance.dto.stock.StockFactorDto">
+        INSERT INTO factor_list( date, smb, hml, mom, kospi, kosdaq)
+        VALUES (#{date}, #{smb}, #{hml}, #{mom}, #{kospi}, #{kosdaq})
+            ON DUPLICATE KEY UPDATE
+                                 smb = VALUES(smb),
+                                 hml = VALUES(hml),
+                                 mom = VALUES(mom),
+                                 kospi = VALUES(kospi),
+                                 kosdaq = VALUES(kosdaq);
+    </insert>
+
+    <select id="getStockFactorData" resultType="org.scoula.finance.dto.stock.StockFactorDto">
+        SELECT
+            *
+        FROM factor_list
+        ORDER BY date DESC
+        LIMIT 13
     </select>
 </mapper>

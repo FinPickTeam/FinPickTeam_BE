@@ -11,6 +11,8 @@ build/
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/
+.idea/workspace.xml
+.idea/dataSources.local.xml
 *.iws
 *.iml
 *.ipr
@@ -22,7 +24,7 @@ out/
 ### Eclipse ###
 .apt_generated
 .classpath
-.factorypath
+.factorypatht
 .project
 .settings
 .springBeans
