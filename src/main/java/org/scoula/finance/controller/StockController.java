@@ -106,14 +106,14 @@ public class StockController {
     }
 
     //추천 주식 가져오기
-    @ApiOperation(value = "추천 주식 가져오기", notes = "내부 수식을 통해 추천된 주식을 가져옵니다.")
+    @ApiOperation(value = "추천 주식 가져오기", notes = "추천된 주식을 가져옵니다.")
     @GetMapping("/recommend")
-    public CommonResponseDTO<List<StockListDto>> getRecommend(@AuthenticationPrincipal CustomUserDetails user,
-                                                              @RequestParam(name = "limit") int limit) {
+    public CommonResponseDTO<List<StockListDto>> getRecommend(@RequestParam(required = false) Integer priceLimit,
+                                                              @RequestParam int limit,
+                                                              @AuthenticationPrincipal CustomUserDetails user){
         Long userId = user.getUserId();
 
-        List<StockListDto> recommendData = stockService.getStockRecommendationList(userId, limit);
-
+        List<StockListDto> recommendData = stockService.getStockRecommendationList(userId, limit, priceLimit);
         if (recommendData == null || recommendData.isEmpty()) {
             return CommonResponseDTO.error("추천 가능한 주식이 없습니다.", 404);
         }
