@@ -3,6 +3,7 @@ package org.scoula.user.service;
 import lombok.RequiredArgsConstructor;
 import org.scoula.agree.mapper.AgreeMapper;
 import org.scoula.avatar.mapper.AvatarMapper;
+import org.scoula.avatar.service.AvatarService;
 import org.scoula.coin.mapper.CoinMapper;
 import org.scoula.common.redis.RedisService;
 import org.scoula.user.domain.User;
@@ -29,8 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +47,7 @@ public class UserServiceImpl implements UserService {
     private final AgreeMapper agreeMapper;
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
+    private final AvatarService avatarService;
 
     // mysql 연결 테스트용
     public User getTestUser() {
@@ -103,7 +105,10 @@ public class UserServiceImpl implements UserService {
         // 5. 내 아바타 초기화
         avatarMapper.insertAvatar(user.getId());
 
-        // 6. 동의정보 초기화
+        // 6. 옷장에 기본 착장 넣어주기
+        avatarMapper.insertClothe(user.getId(), 1L);
+
+        // 7. 동의정보 초기화
         agreeMapper.insert(user.getId());
 
         return UserResponseDTO.builder()
@@ -217,7 +222,9 @@ public class UserServiceImpl implements UserService {
 
         if(!Objects.equals(userStatus.getLevel(), level.getLabel())){
             log.info("누적포인트가 {}입니다. {}로 승급하셨습니다.", culAmount, level.getLabel());
-            userStatusMapper.update(level.getLabel());
+            userStatusMapper.update(level.getLabel(), userId); // status 칭호 변경
+            avatarService.insertClothe(userId, level.getItemId()); //  변경된 칭호에 해당하는 스킨을 옷장에 추가
+            avatarService.updateAvatarByItemId(userId, level.getItemId() ); // 변경된 칭호에 해당하는 스킨으로 착장 변경
         } else {
             log.info("포인트는 증가했으나, 승급에는 실패했습니다.");
         }

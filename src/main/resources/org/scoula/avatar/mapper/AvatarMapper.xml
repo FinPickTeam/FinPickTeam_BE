@@ -7,12 +7,12 @@
 
     <!-- 아바타 생성 -->
     <insert id="insertAvatar">
-        INSERT INTO avatar (id,avatar_image) VALUES (#{userId}, 1) <!-- 기본 아바타 이미지 삽입 -->
+        INSERT INTO avatar (id,level_id) VALUES (#{userId}, 1) <!-- 기본 아바타 이미지 삽입 -->
     </insert>
 
     <!--아바타 착장 조회-->
     <select id="getAvatar" resultType="org.scoula.avatar.domain.AvatarVO">
-        SELECT id AS userId, avatar_image, top_id, shoes_id, accessory_id, gift_card_id
+        SELECT id AS userId, level_id, top_id, shoes_id, accessory_id, gift_card_id
         FROM avatar WHERE id=#{userId}
     </select>
 
@@ -25,7 +25,7 @@
     <update id="updateAvatar" parameterType="org.scoula.avatar.domain.AvatarVO">
         UPDATE avatar
         SET
-            avatar_image=#{avatarImage},
+            level_id=#{level_id},
             top_id = #{topId},
             shoes_id = #{shoesId},
             accessory_id = #{accessoryId},
@@ -34,12 +34,26 @@
             id = #{userId}
     </update>
 
-    <!-- clothes의 is_Wearing 컬럼 수정-->
+    <!--아바타 착장 아이템 1개만 수정-->
+    <update id="updateAvatarByItemId">
+            UPDATE avatar
+            SET
+                ${type}_id=#{itemId}
+            WHERE
+                id=#{userId}
+    </update>
+
+    <!-- clothes의 is_Wearing 컬럼 한번에 수정-->
     <update id="updateClothe">
         UPDATE `clothes` SET `is_wearing` = #{isWearing} WHERE `user_id` = #{userId} AND `item_id` IN
         <foreach collection="items" item="itemId" open="(" separator="," close=")">
             #{itemId}
         </foreach>;
+    </update>
+
+    <!-- clothes의 is_Wearing 컬럼 1개만 수정-->
+    <update id="updateClotheByItemId">
+        UPDATE `clothes` SET `is_wearing`=#{isWearing} where `user_id`= #{userId} and `item_id`=#{itemId}
     </update>
 
     <!-- 전체 의상 목록 조회 -->
@@ -65,7 +79,7 @@
     </insert>
 
 
-    <!-- 아이템 가격 조회 -->
+    <!-- 아이템 정보 조회 -->
     <select id="getItem" resultType="org.scoula.avatar.domain.ItemsVO">
         SELECT * FROM item where id=#{itemId}
     </select>

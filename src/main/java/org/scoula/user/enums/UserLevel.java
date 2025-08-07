@@ -1,19 +1,25 @@
 package org.scoula.user.enums;
 
 public enum UserLevel {
-    SEEDLING("금융새싹"),
-    TRAINEE("금융견습"),
-    WIZARD("금융법사"),
-    MASTER("금융도사");
+    SEEDLING("금융새싹",1L),
+    TRAINEE("금융견습",2L),
+    WIZARD("금융법사",3L),
+    MASTER("금융도사",4L);
 
     private final String label;
+    private final Long itemId;
 
-    UserLevel(String label) {
+    UserLevel(String label, Long itemId) {
         this.label = label;
+        this.itemId = itemId;
     }
 
     public String getLabel() {
         return label;
+    }
+
+    public Long getItemId() {
+        return itemId;
     }
 
     public static UserLevel getLevelForPoints(int points) {

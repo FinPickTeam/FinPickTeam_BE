@@ -38,7 +38,25 @@ public class AvatarServiceImpl implements AvatarService {
         return AvatarDTO.of(avatarVO);
     }
 
-    //아바타 수정
+    //특정 아이템으로만 아바타 수정
+    public void updateAvatarByItemId(Long userId, Long itemId) {
+        AvatarVO curAvatarVO = mapper.getAvatar(userId);
+        Long[] curItems = {curAvatarVO.getAvatarImage(),
+                curAvatarVO.getTopId(),
+                curAvatarVO.getShoesId(),
+                curAvatarVO.getAccessoryId(),
+                curAvatarVO.getGiftCardId()
+        };
+
+        ItemsVO vo=mapper.getItem(itemId);
+
+        mapper.updateClotheByItemId(userId, false, curItems[0]); //기존 아이템 is_wearing=false처리
+        mapper.updateClotheByItemId(userId, true, itemId); //기존 아이템 is_wearing=true처리
+        mapper.updateAvatarByItemId(userId, vo.getType(), itemId); //새로운 아이템 업데이트
+
+    }
+
+    //아바타 한번에 수정
     @Override
     public void updateAvatar(Long userId, Long[] items) {
 
@@ -89,7 +107,7 @@ public class AvatarServiceImpl implements AvatarService {
         return userClothesDTO;
     }
 
-    //의상 구매 시 삽입
+    //의상 구매 시 옷장삽입
     @Override
     @Transactional
     public void insertClothe(Long userId, Long itemId) {

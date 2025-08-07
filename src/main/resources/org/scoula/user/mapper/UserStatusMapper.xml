@@ -11,7 +11,7 @@
     </insert>
 
     <update id="update">
-        UPDATE user_status set level=#{level}
+        UPDATE user_status set level=#{level} where id=#{userId}
     </update>
 
     <select id="isNicknameDuplicated" resultType="boolean">
