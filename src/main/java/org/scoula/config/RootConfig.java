@@ -72,6 +72,7 @@ import javax.sql.DataSource;
         "org.scoula.challenge.rank.service",
         "org.scoula.challenge.rank.util",
         "org.scoula.common.aop",
+        "org.scoula.summary.service",
         })
 @EnableTransactionManagement
 @EnableAspectJAutoProxy

@@ -66,7 +66,7 @@ def analyze():
     print("출력 파일 경로:", output_path)
 
     data = load_input(input_path)
-        period = data['period']
+    period = data['period']
     user_conditions = data['userCondition']
     products = data['products']
 

@@ -4,6 +4,7 @@ import org.scoula.card.dto.CardDto;
 import org.scoula.card.dto.CardRegisterResponseDto;
 import org.scoula.nhapi.dto.FinCardRequestDto;
 
+import java.time.YearMonth;
 import java.util.List;
 
 public interface CardService {
@@ -11,5 +12,5 @@ public interface CardService {
     void syncCardById(Long cardId);
     void syncAllCardsByUserId(Long userId);
     void deactivateCard(Long cardId, Long userId);
-    List<CardDto> getActiveCards(Long userId);
+    List<CardDto> getCardsWithMonth(Long userId, YearMonth month);
 }

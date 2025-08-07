@@ -10,10 +10,13 @@ import org.scoula.common.exception.BaseException;
 import org.scoula.common.exception.ForbiddenException;
 import org.scoula.nhapi.dto.FinCardRequestDto;
 import org.scoula.card.mapper.CardMapper;
+import org.scoula.transactions.mapper.CardTransactionMapper;
 import org.scoula.nhapi.client.NHApiClient;
 import org.scoula.transactions.service.CardTransactionService;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,6 +27,7 @@ public class CardServiceImpl implements CardService {
 
     private final NHApiClient nhApiClient;
     private final CardMapper cardMapper;
+    private final CardTransactionMapper cardTransactionMapper;
     private final CardTransactionService cardTransactionService;
 
     @Override
@@ -121,13 +125,16 @@ public class CardServiceImpl implements CardService {
         cardMapper.updateIsActive(cardId, false);
     }
 
-    @Override
-    public List<CardDto> getActiveCards(Long userId) {
+    public List<CardDto> getCardsWithMonth(Long userId, YearMonth month) {
         List<Card> cards = cardMapper.findActiveByUserId(userId);
-        return cards.stream()
-                .map(CardDto::from)
-                .collect(Collectors.toList());
+        String start = month.atDay(1).toString();
+        String end = month.atEndOfMonth().toString();
+        return cards.stream().map(card -> {
+            BigDecimal spent = cardTransactionMapper.sumMonthlySpendingByCard(userId, card.getId(), start, end);
+            return CardDto.from(card, spent == null ? BigDecimal.ZERO : spent);
+        }).collect(Collectors.toList());
     }
+
 
 
 

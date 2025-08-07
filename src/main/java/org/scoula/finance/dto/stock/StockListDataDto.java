@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class StockListDataDto {
     String stockName;
     String stockCode;
+    String stockReturnsData;
     String stockMarketType;
     String stockSummary;
 }

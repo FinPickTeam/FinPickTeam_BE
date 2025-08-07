@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @NoArgsConstructor
-public class StockPricePointDto {
-    private String dt;
-    private String cur_prc;
+public class StockFilterDto {
+    private String marketType;
+    private String sortByStockName;
+    private String sortByStockPrice;
 }

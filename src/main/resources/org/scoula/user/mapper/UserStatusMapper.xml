@@ -18,8 +18,13 @@
         SELECT EXISTS(SELECT 1 FROM user_status WHERE nickname = #{nickname})
     </select>
 
+
     <select id="get" resultType="org.scoula.user.domain.UserStatus">
         SELECT * from user_status where id=#{userId}
+
+    <select id="getNickname" resultType="java.lang.String">
+        SELECT nickname from user_status where id=#{userId}
+
     </select>
 
 </mapper>

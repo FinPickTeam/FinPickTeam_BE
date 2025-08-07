@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class AvatarVO {
     private Long userId;
-    private Long avatarImage;
+    private Long levelId;
     private Long topId;
     private Long shoesId;
     private Long accessoryId;

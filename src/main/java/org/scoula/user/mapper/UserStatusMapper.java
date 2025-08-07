@@ -10,4 +10,5 @@ public interface UserStatusMapper {
     boolean isNicknameDuplicated(String nickname);
     UserStatus get(Long userId);
     void update(@Param("level")String level, @Param("userId")Long userId);
+    String getNickname(Long userId);
 }

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.account.domain.Account;
 import org.scoula.account.dto.AccountDto;
+import org.scoula.account.dto.AccountListWithTotalDto;
 import org.scoula.account.dto.AccountRegisterResponseDto;
 import org.scoula.account.mapper.AccountMapper;
 import org.scoula.common.exception.BaseException;
@@ -102,11 +103,16 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public List<AccountDto> getActiveAccounts(Long userId) {
+    public AccountListWithTotalDto getAccountsWithTotal(Long userId) {
         List<Account> accounts = accountMapper.findActiveByUserId(userId);
-        return accounts.stream()
-                .map(AccountDto::from)
+        List<AccountDto> dtoList = accounts.stream()
+                .map(AccountDto::from) // AccountDto에 static from(Account account) 만들어서 변환
                 .collect(Collectors.toList());
+        BigDecimal total = accountMapper.sumBalanceByUserId(userId);
+        AccountListWithTotalDto dto = new AccountListWithTotalDto();
+        dto.setAccountTotal(total);
+        dto.setAccounts(dtoList);
+        return dto;
     }
 
 }

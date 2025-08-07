@@ -13,15 +13,15 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class QuizSubmitRequestDTO {
-    private Long userId;
+
     private Long quizId;
     private Boolean isCorrect;
 
-
     public QuizHistoryVO toVO() {
         QuizHistoryVO quizHistoryVO = new QuizHistoryVO();
+        quizHistoryVO.setQuizId(null);
+        quizHistoryVO.setUserId(null);
         quizHistoryVO.setQuizId(quizId);
-        quizHistoryVO.setUserId(userId);
         quizHistoryVO.setIsCorrect(isCorrect);
         quizHistoryVO.setSubmittedAt(LocalDateTime.now());
         return quizHistoryVO;
