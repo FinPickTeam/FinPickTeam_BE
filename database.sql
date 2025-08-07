@@ -93,6 +93,7 @@ CREATE TABLE `avatar` (
                           PRIMARY KEY (`id`),
                           FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
+ALTER TABLE `avatar` CHANGE COLUMN `avatar_image` `level_id` BIGINT NOT NULL;
 
 -- 7. 아이템
 DROP TABLE IF EXISTS `item`;
@@ -104,6 +105,8 @@ CREATE TABLE `item` (
                         `image_url` VARCHAR(255) NOT NULL,
                         PRIMARY KEY (`id`)
 );
+ALTER TABLE `item` MODIFY COLUMN `type` ENUM('avatarImage','level', 'top', 'shoes', 'accessory', 'giftCard') NOT NULL;
+ALTER TABLE `item` MODIFY COLUMN `type` ENUM('level', 'top', 'shoes', 'accessory', 'giftCard') NOT NULL;
 
 -- 8. 옷장
 DROP TABLE IF EXISTS `clothes`;
@@ -442,7 +445,7 @@ CREATE TABLE `factor_list`(
                               `kosdaq` DECIMAL(10, 6) NOT NULL,
                               PRIMARY KEY (`id`)
 
-)
+);
 
 
 -- CHALLENGE

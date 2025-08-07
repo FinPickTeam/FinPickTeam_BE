@@ -44,7 +44,7 @@ public class AvatarServiceImpl implements AvatarService {
 
         // 현재 아바타 착장 저장
         AvatarVO curAvatarVO = mapper.getAvatar(userId);
-        Long[] curItems = {curAvatarVO.getAvatarImage(),
+        Long[] curItems = {curAvatarVO.getLevelId(),
                 curAvatarVO.getTopId(),
                 curAvatarVO.getShoesId(),
                 curAvatarVO.getAccessoryId(),
@@ -64,7 +64,7 @@ public class AvatarServiceImpl implements AvatarService {
         //각 타입에 해당하는 아이템코드들을 avatarVO에 삽입
         AvatarVO avatarVO = new AvatarVO();
         avatarVO.setUserId(userId);
-        avatarVO.setAvatarImage(itemsByType.get("avatarImage"));
+        avatarVO.setLevelId(itemsByType.get("avatarImage"));
         avatarVO.setTopId(itemsByType.get("top"));
         avatarVO.setShoesId(itemsByType.get("shoes"));
         avatarVO.setAccessoryId(itemsByType.get("accessory"));

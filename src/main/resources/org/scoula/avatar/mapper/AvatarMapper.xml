@@ -7,12 +7,12 @@
 
     <!-- 아바타 생성 -->
     <insert id="insertAvatar">
-        INSERT INTO avatar (id,avatar_image) VALUES (#{userId}, 1) <!-- 기본 아바타 이미지 삽입 -->
+        INSERT INTO avatar (id,level_id) VALUES (#{userId}, 1) <!-- 기본 아바타 이미지 삽입 -->
     </insert>
 
     <!--아바타 착장 조회-->
     <select id="getAvatar" resultType="org.scoula.avatar.domain.AvatarVO">
-        SELECT id AS userId, avatar_image, top_id, shoes_id, accessory_id, gift_card_id
+        SELECT id AS userId, level_id, top_id, shoes_id, accessory_id, gift_card_id
         FROM avatar WHERE id=#{userId}
     </select>
 
@@ -25,7 +25,7 @@
     <update id="updateAvatar" parameterType="org.scoula.avatar.domain.AvatarVO">
         UPDATE avatar
         SET
-            avatar_image=#{avatarImage},
+            level_id=#{avatarImage},
             top_id = #{topId},
             shoes_id = #{shoesId},
             accessory_id = #{accessoryId},
