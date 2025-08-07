@@ -45,11 +45,17 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
-    public void submit(QuizSubmitRequestDTO dto) {
-        QuizHistoryVO vo = dto.toVO();
-        coinMapper.addCoinAmount(dto.getUserId(),10);
-        coinMapper.insertCoinHistory(dto.getUserId(), 10, "plus", "QUIZ");
-        quizMapper.insertHistory(vo);
+    public void submit(Long userId, QuizSubmitRequestDTO dto) {
+
+        QuizHistoryDTO quizHistoryDTO=QuizHistoryDTO.builder()
+                .userId(userId)
+                .quizId(dto.getQuizId())
+                .isCorrect(dto.getIsCorrect())
+                .build();
+
+        coinMapper.addCoinAmount(userId,10);
+        coinMapper.insertCoinHistory(userId, 10, "plus", "QUIZ");
+        quizMapper.insertHistory(quizHistoryDTO.toVO());
     }
 
     @Override

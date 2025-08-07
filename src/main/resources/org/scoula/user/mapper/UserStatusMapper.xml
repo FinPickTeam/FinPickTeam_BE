@@ -14,4 +14,8 @@
         SELECT EXISTS(SELECT 1 FROM user_status WHERE nickname = #{nickname})
     </select>
 
+    <select id="getNickname" resultType="java.lang.String">
+        SELECT nickname from user_status where id=#{userId}
+    </select>
+
 </mapper>

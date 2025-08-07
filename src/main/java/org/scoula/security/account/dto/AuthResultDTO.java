@@ -11,4 +11,5 @@ public class AuthResultDTO {
     private String accessToken;
     private String refreshToken;
     private UserInfoDTO user;
+    private String NickName;
 }
