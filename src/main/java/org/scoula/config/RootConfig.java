@@ -73,7 +73,8 @@ import javax.sql.DataSource;
         "org.scoula.agree.service",
         "org.scoula.challenge.rank.scheduler",
         "org.scoula.challenge.rank.service",
-        "org.scoula.challenge.rank.util"
+        "org.scoula.challenge.rank.util",
+        "org.scoula.summary.service",
         })
 @EnableTransactionManagement
 public class RootConfig {

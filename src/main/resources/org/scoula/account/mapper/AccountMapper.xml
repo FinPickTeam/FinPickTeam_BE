@@ -42,7 +42,7 @@
         WHERE id = #{accountId}
     </select>
 
-    <select id="findByUserId" resultType="org.scoula.account.domain.Account">
+    <select id="findActiveByUserId" resultType="org.scoula.account.domain.Account">
         SELECT id, user_id, pin_account_number, bank_code, account_number,
                product_name, account_type, balance, created_at
         FROM account
@@ -65,5 +65,11 @@
         </foreach>
     </select>
 
+    <select id="sumBalanceByUserId" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(balance), 0)
+        FROM account
+        WHERE user_id = #{userId}
+          AND is_active = TRUE
+    </select>
 
 </mapper>

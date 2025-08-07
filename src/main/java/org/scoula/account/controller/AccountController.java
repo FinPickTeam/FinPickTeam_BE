@@ -2,6 +2,7 @@ package org.scoula.account.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.scoula.account.dto.AccountDto;
+import org.scoula.account.dto.AccountListWithTotalDto;
 import org.scoula.account.dto.AccountRegisterResponseDto;
 import org.scoula.account.service.AccountService;
 import org.scoula.common.dto.CommonResponseDTO;
@@ -52,10 +53,11 @@ public class AccountController {
         return ResponseEntity.ok(CommonResponseDTO.success("계좌 비활성화 완료"));
     }
 
-    @GetMapping("/users/{userId}/accounts")
-    public ResponseEntity<CommonResponseDTO<List<AccountDto>>> getActiveAccounts(@PathVariable Long userId) {
-        List<AccountDto> accounts = accountService.getActiveAccounts(userId);
-        return ResponseEntity.ok(CommonResponseDTO.success("계좌 목록 조회 성공", accounts));
+    @GetMapping("/users/{userId}/list")
+    public ResponseEntity<CommonResponseDTO<AccountListWithTotalDto>> getAccountsWithTotal(@PathVariable Long userId) {
+        AccountListWithTotalDto result = accountService.getAccountsWithTotal(userId);
+        return ResponseEntity.ok(CommonResponseDTO.success("계좌 목록 조회 성공", result));
     }
+
 
 }
