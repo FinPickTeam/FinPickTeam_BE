@@ -64,7 +64,7 @@ public class AvatarServiceImpl implements AvatarService {
         //각 타입에 해당하는 아이템코드들을 avatarVO에 삽입
         AvatarVO avatarVO = new AvatarVO();
         avatarVO.setUserId(userId);
-        avatarVO.setLevelId(itemsByType.get("avatarImage"));
+        avatarVO.setLevelId(itemsByType.get("level"));
         avatarVO.setTopId(itemsByType.get("top"));
         avatarVO.setShoesId(itemsByType.get("shoes"));
         avatarVO.setAccessoryId(itemsByType.get("accessory"));
