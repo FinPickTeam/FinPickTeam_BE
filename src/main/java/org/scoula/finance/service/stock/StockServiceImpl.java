@@ -16,6 +16,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -139,7 +140,8 @@ public class StockServiceImpl implements StockService {
                 // 가격 부호 제거
                 String curPriceRaw = root.path("cur_prc").asText();
                 String curPrice = curPriceRaw.replaceAll("[^0-9]", "");
-                dto.setStockPrice(curPrice);
+                int currentPrice = Integer.parseInt(curPrice);
+                dto.setStockPrice(currentPrice);
 
                 finalList.add(dto);
 
@@ -244,12 +246,11 @@ public class StockServiceImpl implements StockService {
 
     //주식 추천 로직
     @Override
-    public List<StockListDto> getStockRecommendationList(Long userId, int limit) {
+    public List<StockListDto> getStockRecommendationList(Long userId, int limit, Integer amount) {
         List<StockFactorDto> factorDto = stockMapper.getStockFactorData();
         List<Map<String,Object>> stockCodeList = stockMapper.getStockCodeList();
         List<StockListDto> recommendedStocks = new ArrayList<>();
         String token = stockMapper.getUserToken(userId);
-
         try{
             objectMapper.writeValue(new File("factor_input.json"), factorDto);
             objectMapper.writeValue(new File("stock_code_list.json"), stockCodeList);
@@ -293,16 +294,23 @@ public class StockServiceImpl implements StockService {
 
                 String curPriceRaw = root.path("cur_prc").asText();
                 String curPrice = curPriceRaw.replaceAll("[^0-9]", "");
-                listDto.setStockPrice(curPrice);
+                int currentPrice = Integer.parseInt(curPrice);
 
-                recommendedStocks.add(listDto);
-                count++;
+                if(amount == null){
+                    listDto.setStockPrice(currentPrice);
+                    recommendedStocks.add(listDto);
+                    count++;
+                }
+                else if(currentPrice <= amount){
+                    listDto.setStockPrice(currentPrice);
+                    recommendedStocks.add(listDto);
+                    count++;
+                }
             }
 
         }catch (Exception e){
-            e.printStackTrace();
+            System.out.println("오류 발생 " + e.getMessage());
         }
-
         return recommendedStocks;
     }
 
