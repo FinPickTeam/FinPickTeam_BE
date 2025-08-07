@@ -9,6 +9,8 @@ import org.scoula.finance.dto.stock.*;
 import org.scoula.finance.mapper.StockMapper;
 import org.scoula.finance.util.PythonExecutorUtil;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
+
 
 import java.io.*;
 import java.math.BigDecimal;
@@ -16,7 +18,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.io.File;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -32,13 +34,6 @@ public class StockServiceImpl implements StockService {
     private String stockApiKey;
     @Value("${stock.api-secret}")
     private String stockApiSecret;
-
-    @Value("${external.python.stock}")
-    private String pythonUrl;
-    @Value("${external.python.getFactor}")
-    private String pythonFactor;
-    @Value("${external.python.calcStock}")
-    private String calcStock;
 
     @Override
     public StockAccessTokenDto issueAndSaveToken(Long id) {
@@ -91,9 +86,9 @@ public class StockServiceImpl implements StockService {
 
     //   계좌번호, 수익률 전달
     @Override
-    public StockAccountDto getAccountReturnRate(Long id) {
-        String userAccount = stockMapper.getUserAccount(id);
-        String token = stockMapper.getUserToken(id);
+    public StockAccountDto getAccountReturnRate(Long userId) {
+        String userAccount = stockMapper.getUserAccount(userId);
+        String token = stockMapper.getUserToken(userId);
         String jsonData = "{\"qry_tp\" : \"1\",\"dmst_stex_tp\" : \"KRX\"}";
 
         try {
@@ -102,7 +97,7 @@ public class StockServiceImpl implements StockService {
             JsonNode root = objectMapper.readTree(response);
             String totalReturnRateStr = root.path("tot_prft_rt").asText();
             BigDecimal normalizedRate = new BigDecimal(totalReturnRateStr);
-            return new StockAccountDto(userAccount, normalizedRate.toPlainString());
+            return new StockAccountDto(userId, userAccount, normalizedRate.toPlainString());
 
         } catch (Exception e) {
             log.error("getAccountReturnRate error: {}", e.getMessage());
@@ -158,8 +153,12 @@ public class StockServiceImpl implements StockService {
     public void updateChartData() {
 
         try{
+            ClassPathResource resource = new ClassPathResource("python/stock/getData.py");
+            File pythonFile = resource.getFile();
+            String path = pythonFile.getAbsolutePath();
+
             // Python 실행
-            PythonExecutorUtil.runPythonScript(pythonUrl);
+            PythonExecutorUtil.runPythonScript(path);
 
             // json 파일 DB에 저장
             String filePath = "./data/stock/output/returns_data.json";
@@ -186,8 +185,12 @@ public class StockServiceImpl implements StockService {
     @Override
     public void updateFactor(String analyzeDate, String resultDate, String startDate){
         try{
+            ClassPathResource resource = new ClassPathResource("python/stock/getFactor.py");
+            File pythonFile = resource.getFile();
+            String path = pythonFile.getAbsolutePath();
+
             // Python 실행
-            PythonExecutorUtil.runPythonScript(pythonFactor, analyzeDate, resultDate, startDate);
+            PythonExecutorUtil.runPythonScript(path, analyzeDate, resultDate, startDate);
 
             // json 읽기
             String filePath = "./data/stock/output/factor_result.json";
@@ -259,7 +262,11 @@ public class StockServiceImpl implements StockService {
             System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(stockCodeList));
 
 
-            PythonExecutorUtil.runPythonScript(calcStock, "factor_input.json", "stock_code_list.json");
+            ClassPathResource resource = new ClassPathResource("python/stock/calcStock.py");
+            File pythonFile = resource.getFile();
+            String path = pythonFile.getAbsolutePath();
+
+            PythonExecutorUtil.runPythonScript(path, "factor_input.json", "stock_code_list.json");
 
             File resultFile = new File("./data/stock/output/calc_result.json");
 
