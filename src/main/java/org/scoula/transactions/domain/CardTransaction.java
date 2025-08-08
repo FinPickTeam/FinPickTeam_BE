@@ -1,6 +1,7 @@
 package org.scoula.transactions.domain;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.nhapi.dto.NhCardTransactionResponseDto;
 
@@ -10,6 +11,7 @@ import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Data
+@NoArgsConstructor
 public class CardTransaction {
     private Long id;
     private Long userId;

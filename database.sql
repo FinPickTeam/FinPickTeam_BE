@@ -453,7 +453,7 @@ CREATE TABLE `challenge` (
                              `password` INT NULL,
                              `use_password` BOOLEAN DEFAULT FALSE,
                              `writer_id` BIGINT NOT NULL,
-                             `status` ENUM('RECRUITING', 'IN_PROGRESS', 'COMPLETED') NOT NULL,
+                             `status` ENUM('RECRUITING', 'CLOSED','IN_PROGRESS', 'COMPLETED') NOT NULL,
                              `goal_type` VARCHAR(255) NOT NULL,
                              `goal_value` INT NOT NULL,
                              `reward_point` INT NOT NULL,

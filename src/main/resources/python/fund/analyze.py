@@ -13,7 +13,7 @@ with open(input_path, "r", encoding="utf-8") as f:
 # 2. 효용 계산 및 결과 정리
 results = []
 for fund in fund_data:
-    name = fund["fundProductName"]
+    id = fund["id"]
     A = float(fund["fundRiskAversion"])
     returns_raw = fund["fundReturnsData"]
     returns_dict = json.loads(returns_raw)
@@ -34,7 +34,7 @@ for fund in fund_data:
     utility = annualized_return - 0.5 * A * annualized_variance
 
     results.append({
-        "fundName": name,
+        "id": id,
         "expectedReturn": annualized_return,
         "variance": annualized_variance,
         "utility": utility
@@ -43,7 +43,7 @@ for fund in fund_data:
 # 3. CSV로 저장
 os.makedirs(os.path.dirname(output_path), exist_ok=True)
 with open(output_path, "w", newline="", encoding="utf-8-sig") as f:
-    writer = csv.DictWriter(f, fieldnames=["fundName", "expectedReturn", "variance", "utility"])
+    writer = csv.DictWriter(f, fieldnames=["id", "expectedReturn", "variance", "utility"])
     writer.writeheader()
     writer.writerows(results)
 

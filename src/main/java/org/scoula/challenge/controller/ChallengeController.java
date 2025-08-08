@@ -86,10 +86,13 @@ public class ChallengeController {
     public CommonResponseDTO<ChallengeResultResponseDTO> getChallengeResult(@PathVariable("id") Long challengeId,
                                                                             HttpServletRequest request) {
         String bearer = request.getHeader("Authorization");
-        Long userId = jwtUtil.getIdFromToken(bearer.replace("Bearer ", ""));
-        ChallengeResultResponseDTO result = challengeService.getChallengeResult(userId, challengeId);
+        String accessToken = bearer.replace("Bearer ", "");
+        Long userId = jwtUtil.getIdFromToken(accessToken);
+
+        ChallengeResultResponseDTO result = challengeService.getChallengeResult(userId, challengeId, accessToken);
         return CommonResponseDTO.success("챌린지 결과 조회 성공", result);
     }
+
 
     @PatchMapping("/{id}/result/confirm")
     public CommonResponseDTO<?> confirmChallengeResult(@PathVariable("id") Long challengeId,

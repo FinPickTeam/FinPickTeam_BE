@@ -33,5 +33,8 @@
         VALUES (#{userId}, 0, 0, 0)
     </insert>
 
+    <select id="getCumulativeAmount" resultType="int">
+        SELECT cumulative_amount from coin where id=#{userId}
+    </select>
 
 </mapper>

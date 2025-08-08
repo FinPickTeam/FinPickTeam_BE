@@ -29,7 +29,7 @@ public class AccountServiceImpl implements AccountService {
     private final AccountTransactionService accountTransactionService;
 
     @Override
-    public AccountRegisterResponseDto registerFinAccount(FinAccountRequestDto dto) {
+    public AccountRegisterResponseDto registerFinAccount(Long userId, FinAccountRequestDto dto) {
         // NH API를 통해 핀어카운트 발급
         String finAcno = nhAccountService.callOpenFinAccount(dto);
 
@@ -38,7 +38,7 @@ public class AccountServiceImpl implements AccountService {
 
         // 계좌 저장
         Account account = Account.builder()
-                .userId(1L) // 하드코딩된 userId (실제 로직에서는 로그인된 사용자로 대체)
+                .userId(userId) // 하드코딩 없이 로그인 유저ID
                 .pinAccountNumber(finAcno)
                 .bankCode("011")                   // 하드코딩된 은행코드
                 .accountNumber(dto.getAccountNumber())
@@ -61,9 +61,10 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void syncAccountById(Long accountId) {
+    public void syncAccountById(Long userId, Long accountId) {
         Account account = accountMapper.findById(accountId);
         if (account == null) throw new BaseException("해당 계좌가 존재하지 않습니다.", 404);
+        if (!account.getUserId().equals(userId)) throw new ForbiddenException("본인 계좌만 동기화할 수 있습니다");
         if (!Boolean.TRUE.equals(account.getIsActive())) {
             throw new BaseException("비활성화된 계좌입니다.", 400);
         }
@@ -106,7 +107,7 @@ public class AccountServiceImpl implements AccountService {
     public AccountListWithTotalDto getAccountsWithTotal(Long userId) {
         List<Account> accounts = accountMapper.findActiveByUserId(userId);
         List<AccountDto> dtoList = accounts.stream()
-                .map(AccountDto::from) // AccountDto에 static from(Account account) 만들어서 변환
+                .map(AccountDto::from)
                 .collect(Collectors.toList());
         BigDecimal total = accountMapper.sumBalanceByUserId(userId);
         AccountListWithTotalDto dto = new AccountListWithTotalDto();

@@ -13,17 +13,28 @@ import org.scoula.coin.exception.InsufficientCoinException;
 import org.scoula.common.exception.BaseException;
 import org.scoula.coin.mapper.CoinMapper;
 import org.scoula.user.mapper.UserMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
+
+import org.springframework.web.client.RestTemplate;
+import org.springframework.http.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
 public class ChallengeServiceImpl implements ChallengeService {
+
+    @Value("${stock.recommend.api.url}")
+    private String stockRecommendApiUrl;
 
     private final ChallengeMapper challengeMapper;
     private final UserMapper userMapper;
@@ -108,6 +119,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         // 챌린지 상태 및 초기 참여 인원 조건 분기
         if (req.getType() == ChallengeType.PERSONAL) {
+            System.out.println("개인 챌린지 생성");
             challenge.setStatus(ChallengeStatus.CLOSED); // 개인 챌린지는 혼자 하는 거니까 바로 모집마감
             challenge.setParticipantCount(1); // 본인만 참여
         } else if (req.getType() == ChallengeType.GROUP) {
@@ -298,7 +310,8 @@ public class ChallengeServiceImpl implements ChallengeService {
 
     // 챌린지 결과 확인 관련 로직
     @Override
-    public ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId) {
+    public ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId, String accessToken)
+    {
         Challenge challenge = challengeMapper.findChallengeById(challengeId);
         if (challenge == null) throw new ChallengeNotFoundException();
 
@@ -333,22 +346,54 @@ public class ChallengeServiceImpl implements ChallengeService {
         coinMapper.addCoinAmount(userId, finalReward);
         coinMapper.insertCoinHistory(userId, finalReward, "plus", "CHALLENGE");
 
+        int savedAmount = goal - actual;
+
+        // 🟡 추천 주식 가져오기
+        StockRecommendationDTO bestStock = null;
+        if (savedAmount > 1000) {
+            try {
+                RestTemplate restTemplate = new RestTemplate();
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(MediaType.APPLICATION_JSON);
+                headers.set("Authorization", "Bearer " + accessToken);
+
+                HttpEntity<String> entity = new HttpEntity<>(headers);
+                String url = stockRecommendApiUrl + "?priceLimit=" + savedAmount + "&limit=5";
+
+                ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+                ObjectMapper mapper = new ObjectMapper();
+                String responseBody = response.getBody();
+
+                Map<String, Object> map = mapper.readValue(responseBody, new TypeReference<Map<String, Object>>() {});
+                List<StockRecommendationDTO> stocks = mapper.convertValue(map.get("data"), new TypeReference<List<StockRecommendationDTO>>() {});
+
+                bestStock = stocks.stream()
+                        .filter(stock -> stock.getStockPrice() <= savedAmount)
+                        .max(Comparator.comparingInt(StockRecommendationDTO::getStockPrice))
+                        .orElse(null);
+            } catch (Exception e) {
+                e.printStackTrace(); // 로그 처리
+            }
+        }
+
         if (actual < goal) {
             return ChallengeResultResponseDTO.builder()
                     .resultType("SUCCESS_WIN")
                     .actualRewardPoint(finalReward)
-                    .savedAmount(goal - actual)
-                    .stockRecommendation(null) // 추후 연동
+                    .savedAmount(savedAmount)
+                    .stockRecommendation(bestStock)
                     .build();
         } else if (actual == goal) {
             return ChallengeResultResponseDTO.builder()
                     .resultType("SUCCESS_EQUAL")
                     .actualRewardPoint(finalReward)
+                    .savedAmount(0)
                     .build();
         } else {
             return ChallengeResultResponseDTO.builder()
                     .resultType("FAIL")
                     .actualRewardPoint(0)
+                    .savedAmount(0)
                     .build();
         }
     }
