@@ -13,7 +13,7 @@ public interface ChallengeService {
     void joinChallenge(Long userId, Long challengeId, Integer password);
     ChallengeSummaryResponseDTO getChallengeSummary(Long userId);
 
-    ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId, String accessToken);
+    ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId);
     void confirmChallengeResult(Long userId, Long challengeId);
     boolean hasUnconfirmedResult(Long userId);
 
