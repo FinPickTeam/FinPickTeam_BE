@@ -74,5 +74,79 @@
         WHERE id = #{ledgerId}
     </update>
 
+    <update id="updateAnalysis">
+        UPDATE ledger
+        SET analysis = #{analysis}
+        WHERE id = #{ledgerId}
+    </update>
+
+    <select id="selectCategoryPrevAvg" resultType="double">
+        SELECT IFNULL(AVG(sub.month_total), 0)
+        FROM (
+        SELECT SUM(l.amount) AS month_total
+        FROM ledger l
+        JOIN tr_category c ON l.category_id = c.id
+        LEFT JOIN account a ON l.account_id = a.id
+        LEFT JOIN card cd ON l.card_id = cd.id
+        WHERE l.user_id = #{userId}
+        AND c.name = #{category}
+        AND (l.account_id IS NULL OR a.is_active = TRUE)
+        AND (l.card_id IS NULL OR cd.is_active = TRUE)
+        AND l.date >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL #{monthCount} MONTH), '%Y-%m-01')
+        AND l.date &lt; DATE_FORMAT(NOW(), '%Y-%m-01')
+        GROUP BY DATE_FORMAT(l.date, '%Y-%m')
+        ) AS sub
+    </select>
+
+
+    <!-- Ledger 기준: 계좌(INCOME) 거래만 합산 -->
+    <select id="selectUserMonthlyIncomeByLedger" resultType="bigdecimal">
+        SELECT IFNULL(SUM(l.amount), 0)
+        FROM ledger l
+        JOIN account a ON l.account_id = a.id AND a.is_active = TRUE
+        WHERE l.user_id = #{userId}
+        AND l.type = 'INCOME'
+        AND l.date >= #{monthStart}
+        AND l.date &lt; #{nextMonthStart}
+    </select>
+
+
+
+    <select id="existsCategoryBefore" resultType="int">
+        SELECT COUNT(1)
+        FROM ledger l
+        JOIN tr_category c ON l.category_id = c.id
+        LEFT JOIN account a ON l.account_id = a.id
+        LEFT JOIN card cd ON l.card_id = cd.id
+        WHERE l.user_id = #{userId}
+        AND c.name = #{category}
+        AND (l.account_id IS NULL OR a.is_active = TRUE)
+        AND (l.card_id IS NULL OR cd.is_active = TRUE)
+        AND l.date &lt; #{before}
+        LIMIT 1
+    </select>
+
+
+    <select id="selectTopCategories" resultType="string">
+        SELECT c.name
+        FROM ledger l
+                 JOIN tr_category c ON l.category_id = c.id
+                 LEFT JOIN account a ON l.account_id = a.id
+                 LEFT JOIN card cd ON l.card_id = cd.id
+        WHERE l.user_id = #{userId}
+          AND (l.account_id IS NULL OR a.is_active = TRUE)
+          AND (l.card_id IS NULL OR cd.is_active = TRUE)
+          AND l.date >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL #{monthCount} MONTH), '%Y-%m-01')
+        GROUP BY c.name
+        ORDER BY SUM(l.amount) DESC
+        LIMIT 3
+    </select>
+
+
+
+
+
+
+
 
 </mapper>

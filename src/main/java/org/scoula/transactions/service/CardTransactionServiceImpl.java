@@ -73,6 +73,9 @@ public class CardTransactionServiceImpl implements CardTransactionService {
                 to.format(DateTimeFormatter.BASIC_ISO_DATE)
         );
 
+        Card card = cardMapper.findById(cardId);
+        if (card == null) throw new BaseException("카드 정보가 존재하지 않습니다.", 404);
+
         for (NhCardTransactionResponseDto dto : dtoList) {
             if (mapper.existsByUserIdAndKey(userId, dto.getAuthNumber(), dto.getApprovedAt())) continue;
 
@@ -80,10 +83,11 @@ public class CardTransactionServiceImpl implements CardTransactionService {
             mapper.insert(tx);
 
             if (!tx.getIsCancelled()) {
-                Ledger ledger = Ledger.fromCardTransaction(tx);
+                Ledger ledger = Ledger.fromCardTransaction(tx, card); // ✅ 카드 정보 포함
                 ledgerMapper.cardInsert(ledger);
             }
         }
+
 
         log.info("✅ 카드 {} 승인내역 동기화 완료 ({}건)", cardId, dtoList.size());
     }
