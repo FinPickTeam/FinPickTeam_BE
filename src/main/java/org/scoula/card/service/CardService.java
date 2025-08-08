@@ -8,8 +8,8 @@ import java.time.YearMonth;
 import java.util.List;
 
 public interface CardService {
-    CardRegisterResponseDto registerCard(FinCardRequestDto dto);
-    void syncCardById(Long cardId);
+    CardRegisterResponseDto registerCard(Long userId, FinCardRequestDto dto);
+    void syncCardById(Long userId, Long cardId);
     void syncAllCardsByUserId(Long userId);
     void deactivateCard(Long cardId, Long userId);
     List<CardDto> getCardsWithMonth(Long userId, YearMonth month);
