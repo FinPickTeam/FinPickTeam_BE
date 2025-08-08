@@ -10,10 +10,10 @@ import org.scoula.challenge.exception.ChallengeLimitExceededException;
 import org.scoula.challenge.exception.join.*;
 import org.scoula.challenge.mapper.ChallengeMapper;
 import org.scoula.coin.exception.InsufficientCoinException;
-import org.scoula.common.exception.BaseException;
 import org.scoula.coin.mapper.CoinMapper;
+import org.scoula.finance.dto.stock.StockListDto;
+import org.scoula.finance.service.stock.StockService;
 import org.scoula.user.mapper.UserMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,12 +33,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RequiredArgsConstructor
 public class ChallengeServiceImpl implements ChallengeService {
 
-    @Value("${stock.recommend.api.url}")
-    private String stockRecommendApiUrl;
-
     private final ChallengeMapper challengeMapper;
     private final UserMapper userMapper;
     private final CoinMapper coinMapper;
+    private final StockService stockService; // 내부 서비스 직접 호출 (액세스 토큰 전달 제거)
 
     @Override
     public ChallengeCreateResponseDTO createChallenge(Long userId, ChallengeCreateRequestDTO req) {
@@ -308,9 +306,9 @@ public class ChallengeServiceImpl implements ChallengeService {
     }
 
 
-    // 챌린지 결과 확인 관련 로직
+    // 챌린지 결과 확인 관련 로직 + 내부 StockService 직접 호출
     @Override
-    public ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId, String accessToken)
+    public ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId)
     {
         Challenge challenge = challengeMapper.findChallengeById(challengeId);
         if (challenge == null) throw new ChallengeNotFoundException();
@@ -348,32 +346,26 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         int savedAmount = goal - actual;
 
-        // 🟡 추천 주식 가져오기
+        // 🟡 추천 주식: StockService 직접 호출 (유저 토큰 X)
         StockRecommendationDTO bestStock = null;
         if (savedAmount > 1000) {
-            try {
-                RestTemplate restTemplate = new RestTemplate();
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.APPLICATION_JSON);
-                headers.set("Authorization", "Bearer " + accessToken);
+            List<StockListDto> stocks = stockService.getStockRecommendationList(userId, 5, savedAmount);
 
-                HttpEntity<String> entity = new HttpEntity<>(headers);
-                String url = stockRecommendApiUrl + "?priceLimit=" + savedAmount + "&limit=5";
+            // amount 이하에서 가장 비싼 것 선택
+            StockListDto best = stocks.stream()
+                    .filter(s -> s.getStockPrice() > 0 && s.getStockPrice() <= savedAmount) // null 체크 제거, 값 검증만
+                    .max(Comparator.comparingInt(StockListDto::getStockPrice))
+                    .orElse(null);
 
-                ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-                ObjectMapper mapper = new ObjectMapper();
-                String responseBody = response.getBody();
-
-                Map<String, Object> map = mapper.readValue(responseBody, new TypeReference<Map<String, Object>>() {});
-                List<StockRecommendationDTO> stocks = mapper.convertValue(map.get("data"), new TypeReference<List<StockRecommendationDTO>>() {});
-
-                bestStock = stocks.stream()
-                        .filter(stock -> stock.getStockPrice() <= savedAmount)
-                        .max(Comparator.comparingInt(StockRecommendationDTO::getStockPrice))
-                        .orElse(null);
-            } catch (Exception e) {
-                e.printStackTrace(); // 로그 처리
+            if (best != null) {
+                StockRecommendationDTO dto = new StockRecommendationDTO();
+                dto.setStockCode(best.getStockCode());
+                dto.setStockName(best.getStockName());
+                dto.setStockPrice(best.getStockPrice());
+                dto.setStockSummary(best.getStockSummary());
+                bestStock = dto;
             }
+
         }
 
         if (actual < goal) {
@@ -406,6 +398,11 @@ public class ChallengeServiceImpl implements ChallengeService {
     @Override
     public boolean hasUnconfirmedResult(Long userId) {
         return challengeMapper.existsUnconfirmedCompletedChallenge(userId);
+    }
+
+    @Override
+    public List<ChallengeHistoryItemDTO> getChallengeHistory(Long userId) {
+        return challengeMapper.findCompletedHistoryByUser(userId);
     }
 
 }

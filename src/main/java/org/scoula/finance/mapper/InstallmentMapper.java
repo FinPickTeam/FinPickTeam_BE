@@ -14,11 +14,11 @@ public interface InstallmentMapper {
     List<InstallmentListDto> getInstallmentList(InstallmentFilterDto filter);
 
     // 적금 상세정보 가져오기
-    InstallmentDetailDto getInstallmentDetail(String installmentProductName);
+    InstallmentDetailDto getInstallmentDetail(int installmentProductId);
     
     // 추천 로직에 필요한 데이터 가져오기
     List<InstallmentRecommendationDto> getInstallmentRecommendationList();
 
     // 상품명으로 적금 리스트 가져오기
-    List<InstallmentListDto> getInstallmentListByProductName(@Param("names") List<String> installmentProductName);
+    List<InstallmentListDto> getInstallmentListByProductId(@Param("names") List<Long> installmentProductId);
 }

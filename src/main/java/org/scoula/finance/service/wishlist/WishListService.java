@@ -11,7 +11,7 @@ public interface WishListService {
     WishListResponseDto getWishList(Long userId);
 
     // 위시리스트에 있는 상품 이름 목록 가져오기 (하트 UI 용)
-    List<String> getWishListByProductType(Long userId, String productType);
+    List<Integer> getWishListByProductType(Long userId, String productType);
 
     // 위시리스트 추가
     int insertWishList(WishListDto wishListDto);

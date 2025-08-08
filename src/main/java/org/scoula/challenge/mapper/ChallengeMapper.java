@@ -7,6 +7,7 @@ import org.scoula.challenge.dto.ChallengeMemberDTO;
 import org.scoula.challenge.dto.ChallengeSummaryResponseDTO;
 import org.scoula.challenge.enums.ChallengeStatus;
 import org.scoula.challenge.enums.ChallengeType;
+import org.scoula.challenge.dto.ChallengeHistoryItemDTO;
 
 import java.util.List;
 
@@ -85,5 +86,6 @@ public interface ChallengeMapper {
                                @Param("challengeId") Long challengeId,
                                @Param("actualRewardPoint") int actualRewardPoint);
 
+    List<ChallengeHistoryItemDTO> findCompletedHistoryByUser(@Param("userId") Long userId);
 }
 

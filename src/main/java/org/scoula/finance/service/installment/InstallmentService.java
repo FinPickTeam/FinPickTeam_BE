@@ -12,7 +12,7 @@ public interface InstallmentService {
     List<InstallmentListDto> getInstallmentList(InstallmentFilterDto filter);
 
     // 적금 상세 정보 가져오기
-    InstallmentDetailDto getInstallmentDetail(String installmentProductName);
+    InstallmentDetailDto getInstallmentDetail(int installmentProductId);
 
     // 적금 추천 리스트 가져오기
     List<InstallmentListDto> getInstallmentRecommendationList(int amount, int period, InstallmentUserConditionDto condition);

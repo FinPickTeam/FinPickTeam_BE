@@ -35,12 +35,12 @@ public class WishListController {
     
     @ApiOperation(value= "위시리스트 상품명 조회", notes = "찜목록 UI에 사용할 위시리스트 상품명을 조회합니다.")
     @GetMapping("/{productType}/names")
-    public CommonResponseDTO<List<String>> getWishListByProductType(@AuthenticationPrincipal CustomUserDetails user, @PathVariable String productType){
+    public CommonResponseDTO<List<Integer>> getWishListByProductType(@AuthenticationPrincipal CustomUserDetails user, @PathVariable String productType){
         if (!List.of("DEPOSIT", "INSTALLMENT", "FUND", "STOCK").contains(productType.toUpperCase())) {
             return CommonResponseDTO.error("타입이 올바르지 않습니다.", 400);
         }
 
-        List<String> result = wishListService.getWishListByProductType(user.getUserId(), productType.toUpperCase());
+        List<Integer> result = wishListService.getWishListByProductType(user.getUserId(), productType.toUpperCase());
         return CommonResponseDTO.success("위시리스트 상품명 조회에 성공했습니다.", result);
     }
 

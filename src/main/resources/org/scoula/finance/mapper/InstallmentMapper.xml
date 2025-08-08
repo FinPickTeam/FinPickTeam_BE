@@ -7,6 +7,7 @@
 
     <select id="getInstallmentList" parameterType="org.scoula.finance.dto.installment.InstallmentFilterDto" resultType="org.scoula.finance.dto.installment.InstallmentListDto">
         SELECT
+            id,
             installment_bank_name,
             installment_product_name,
             installment_type,
@@ -48,7 +49,7 @@
         SELECT
             *
         FROM installment_list
-        WHERE installment_product_name = #{installmentProductName}
+        WHERE id = #{installmentProductId}
     </select>
 
     <select id="getInstallmentRecommendationList" resultType="org.scoula.finance.dto.installment.InstallmentRecommendationDto">
@@ -57,15 +58,15 @@
         FROM installment_list
     </select>
 
-    <select id="getInstallmentListByProductName" resultType="org.scoula.finance.dto.installment.InstallmentListDto">
+    <select id="getInstallmentListByProductId" resultType="org.scoula.finance.dto.installment.InstallmentListDto">
         SELECT
         *
         FROM installment_list
-        WHERE installment_product_name IN
+        WHERE id IN
         <foreach item="name" collection="names" open="(" separator="," close=")">
             #{name}
         </foreach>
-        ORDER BY FIELD(installment_product_name,
+        ORDER BY FIELD(id,
         <foreach item="name" collection="names" separator=",">
             #{name}
         </foreach>

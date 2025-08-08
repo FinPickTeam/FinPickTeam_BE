@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class WishListDto {
     private Long userId;
     private String productType;
-    private String productName;
+    private String productId;
 }

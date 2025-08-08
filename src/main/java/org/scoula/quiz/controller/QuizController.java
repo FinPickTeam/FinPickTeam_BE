@@ -50,10 +50,10 @@ public class QuizController {
         return ResponseEntity.ok(CommonResponseDTO.success("퀴즈히스토리 내역조회 성공",historyList));
     }
 
-    @ApiOperation(value = "퀴즈히스토리 상세조회", notes = "유저의 퀴즈응시기록들을 상세조회합니다.")
-    @GetMapping("/HistoryDetail")
-    public ResponseEntity<CommonResponseDTO<QuizHistoryDetailDTO>> HistoryDetail(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        QuizHistoryDetailDTO QuizhistoryDetail = quizService.getHistoryDetail(userDetails.getUserId());
+    @ApiOperation(value = "퀴즈히스토리 상세조회", notes = "퀴즈응시기록들을 상세조회합니다.")
+    @GetMapping("/HistoryDetail={quizId}")
+    public ResponseEntity<CommonResponseDTO<QuizHistoryDetailDTO>> HistoryDetail(@PathVariable Long quizId) {
+        QuizHistoryDetailDTO QuizhistoryDetail = quizService.getHistoryDetail(quizId);
         return ResponseEntity.ok(CommonResponseDTO.success("퀴즈히스토리 상세조회성공",QuizhistoryDetail));
     }
 }

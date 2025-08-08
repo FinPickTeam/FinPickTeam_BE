@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.finance.dto.stock.*;
 import org.scoula.finance.mapper.StockMapper;
+import org.scoula.finance.util.KiwoomApiUtils;
 import org.scoula.finance.util.PythonExecutorUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -40,7 +41,7 @@ public class StockServiceImpl implements StockService {
         try {
             String endpoint = "/oauth2/token";
 
-            URL url = new URL(createUrl(endpoint));
+            URL url = new URL(KiwoomApiUtils.createUrl(endpoint));
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
             // Header 데이터 설정
@@ -92,7 +93,7 @@ public class StockServiceImpl implements StockService {
         String jsonData = "{\"qry_tp\" : \"1\",\"dmst_stex_tp\" : \"KRX\"}";
 
         try {
-            String response = sendPostRequest("/api/dostk/acnt", token, jsonData, "kt00018");
+            String response = KiwoomApiUtils.sendPostRequest("/api/dostk/acnt", token, jsonData, "kt00018");
 
             JsonNode root = objectMapper.readTree(response);
             String totalReturnRateStr = root.path("tot_prft_rt").asText();
@@ -117,7 +118,7 @@ public class StockServiceImpl implements StockService {
 
             try {
                 // 1. API 요청 및 응답 파싱
-                String response = sendPostRequest("/api/dostk/stkinfo", token,
+                String response = KiwoomApiUtils.sendPostRequest("/api/dostk/stkinfo", token,
                         String.format("{\"stk_cd\" : \"%s\"}", stockCode), "ka10001");
 
                 JsonNode root = objectMapper.readTree(response);
@@ -214,7 +215,7 @@ public class StockServiceImpl implements StockService {
         String token = stockMapper.getUserToken(id);
 
         try {
-            String response = sendPostRequest("/api/dostk/stkinfo", token,
+            String response = KiwoomApiUtils.sendPostRequest("/api/dostk/stkinfo", token,
                     String.format("{\"stk_cd\" : \"%s\"}", stockCode), "ka10001");
 
             StockListDataDto listDto = stockMapper.getStockListDataByStockCode(stockCode);
@@ -282,7 +283,7 @@ public class StockServiceImpl implements StockService {
 
                 String stockCode = entry.getKey();
 
-                String response = sendPostRequest("/api/dostk/stkinfo", token,
+                String response = KiwoomApiUtils.sendPostRequest("/api/dostk/stkinfo", token,
                         String.format("{\"stk_cd\" : \"%s\"}", stockCode), "ka10001");
 
                 JsonNode root = objectMapper.readTree(response);
@@ -321,11 +322,6 @@ public class StockServiceImpl implements StockService {
         return recommendedStocks;
     }
 
-    public String createUrl(String endpoint) {
-        String host = "https://mockapi.kiwoom.com";
-        return host + endpoint;
-    }
-
     public String createJsonData() {
         Map<String, String> payload = new HashMap<>();
         payload.put("grant_type", "client_credentials");
@@ -337,56 +333,5 @@ public class StockServiceImpl implements StockService {
             log.error("createJsonData error: {}", e.getMessage());
             return "{}";
         }
-    }
-
-    // api 요청 함수
-    private String sendPostRequest(String endpoint, String token, String jsonData, String apiId) {
-        int maxRetries = 3;
-        int retryDelayMs = 500;
-
-        for (int attempt = 1; attempt <= maxRetries; attempt++) {
-            try {
-                URL url = new URL(createUrl(endpoint));
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-                connection.setRequestMethod("POST");
-                connection.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
-                connection.setRequestProperty("authorization", "Bearer " + token);
-                connection.setRequestProperty("api-id", apiId);
-                connection.setDoOutput(true);
-
-                try (OutputStream os = connection.getOutputStream()) {
-                    os.write(jsonData.getBytes(StandardCharsets.UTF_8));
-                }
-
-                int responseCode = connection.getResponseCode();
-
-                // 429: Too Many Requests
-                if (responseCode == 429) {
-                    log.warn("Received 429 Too Many Requests. Attempt {}/{}", attempt, maxRetries);
-                    Thread.sleep(retryDelayMs); // 일정 시간 대기 후 재시도
-                    continue;
-                }
-
-                InputStream inputStream = (responseCode >= 200 && responseCode < 300)
-                        ? connection.getInputStream()
-                        : connection.getErrorStream();
-
-                StringBuilder response = new StringBuilder();
-                try (Scanner scanner = new Scanner(inputStream, StandardCharsets.UTF_8)) {
-                    while (scanner.hasNextLine()) {
-                        response.append(scanner.nextLine());
-                    }
-                }
-
-                return response.toString();
-
-            } catch (IOException | InterruptedException e) {
-                log.error("sendPostRequest error (attempt {}): {}", attempt, e.getMessage());
-            }
-        }
-
-        log.error("sendPostRequest failed after {} attempts", maxRetries);
-        return "";
     }
 }
