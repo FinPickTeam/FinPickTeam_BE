@@ -31,9 +31,9 @@ public class StockServiceImpl implements StockService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final StockMapper stockMapper;
 
-    @Value("${stock.api-key}")
+    @Value("${stock.api.key}")
     private String stockApiKey;
-    @Value("${stock.api-secret}")
+    @Value("${stock.api.secret}")
     private String stockApiSecret;
 
     @Override

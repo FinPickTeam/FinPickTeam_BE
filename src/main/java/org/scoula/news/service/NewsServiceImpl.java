@@ -37,11 +37,11 @@ public class NewsServiceImpl implements NewsService {
     final private AlarmService alarmService;
     final private RestTemplate restTemplate=new RestTemplate();
 
-    @Value("${naver.api.client-id}")
+    @Value("${naver.api.client.id}")
     private String id;
-    @Value("${naver.api.client-secret}")
+    @Value("${naver.api.client.secret}")
     private String SECRET;
-    @Value("${naver.api.news-url}")
+    @Value("${naver.api.news.url}")
     private String URL;
 
 
