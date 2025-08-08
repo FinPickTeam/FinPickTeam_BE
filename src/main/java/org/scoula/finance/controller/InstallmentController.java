@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Api(tags = {"적금 API"})
-@RequestMapping("/v1/api/installment")
+@RequestMapping("/api/v1/installment")
 public class InstallmentController {
     private final InstallmentService installmentService;
 

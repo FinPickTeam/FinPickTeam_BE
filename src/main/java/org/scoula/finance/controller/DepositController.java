@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Api(tags = {"예금 API"})
-@RequestMapping("v1/api/deposit")
+@RequestMapping("/api/v1/deposit")
 public class DepositController {
     private final DepositService depositService;
 

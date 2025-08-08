@@ -12,6 +12,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -46,6 +47,7 @@ public class NewsServiceImpl implements NewsService {
 
     @Transactional
     @Override
+    @Scheduled(cron = "0 0 7 * * *")
     public void insertNews() {
 
         //http요청 헤더 구성

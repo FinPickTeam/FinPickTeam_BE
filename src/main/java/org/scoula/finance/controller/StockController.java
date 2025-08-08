@@ -20,7 +20,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Api(tags = {"주식 API"})
-@RequestMapping("v1/api/stock")
+@RequestMapping("/api/v1/stock")
 public class StockController {
     private final StockService stockService;
 
