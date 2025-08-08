@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class FundRecommendationDto {
+    private String id;
     private String fundManager; // 펀드 운용사
     private String fundProductName; // 펀드명
     private String fundRiskLevel; // 위험등급

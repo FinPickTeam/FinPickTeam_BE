@@ -11,6 +11,7 @@
             resultType="org.scoula.finance.dto.deposit.DepositListDto">
 
         SELECT
+        id,
         deposit_bank_name,
         deposit_product_name,
         deposit_contract_period,
@@ -44,12 +45,12 @@
         </choose>
     </select>
 
-    <!-- 예금 상세 조회 by 상품명 -->
+    <!-- 예금 상세 조회 by 상품Id -->
     <select id="selectDepositByProductName" resultType="org.scoula.finance.dto.deposit.DepositDetailDto">
         SELECT
             *
         FROM deposit_list
-        WHERE deposit_product_name = #{productName}
+        WHERE id = #{productId}
     </select>
 
     <!-- 예금 추천 목록 조회 -->

@@ -32,8 +32,8 @@ public class DepositServiceImpl implements DepositService {
 
     // 예금 상세 조회
     @Override
-    public DepositDetailDto selectDepositByProductName(String depositProductName) {
-        return depositMapper.selectDepositByProductName(depositProductName);
+    public DepositDetailDto selectDepositByProductName(Long depositId) {
+        return depositMapper.selectDepositByProductName(depositId);
     }
 
     // 예금 추천

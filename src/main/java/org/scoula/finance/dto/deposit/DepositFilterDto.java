@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class DepositFilterDto {
+    private Long id;
     private String bankName; // 은행명
     private Integer contractPeriodMonth; // 계약 기간 (개월 수)
     private Integer minSubscriptionAmount; // 최소 가입 금액 (단위: 원)
