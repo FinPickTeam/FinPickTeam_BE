@@ -15,6 +15,7 @@ public interface CoinMapper {
     // 회원가입시 초기 데이터 생성
     void insertInitialCoin(@Param("userId") Long userId);
 
-
+    //누적포인트 조회
+    int getCumulativeAmount(@Param("userId") Long userId);
 }
 

@@ -18,4 +18,6 @@ public interface AvatarService{
     void insertClothe(Long userId, Long itemId);
 
     int getCoin(Long userId);
+
+    void updateAvatarByItemId(Long userId, Long itemId);
 }

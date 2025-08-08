@@ -7,9 +7,9 @@
 
     <insert id="insertChallenge" parameterType="org.scoula.challenge.domain.Challenge" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO challenge
-        (title, category_id, start_date, end_date, description, type, max_participants, password, use_password, writer_id, status, goal_type, goal_value, participant_count)
+        (title, category_id, start_date, end_date, description, type, max_participants, password, use_password, writer_id, status, goal_type, goal_value, participant_count, reward_point)
         VALUES
-            (#{title}, #{categoryId}, #{startDate}, #{endDate}, #{description}, #{type}, #{maxParticipants}, #{password}, #{usePassword}, #{writerId}, #{status}, #{goalType}, #{goalValue}, #{participantCount})
+            (#{title}, #{categoryId}, #{startDate}, #{endDate}, #{description}, #{type}, #{maxParticipants}, #{password}, #{usePassword}, #{writerId}, #{status}, #{goalType}, #{goalValue}, #{participantCount}, #{rewardPoint})
     </insert>
 
     <insert id="insertUserChallenge">

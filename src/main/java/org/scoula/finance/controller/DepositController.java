@@ -33,10 +33,10 @@ public class DepositController {
 
 //    예금 상세 조회
     @ApiOperation(value = "예금 상세 정보 조회", notes = "예금 상품명으로 상세 정보를 조회합니다.")
-    @GetMapping("/depositdetail/{depositProductName}")
-    public CommonResponseDTO<DepositDetailDto> getDepositList(@PathVariable String depositProductName)
+    @GetMapping("/depositDetail/")
+    public CommonResponseDTO<DepositDetailDto> getDepositList(@RequestParam Long productId)
     {
-        DepositDetailDto dto = depositService.selectDepositByProductName(depositProductName);
+        DepositDetailDto dto = depositService.selectDepositByProductName(productId);
 
         if(dto != null){
             return CommonResponseDTO.success("예금 상세 정보를 가져오는데 성공했습니다.", dto);

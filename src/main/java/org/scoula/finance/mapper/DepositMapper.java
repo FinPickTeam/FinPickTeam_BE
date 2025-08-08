@@ -13,7 +13,7 @@ import java.util.List;
 public interface DepositMapper {
     List<DepositListDto> getDepoistList(DepositFilterDto filterDto);
     List<DepositRecommendationDto> selectAllDepositRecommendations();
-    DepositDetailDto selectDepositByProductName(@Param("productName") String productName);
+    DepositDetailDto selectDepositByProductName(@Param("productId") Long productId);
     List<DepositListDto> selectDepositListByProductName(@Param("names") List<String> names);
 
 }

@@ -30,8 +30,8 @@ public class FundServiceImpl  implements FundService {
 
     // 펀드 상세 정보 조회
     @Override
-    public FundDetailDto getFundDetail(String fundProductName){
-        return fundMapper.getFundDetail(fundProductName);
+    public FundDetailDto getFundDetail(Long productId){
+        return fundMapper.getFundDetail(productId);
     }
 
     @Override
@@ -43,7 +43,7 @@ public class FundServiceImpl  implements FundService {
             // 투자성향을 이용해 A값을 1 ~ 50?로 설정 안정형일수록 높음
             // 1. paylaod 생성
             List<FundRequestDto> productPayload = recommendationList.stream()
-                    .map(dto -> new FundRequestDto(dto.getFundProductName(), "25", dto.getFundReturnsData()))
+                    .map(dto -> new FundRequestDto(dto.getId(), "25", dto.getFundReturnsData()))
                     .toList();
             
             // 2. input.json 저장
@@ -68,11 +68,11 @@ public class FundServiceImpl  implements FundService {
             csvResult.forEach(System.out::println);
 
             for(Map<String,Object> result : csvResult){
-                String name = (String) result.get("fundName");
-                double utility = (Double) result.get("utility");
+                Long strId = ((Number) result.get("id")).longValue();
+                double utility = ((Number) result.get("utility")).doubleValue();
 
                 Map<String, Object> item = new HashMap<>();
-                item.put("fundName", name);
+                item.put("id", strId);
                 item.put("utility", utility);
 
                 resultList.add(item);
@@ -82,12 +82,12 @@ public class FundServiceImpl  implements FundService {
 
 
             resultList.sort((a,b) -> Double.compare((Double) b.get("utility"), (Double) a.get("utility")));
-            List<String> top5Names = resultList.stream()
+            List<Long> top5Names = resultList.stream()
                     .limit(5)
-                    .map(r -> (String) r.get("fundName"))
+                    .map(r -> (Long) r.get("id"))
                     .toList();
 
-            return fundMapper.getFundListByFundProductName(top5Names);
+            return fundMapper.getFundListByFundProductId(top5Names);
 
         } catch(Exception e){
             e.printStackTrace();

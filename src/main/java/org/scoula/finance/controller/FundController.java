@@ -38,13 +38,13 @@ public class FundController {
     }
 
     @ApiOperation(value = "펀드 상세 조회", notes = "상품명을 기반으로 펀드 상세 정보를 조회합니다.")
-    @GetMapping("/fundDetail/{fundProductName}")
-    public CommonResponseDTO<FundDetailDto> FundDetail(@PathVariable String fundProductName) {
-        if(fundProductName == null){
+    @GetMapping("/fundDetail/")
+    public CommonResponseDTO<FundDetailDto> FundDetail(@RequestParam Long productId) {
+        if(productId == null){
             return CommonResponseDTO.error("펀드 상세정보를 불러오는데 실패했습니다.", 400);
         }
 
-        FundDetailDto dto = fundService.getFundDetail(fundProductName);
+        FundDetailDto dto = fundService.getFundDetail(productId);
 
         if(dto != null){
             return CommonResponseDTO.success("펀드 상세정보를 불러오는데 성공했습니다.", dto);
