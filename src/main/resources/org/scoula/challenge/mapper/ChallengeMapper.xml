@@ -202,5 +202,31 @@
         WHERE user_id = #{userId} AND challenge_id = #{challengeId}
     </update>
 
+    <!-- 완료된(is_completed=1) 챌린지 히스토리: resultType 그대로 사용 -->
+    <select id="findCompletedHistoryByUser" resultType="org.scoula.challenge.dto.ChallengeHistoryItemDTO">
+        SELECT
+            uc.challenge_id              AS challengeId,
+            c.title                      AS title,
+            cc.name                      AS categoryName,
+            c.type                       AS type,
+            c.start_date                 AS startDate,
+            c.end_date                   AS endDate,
+            uc.is_success                AS isSuccess,
+            uc.is_completed              AS isCompleted,
+            uc.actual_value              AS actualValue,
+            c.goal_value                 AS goalValue,
+            uc.actual_reward_point       AS actualRewardPoint,
+            uc.result_checked            AS resultChecked,
+            DATE(uc.updated_at)          AS completedAt     -- ✅ LocalDate 매핑용으로 DATE() 처리
+        FROM user_challenge uc
+            JOIN challenge c
+        ON uc.challenge_id = c.id
+            LEFT JOIN challenge_category cc
+            ON c.category_id = cc.id
+        WHERE uc.user_id = #{userId}
+          AND uc.is_completed = 1
+        ORDER BY uc.updated_at DESC
+    </select>
+
 
 </mapper>

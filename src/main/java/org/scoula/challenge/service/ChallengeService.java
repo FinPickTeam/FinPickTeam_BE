@@ -16,5 +16,5 @@ public interface ChallengeService {
     ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId);
     void confirmChallengeResult(Long userId, Long challengeId);
     boolean hasUnconfirmedResult(Long userId);
-
+    List<ChallengeHistoryItemDTO> getChallengeHistory(Long userId);
 }
