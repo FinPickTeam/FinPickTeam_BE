@@ -20,7 +20,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Api(tags = {"위시리스트 API"})
-@RequestMapping("v1/api/wishlist")
+@RequestMapping("/api/v1/wishlist")
 public class WishListController {
     private final WishListService wishListService;
 

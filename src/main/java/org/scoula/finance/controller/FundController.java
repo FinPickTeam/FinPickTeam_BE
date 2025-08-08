@@ -19,7 +19,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Api(tags = {"펀드 API"})
-@RequestMapping("v1/api/fund")
+@RequestMapping("/api/v1/fund")
 public class FundController {
     private final FundService fundService;
 
