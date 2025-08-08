@@ -42,10 +42,10 @@ public class InstallmentController {
     }
 
     @ApiOperation(value = "적금 상세 조회", notes = "상품명을 기반으로 적금 상세 정보를 조회합니다.")
-    @GetMapping("/installmentDetail/{installmentProductName}")
+    @GetMapping("/installmentDetail/")
     public CommonResponseDTO<InstallmentDetailDto> getInstallmentDetail(
-            @PathVariable String installmentProductName){
-        InstallmentDetailDto dto = installmentService.getInstallmentDetail(installmentProductName);
+            @RequestParam int installmentProductId){
+        InstallmentDetailDto dto = installmentService.getInstallmentDetail(installmentProductId);
 
         if(dto != null) {
             return CommonResponseDTO.success(dto.getInstallmentProductName() + "의 데이터를 불러오는데 성공했습니다.", dto);

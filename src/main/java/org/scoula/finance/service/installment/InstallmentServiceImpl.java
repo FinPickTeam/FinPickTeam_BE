@@ -2,6 +2,7 @@ package org.scoula.finance.service.installment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.scoula.finance.dto.deposit.DepositRecommendationDto;
 import org.scoula.finance.util.CsvUtils;
 import org.scoula.finance.util.PythonExecutorUtil;
 import org.scoula.finance.util.UtilityCalculator;
@@ -33,8 +34,8 @@ public class InstallmentServiceImpl implements InstallmentService {
 
     // 적금 상품명으로 상세 정보 조회하기
     @Override
-    public InstallmentDetailDto getInstallmentDetail(String installmentProductName){
-        return installmentMapper.getInstallmentDetail(installmentProductName);
+    public InstallmentDetailDto getInstallmentDetail(int installmentProductId){
+        return installmentMapper.getInstallmentDetail(installmentProductId);
     }
 
     //사용자 맞춤 적금 추천 상품 리스트 조회하기
@@ -50,7 +51,7 @@ public class InstallmentServiceImpl implements InstallmentService {
         try{
             // 1. payload 생성
             List<InstallmentConditionPayload> productPayloads = filteredList.stream()
-                    .map(dto -> new InstallmentConditionPayload(dto.getInstallmentProductName(), dto.getInstallmentPreferentialRate()))
+                    .map(dto -> new InstallmentConditionPayload(dto.getId(), dto.getInstallmentPreferentialRate()))
                     .toList();
             InstallmentRequestPayload payload = new InstallmentRequestPayload(period, conditionDto, productPayloads);
 
@@ -78,14 +79,13 @@ public class InstallmentServiceImpl implements InstallmentService {
             // 5. 유틸리티 계산
             UtilityCalculator calculator = new UtilityCalculator();
             for(Map<String, Object> row : csvResult){
-                String name = (String) row.get("name");
+                Long strId = ((Number) row.get("id")).longValue();
                 double totalRate = (Double) row.get("totalRate");
                 int matchedCount = ((Double) row.get("matchedCount")).intValue();
 
                 Optional<InstallmentRecommendationDto> match = filteredList.stream()
                         .filter(dto -> {
-                            boolean matched = dto.getInstallmentProductName().equals(name);
-                            return matched;
+                            return (Objects.equals(dto.getId(), strId));
                         })
                         .findFirst();
 
@@ -99,8 +99,8 @@ public class InstallmentServiceImpl implements InstallmentService {
                     );
 
                     Map<String, Object> result = new HashMap<>();
-                    result.put("상품명", dto.getInstallmentProductName());
-                    result.put("유틸리티", utility);
+                    result.put("id", dto.getId());
+                    result.put("utility", utility);
                     resultList.add(result);
                 }
             }
@@ -110,17 +110,17 @@ public class InstallmentServiceImpl implements InstallmentService {
             resultList.stream()
                     .limit(5)
                     .forEach(r -> {
-                        System.out.println("상품명: " + r.get("상품명") + ", 유틸리티: " + r.get("유틸리티"));
+                        System.out.println("id: " + r.get("id") + ", utility: " + r.get("utility"));
                     });
 
             // 6. 정렬 후 최종 추천
-            resultList.sort((a, b) -> Double.compare((Double) b.get("유틸리티"), (Double) a.get("유틸리티")));
-            List<String> top5Names = resultList.stream()
+            resultList.sort((a, b) -> Double.compare((Double) b.get("utility"), (Double) a.get("utility")));
+            List<Long> top5Names = resultList.stream()
                     .limit(5)
-                    .map(r -> (String) r.get("상품명"))
+                    .map(r -> (Long) r.get("id"))
                     .toList();
 
-            return installmentMapper.getInstallmentListByProductName(top5Names);
+            return installmentMapper.getInstallmentListByProductId(top5Names);
 
         } catch (Exception e) {
             e.printStackTrace();

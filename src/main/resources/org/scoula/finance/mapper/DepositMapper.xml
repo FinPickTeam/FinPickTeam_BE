@@ -46,7 +46,7 @@
     </select>
 
     <!-- 예금 상세 조회 by 상품Id -->
-    <select id="selectDepositByProductName" resultType="org.scoula.finance.dto.deposit.DepositDetailDto">
+    <select id="selectDepositByProductId" resultType="org.scoula.finance.dto.deposit.DepositDetailDto">
         SELECT
             *
         FROM deposit_list
@@ -60,15 +60,15 @@
         FROM deposit_list
     </select>
 
-    <select id="selectDepositListByProductName" resultType="org.scoula.finance.dto.deposit.DepositListDto">
+    <select id="selectDepositListByProductId" resultType="org.scoula.finance.dto.deposit.DepositListDto">
         SELECT
         *
         FROM deposit_list
-        WHERE deposit_product_name IN
+        WHERE id IN
         <foreach item="name" collection="names" open="(" separator="," close=")">
             #{name}
         </foreach>
-        ORDER BY FIELD(deposit_product_name,
+        ORDER BY FIELD(id,
         <foreach item="name" collection="names" separator=",">
             #{name}
         </foreach>
