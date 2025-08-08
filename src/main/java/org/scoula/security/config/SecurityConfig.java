@@ -30,6 +30,9 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.CorsFilter;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 @Slf4j
@@ -65,6 +68,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
+        // TODO: 실제 프론트 도메인으로 교체
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173"
+        ));
+
         config.addAllowedOriginPattern("*");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
@@ -88,12 +96,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) {
+        // 정적/스웨거만 시큐리티 무시 (절대 "/*" 같은 광역 제외 쓰지 말기)
         web.ignoring().antMatchers(
                 "/assets/**",
-                "/*",
-                "/api/member/signup",
-                "/swagger-ui.html", "/webjars/**",
-                "/swagger-resources/**", "/v2/api-docs"
+                // "/*",
+                "/favicon.ico",
+                "/swagger-ui.html", "/swagger-ui/**",
+                "/swagger-resources/**",
+                "/v2/api-docs", "/v3/api-docs/**",
+                "/webjars/**"
         );
     }
 
@@ -111,20 +122,24 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
                 .and()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.OPTIONS).permitAll()
-                .antMatchers(HttpMethod.POST, "/api/member").authenticated()
-                .antMatchers(HttpMethod.PUT, "/api/member", "/api/member/*/changepassword").authenticated()
-                .antMatchers(HttpMethod.POST, "/api/board/**").authenticated()
-                .antMatchers(HttpMethod.PUT, "/api/board/**").authenticated()
-                .antMatchers(HttpMethod.DELETE, "/api/board/**").authenticated()
-                .anyRequest().permitAll()
+                    .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                    .antMatchers(HttpMethod.POST, "/api/user/signup").permitAll()
+                    .antMatchers(HttpMethod.GET,  "/api/user/email-check").permitAll()
+                    .antMatchers(HttpMethod.POST, "/api/user/password-reset").permitAll()
+                    .antMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                    .antMatchers(HttpMethod.POST,  "/api/auth/test-login").permitAll()
+
+                    // 그 외는 기본 차단(로그인 필요)
+                    .anyRequest().authenticated()
 
                 .and()
+                .cors() // 아래 corsFilter() Bean과 연결
+                .and()
+                .csrf().disable()     // FE에서 /csrf 호출 제거
                 .httpBasic().disable()
-                .csrf().disable()
                 .formLogin().disable()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
     }
 
     @Bean
@@ -136,6 +151,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         JwtEmailPasswordAuthenticationFilter filter =
                 new JwtEmailPasswordAuthenticationFilter(loginSuccessHandler, loginFailureHandler);
         filter.setAuthenticationManager(authenticationManager);
+
+        // 로그인 요청 URL을 명확히 고정 (FE 호출 경로와 반드시 동일)
+        filter.setFilterProcessesUrl("/api/auth/login");
+
         return filter;
     }
 }
