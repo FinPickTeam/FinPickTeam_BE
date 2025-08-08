@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.transactions.mapper.CardTransactionMapper">
+
+    <!-- ✔️ 단건 단순 조회용 -->
+    <select id="findCardTransactions" resultType="org.scoula.transactions.domain.CardTransaction">
+        SELECT
+        id, user_id, card_id, auth_number, sales_type, approved_at, payment_date,
+        amount, is_cancelled, cancel_amount, cancelled_at, merchant_name,
+        tpbcd, tpbcd_nm, installment_month, currency, foreign_amount, created_at
+        FROM card_transaction
+        WHERE user_id = #{userId}
+        AND card_id = #{cardId}
+        AND is_cancelled = FALSE
+        <if test="from != null">AND approved_at &gt;= #{from}</if>
+        <if test="to != null">AND approved_at &lt;= #{to}</if>
+        ORDER BY approved_at DESC
+    </select>
+
+    <insert id="insert" parameterType="org.scoula.transactions.domain.CardTransaction"
+            useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO card_transaction (
+            user_id, card_id, auth_number, sales_type, approved_at, payment_date,
+            amount, is_cancelled, cancel_amount, cancelled_at, merchant_name,
+            tpbcd, tpbcd_nm, installment_month, currency, foreign_amount, created_at
+        )
+        VALUES (
+                   #{userId}, #{cardId}, #{authNumber}, #{salesType}, #{approvedAt}, #{paymentDate},
+                   #{amount}, #{isCancelled}, #{cancelAmount}, #{cancelledAt}, #{merchantName},
+                   #{tpbcd}, #{tpbcdNm}, #{installmentMonth}, #{currency}, #{foreignAmount}, #{createdAt}
+               )
+    </insert>
+
+
+
+    <!-- ✔️ 카드 승인내역 대량 accountInsert -->
+    <insert id="insertCardTransactions" parameterType="list">
+        INSERT INTO card_transaction (
+        user_id, card_id, auth_number, sales_type, approved_at, payment_date,
+        amount, is_cancelled, cancel_amount, cancelled_at, merchant_name,
+        tpbcd, tpbcd_nm, installment_month, currency, foreign_amount, created_at
+        )
+        VALUES
+        <foreach collection="list" item="tx" separator=",">
+            (
+            #{tx.userId}, #{tx.cardId}, #{tx.authNumber}, #{tx.salesType}, #{tx.approvedAt}, #{tx.paymentDate},
+            #{tx.amount}, #{tx.isCancelled}, #{tx.cancelAmount}, #{tx.cancelledAt}, #{tx.merchantName},
+            #{tx.tpbcd}, #{tx.tpbcdNm}, #{tx.installmentMonth}, #{tx.currency}, #{tx.foreignAmount}, #{tx.createdAt}
+            )
+        </foreach>
+    </insert>
+
+    <select id="existsByUserIdAndKey" resultType="boolean">
+        SELECT EXISTS(
+            SELECT 1 FROM card_transaction
+            WHERE user_id = #{userId}
+              AND auth_number = #{authNumber}
+              AND approved_at = #{approvedAt}
+        )
+    </select>
+
+    <select id="findLastTransactionDate" resultType="java.time.LocalDateTime">
+        SELECT MAX(approved_at)
+        FROM card_transaction
+        WHERE card_id = #{cardId}
+    </select>
+
+    <select id="sumMonthlySpending" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM card_transaction
+        WHERE user_id = #{userId}
+        AND is_cancelled = FALSE
+        AND approved_at &gt;= #{start}
+        AND approved_at &lt;= #{end}
+    </select>
+
+    <select id="sumMonthlySpendingByCard" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount),0)
+        FROM card_transaction
+        WHERE user_id = #{userId}
+          AND card_id = #{cardId}
+          AND is_cancelled = FALSE
+          AND approved_at &gt;= #{start}
+          AND approved_at &lt;= #{end}
+    </select>
+
+
+</mapper>

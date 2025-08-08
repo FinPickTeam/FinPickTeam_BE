@@ -11,4 +11,7 @@ public interface UserService {
     TokenResponseDTO login(UserLoginRequestDTO req);
     TokenResponseDTO refresh(String refreshToken);
     String resetPassword(String email);
+    void logout(String token);
+    void withdrawal(String token);
+    void checkAndLevelUp(Long userId);
 }

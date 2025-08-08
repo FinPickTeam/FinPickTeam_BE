@@ -11,10 +11,9 @@ import java.util.List;
 
 @Mapper
 public interface DepositMapper {
-    List<DepositListDto> selectAllDeposits();
-    List<DepositListDto> selectDepositsWithFilter(DepositFilterDto filterDto);
+    List<DepositListDto> getDepoistList(DepositFilterDto filterDto);
     List<DepositRecommendationDto> selectAllDepositRecommendations();
-    DepositDetailDto selectDepositByProductName(@Param("productName") String productName);
-    List<DepositRecommendationDto> selectDepositsByProductName(@Param("productName") String productName);
+    DepositDetailDto selectDepositByProductId(@Param("productId") Long productId);
+    List<DepositListDto> selectDepositListByProductId(@Param("names") List<Long> names);
 
 }

@@ -12,13 +12,12 @@ import java.util.List;
 public class StockListDto {
     private String stockCode;
     private String stockName;
-    private String stockChartData;
-    private String stockPrice;
+    private String stockReturnsData;
+    private int stockPrice;
     private String stockMarketType;
     private String stockPredictedPrice;
     private String stockChangeRate;
     private String stockSummary;
-    private String stockGptReason;
 
 
 }

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.transactions.mapper.AccountTransactionMapper">
+
+    <select id="findAccountTransactions" resultType="org.scoula.transactions.domain.AccountTransaction">
+        SELECT id, user_id, account_id, date, type, amount, balance, place
+        FROM account_transaction
+        WHERE user_id = #{userId}
+        AND account_id = #{accountId}
+        AND is_cancelled = FALSE
+        <if test="from != null">AND date &gt;= #{from}</if>
+        <if test="to != null">AND date &lt;= #{to}</if>
+        ORDER BY date DESC
+    </select>
+
+    <insert id="insert"
+            parameterType="org.scoula.transactions.domain.AccountTransaction"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        INSERT INTO account_transaction (
+            user_id, account_id, date, type, amount, balance, place, is_cancelled, tu_no
+        ) VALUES (
+                     #{userId}, #{accountId}, #{date}, #{type}, #{amount}, #{balance}, #{place}, #{isCancelled}, #{tuNo}
+                 )
+    </insert>
+
+
+    <select id="existsByUserIdAndTuNo" resultType="boolean">
+        SELECT COUNT(1) > 0
+        FROM account_transaction
+        WHERE user_id = #{userId}
+          AND tu_no = #{tuNo}
+    </select>
+
+    <select id="findLastTransactionDate" resultType="java.time.LocalDateTime">
+        SELECT MAX(date)
+        FROM account_transaction
+        WHERE account_id = #{accountId}
+    </select>
+
+</mapper>
+

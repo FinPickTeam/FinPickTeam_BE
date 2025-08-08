@@ -3,23 +3,28 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+.idea/
 
 ### IntelliJ IDEA ###
+.idea
 .idea/modules.xml
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/
+.idea/workspace.xml
+.idea/dataSources.local.xml
 *.iws
 *.iml
 *.ipr
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+/src/finance/**/output/
 
 ### Eclipse ###
 .apt_generated
 .classpath
-.factorypath
+.factorypatht
 .project
 .settings
 .springBeans
@@ -46,3 +51,12 @@ bin/
 
 # 민감 정보 보호
 /src/main/resources/application.properties
+
+# 디폴트 무시된 파일
+/shelf/
+/workspace.xml
+# 에디터 기반 HTTP 클라이언트 요청
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml

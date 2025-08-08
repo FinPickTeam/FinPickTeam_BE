@@ -25,7 +25,7 @@ tasks.withType(JavaCompile) {
   options.encoding = 'UTF-8'
 }
 
-// ✅ Swagger UI를 위한 별도 configuration 정의
+// Swagger UI를 위한 별도 configuration 정의
 configurations {
   swaggerUI
 }
@@ -62,6 +62,9 @@ dependencies {
   implementation "org.apache.logging.log4j:log4j-core:${log4j2Version}"
   implementation "org.apache.logging.log4j:log4j-slf4j-impl:${log4j2Version}"
   implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4:1.16'
+
+  //json
+  implementation 'org.json:json:20240303'
 
   // 기타
   implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
@@ -101,11 +104,32 @@ dependencies {
   implementation 'org.springframework.data:spring-data-redis:2.7.18'
   implementation 'io.lettuce:lettuce-core:6.1.10.RELEASE'
 
-  // ✅ Swagger UI WebJar 리소스를 수동으로 추가
+
+  // commons-te
+  implementation 'org.apache.commons:commons-text:1.10.0'
+
+  // openCSV
+  implementation 'com.opencsv:opencsv:5.7.1'
+
+  //Swagger UI WebJar 리소스를 수동으로 추가
   add("swaggerUI", "org.webjars:swagger-ui:3.52.5")
+
+  // Jackson이 Java 8 날짜/시간 API를 인식하도록
+  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+
+  // GPT 활용 관련 okhttp3 라이브러리 추가
+  implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+  implementation 'org.json:json:20240303'
+
+  //PDF 생성용 HTML → PDF 변환기
+  implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'
+
+  // 내부 API 호출
+  implementation 'com.fasterxml.jackson.core:jackson-databind'
+
 }
 
-// ✅ 정적 리소스 복사 작업 (최신 Gradle 스타일)
+// 정적 리소스 복사 작업 (최신 Gradle 스타일)
 tasks.register("copySwaggerUI", Copy) {
   from(configurations.swaggerUI.collect { zipTree(it) }) {
     include 'META-INF/resources/**'

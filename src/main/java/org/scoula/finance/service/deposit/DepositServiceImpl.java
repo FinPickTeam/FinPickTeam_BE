@@ -1,25 +1,19 @@
 package org.scoula.finance.service.deposit;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
-import org.scoula.finance.dto.deposit.DepositFilterDto;
-import org.scoula.finance.dto.deposit.DepositListDto;
-import org.springframework.beans.factory.annotation.Value;
+import org.scoula.finance.dto.deposit.*;
+import org.scoula.finance.util.CsvUtils;
+import org.scoula.finance.util.PythonExecutorUtil;
+import org.scoula.finance.util.SavingConditionUtils;
+import org.scoula.finance.util.UtilityCalculator;
 import lombok.extern.slf4j.Slf4j;
-import org.scoula.finance.dto.deposit.DepositDetailDto;
-import org.scoula.finance.dto.deposit.DepositRecommendationDto;
 import org.scoula.finance.mapper.DepositMapper;
-import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.http.*;
-import org.springframework.web.client.RestTemplate;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.List;
+import java.io.*;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -27,208 +21,108 @@ import java.util.List;
 public class DepositServiceImpl implements DepositService {
     private final DepositMapper depositMapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
-    @Value("${openai.api-key}")
-    private String apiKey;
-    @Value("${openai.api-url}")
-    private String apiUrl;
+    private final SavingConditionUtils savingConditionUtils = new SavingConditionUtils();
+    private final CsvUtils csvUtils = new CsvUtils();
 
     //예금 전체 조회
     @Override
     public List<DepositListDto> getDeposits(DepositFilterDto filter){
-        if (isEmpty(filter)) {
-            // 전체 조회 기본 정렬
-            return depositMapper.selectAllDeposits();
-        } else {
-            // 조건부 조회
-            return depositMapper.selectDepositsWithFilter(filter);
-        }
+            return depositMapper.getDepoistList(filter);
     }
 
     // 예금 상세 조회
     @Override
-    public DepositDetailDto selectDepositByProductName(String depositProductName) {
-        return depositMapper.selectDepositByProductName(depositProductName);
+    public DepositDetailDto selectDepositByProductName(Long depositId) {
+        return depositMapper.selectDepositByProductId(depositId);
     }
 
     // 예금 추천
     @Override
-    public List<Map<String, Object>> getAllDepositRecommendations(int amount, int period) {
+    public List<DepositListDto> getAllDepositRecommendations(int amount, int period, DepositUserConditionDto depositUserConditionDto) {
         List<DepositRecommendationDto> filteredList = depositMapper.selectAllDepositRecommendations().stream()
-                .filter(dto -> checkAmount(dto.getDepositSubscriptionAmount(), amount)
-                        && checkPeriod(dto.getDepositContractPeriod(), period))
+                .filter(dto -> savingConditionUtils.checkAmount(dto.getDepositSubscriptionAmount(), amount)
+                        && savingConditionUtils.checkPeriod(dto.getDepositContractPeriod(), period))
                 .toList();
 
         List<Map<String, Object>> resultList = new ArrayList<>();
 
+        System.out.println("필터된 상품 개수: " + filteredList.size());
         if (filteredList.isEmpty()) {
             log.warn("필터링된 예금 상품이 없습니다.");
-            return resultList;
+            return Collections.emptyList();
         }
 
-        // gpt 프롬프트
-        String prompt = generatePrompt(filteredList, amount, period);
-
-        // gpt 실행
         try {
-            String gptResponse = callOpenAiApi(prompt).trim();
+            // 1. payload 생성
+            List<ProductConditionPayload> productPayloads = filteredList.stream()
+                    .map(dto -> new ProductConditionPayload(dto.getId(), dto.getDepositPreferentialRate()))
+                    .toList();
+            PythonRequestPayload payload = new PythonRequestPayload(depositUserConditionDto, productPayloads);
 
-            if (gptResponse.startsWith("```")) {
-                gptResponse = gptResponse.replaceFirst("^```json\\s*", "")
-                        .replaceFirst("\\s*```$", "");
-            }
+            // 2. input.json 저장
+            File inputFile = new File("data/input/input.json");
+            inputFile.getParentFile().mkdirs(); // 디렉토리 없으면 생성
+            objectMapper.writeValue(inputFile, payload);
+            System.out.println("✅ input.json 저장 완료: " + inputFile.getAbsolutePath());
 
-            JsonNode jsonArray = objectMapper.readTree(gptResponse);
+            ClassPathResource resource = new ClassPathResource("python/deposit/analyze.py");
+            File pythonFile = resource.getFile();
+            String path = pythonFile.getAbsolutePath();
 
-            // gpt가 추천한 내용 select
-            for (JsonNode node : jsonArray) {
-                String productName = node.path("productName").asText().trim();
-                String reason = node.path("reason").asText().trim();
+            // 3. Python 실행
+            PythonExecutorUtil.runPythonScript(path);
 
-                List<DepositRecommendationDto> matched = depositMapper.selectDepositsByProductName(productName);
+            // 4. CSV 결과 파싱
+            File outputFile = new File("data/output/output.csv");
+            outputFile.getParentFile().mkdirs(); // 디렉토리 없으면 생성
 
-                for (DepositRecommendationDto dto : matched) {
-                    Map<String, Object> entry = new HashMap<>();
-                    entry.put("product", dto);
-                    entry.put("reason", reason);
-                    resultList.add(entry);
+            List<Map<String, Object>> csvResult = csvUtils.parseCsvResult(outputFile.getPath());
+            System.out.println("=== Python CSV 결과 ===");
+            csvResult.forEach(System.out::println);
+
+            // 5. 유틸리티 계산
+            UtilityCalculator calculator = new UtilityCalculator();
+            for (Map<String, Object> row : csvResult) {
+                Long strId = ((Number) row.get("id")).longValue();
+                double totalRate = (Double) row.get("totalRate");
+                int matchedCount = ((Double) row.get("matchedCount")).intValue();
+
+                Optional<DepositRecommendationDto> match = filteredList.stream()
+                        .filter(dto -> {
+                            return (Objects.equals(dto.getId(), strId));
+                        })
+                        .findFirst();
+
+                if (match.isPresent()) {
+                    DepositRecommendationDto dto = match.get();
+                    double utility = calculator.calculateUtility(
+                            dto.getDepositBasicRate(),
+                            totalRate,
+                            matchedCount,
+                            0.8 // 중요도 가중치 (예: 사용자 입력 기반 변경 가능)
+                    );
+
+                    Map<String, Object> result = new HashMap<>();
+                    result.put("id", dto.getId());
+                    result.put("utility", utility);
+                    resultList.add(result);
                 }
             }
 
+            System.out.println("resultList.size = " + resultList.size());
+
+            // 6. 정렬 후 최종 추천
+            resultList.sort((a, b) -> Double.compare((Double) b.get("utility"), (Double) a.get("utility")));
+            List<Long> top5Names = resultList.stream()
+                    .limit(5)
+                    .map(r -> (Long) r.get("id"))
+                    .toList();
+
+            return depositMapper.selectDepositListByProductId(top5Names);
+
         } catch (Exception e) {
-            log.error("GPT 응답 처리 중 오류 발생", e);
+            e.printStackTrace(); // 예외 상세 출력
+            return Collections.emptyList();
         }
-
-        return resultList;
     }
-// 필터 사용했는지 확인
-    private boolean isEmpty(DepositFilterDto dto) {
-        return dto.getBankName() == null &&
-                dto.getContractPeriodMonth() == null &&
-                dto.getMinSubscriptionAmount() == null &&
-                dto.getRateOrder() == null;
-    }
-
-//    계약 기간 확인
-    private boolean checkPeriod(String periodStr, int period){
-        try{
-            String raw = periodStr.replaceAll("-","");
-            if(periodStr.contains("이상") && periodStr.contains("이하")){
-                String[] parts= raw.split("이상|이하");
-                int min = Integer.parseInt(parts[0].replaceAll("[^0-9]", ""));
-                return min <= period + 3;
-            }
-            else if(raw.contains(",")){
-                String[] parts= raw.split(",");
-                int target = Integer.parseInt(parts[0].replaceAll("[^0-9]", ""));
-                return target <= period + 3;
-            }else{
-                int target = Integer.parseInt(raw.replaceAll("[^0-9]",""));
-                return target <= period + 3;
-            }
-        } catch (Exception e) {
-            log.error("계약기간 파싱 오류: {}", periodStr, e);
-        }
-        return false;
-    }
-
-//  가입금액 범위 확인
-    private boolean checkAmount(String amountStr, int amount){
-        final int recommendMargin = Math.max((int)(amount * 0.2), 500_000); // 추천범위: 최소 50만원, 최대 사용자가 입력한 금액 * 20%
-
-        try{
-            String raw = amountStr.replaceAll("[\\s\"]", "");
-            
-            if(raw.contains("이상") && raw.contains("이하")){
-                String[] parts = raw.split("이상|이하");
-                int min = parseMoney(parts[0]);
-                return amount + recommendMargin >= min;
-            }
-            else if(raw.contains("이상")){
-                int min = parseMoney(raw.split("이상")[0]);
-                return amount + recommendMargin >= min;
-            }
-            else if(raw.contains("이하")){
-                return true;
-            }
-            else{
-                log.warn("처리 안된 가입금액 형식: {}", amountStr);
-            }
-        } catch (Exception e) {
-            log.error("가입금액 파싱 오류: {}", amountStr, e);
-        }
-        return false;
-    }
-
-    //    금액 단위 변경
-    private int parseMoney(String moneyStr){
-        moneyStr = moneyStr.replaceAll(",","");
-        if(moneyStr.contains("억원")){
-            return Integer.parseInt(moneyStr.replaceAll("[^0-9]","")) * 100_000_000;
-        }
-        else if(moneyStr.contains("만원")){
-            return Integer.parseInt(moneyStr.replaceAll("[^0-9]","")) * 10_000;
-        }
-        else if(moneyStr.contains("천원")){
-            return Integer.parseInt(moneyStr.replaceAll("[^0-9]","")) * 1_000;
-        }
-        return Integer.parseInt(moneyStr);
-    }
-
-    // GPT 프롬프트
-    public String generatePrompt(List<DepositRecommendationDto> list, int amount, int period){
-        if(list.isEmpty()){
-            return "데이터 없음";
-        }
-
-        //나중에 사용자 데이터 추가 필요
-        StringBuilder sb = new StringBuilder();
-        sb.append("사용자가 ").append(amount).append("원을 ").append(period)
-                .append("개월 동안 예금하려고 해. 아래 상품 각각에 대해 5개를 사용자에 맞게 추천해주고")
-                .append("이 상품을 왜 추천하는지, 너무 딱딱하지 않고 ")
-                .append("일상적인 말투로 설명해 줘. 사용자 입장에서 공감되도록, ")
-                .append("편하게 말하듯 써줘. 예를 들면 '가입도 쉽고 이자도 괜찮아요' 같은 말투. ")
-                .append("결과는 아래 JSON 형식으로만:\n")
-                .append("[\n")
-                .append("  { \"productName\": \"상품명1\", \"reason\": \"추천 이유1\" },\n")
-                .append("  { \"productName\": \"상품명2\", \"reason\": \"추천 이유2\" }\n")
-                .append("]\n")
-                .append("다른 말은 하지 말고 JSON 배열만 반환해.");
-
-        for (DepositRecommendationDto dto : list) {
-            sb.append("- ")
-                    .append(dto.getDepositProductName()).append(" ")
-                    .append(dto.getDepositContractPeriod()).append("개월 / ")
-                    .append(dto.getDepositSubscriptionAmount()).append("원 / ")
-                    .append(dto.getDepositBasicRate()).append("% / ")
-                    .append(dto.getDepositMaxRate()).append("% / ");
-        }
-        return sb.toString();
-    }
-
-    private String callOpenAiApi(String prompt) throws Exception {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getMessageConverters()
-                .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
-
-        String requestBody = objectMapper.writeValueAsString(
-                Map.of(
-                        "model", "gpt-4o",
-                        "messages", List.of(
-                                Map.of("role", "system", "content", "너는 금융상품 전문가야."),
-                                Map.of("role", "user", "content", prompt)
-                        ),
-                        "temperature", 0.7
-                )
-        );
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(apiKey);
-        headers.set("Content-Type", "application/json; charset=UTF-8");
-
-        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
-        ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.POST, request, String.class);
-
-        return objectMapper.readTree(response.getBody()).at("/choices/0/message/content").asText();
-    }
-
 }

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.challenge.rank.mapper.ChallengeRankMapper">
+
+    <select id="getCurrentChallengeRanks" resultType="org.scoula.challenge.rank.dto.ChallengeRankResponseDTO">
+        SELECT us.nickname, cr.rank, uc.actual_value AS actualValue
+        FROM challenge_rank cr
+                 JOIN user_challenge uc ON cr.user_challenge_id = uc.id
+                 JOIN user_status us ON uc.user_id = us.id
+        WHERE uc.challenge_id = #{challengeId}
+        ORDER BY cr.rank
+    </select>
+
+    <delete id="clearCurrentChallengeRanks">
+        DELETE FROM challenge_rank
+        WHERE user_challenge_id IN (
+            SELECT id FROM user_challenge WHERE challenge_id = #{challengeId}
+        )
+    </delete>
+
+    <insert id="insertChallengeRank">
+        INSERT INTO challenge_rank (user_challenge_id, rank, progress_rate)
+        VALUES (#{userChallengeId}, #{rank}, 0)
+    </insert>
+
+    <select id="getChallengeRankSnapshots" resultType="org.scoula.challenge.rank.dto.ChallengeRankSnapshotResponseDTO">
+        SELECT us.nickname, crs.rank, uc.actual_value AS actualValue, crs.month, crs.is_checked AS isChecked
+        FROM challenge_rank_snapshot crs
+                 JOIN user_challenge uc ON crs.user_challenge_id = uc.id
+                 JOIN user_status us ON uc.user_id = us.id
+        WHERE crs.month = #{month}
+        ORDER BY crs.rank
+    </select>
+
+    <insert id="insertChallengeRankSnapshot">
+        INSERT INTO challenge_rank_snapshot (user_challenge_id, rank, progress_rate, month)
+        VALUES (#{userChallengeId}, #{rank}, 0, #{month})
+    </insert>
+
+    <resultMap id="participantInfoMap" type="org.scoula.challenge.rank.util.ChallengeParticipantProvider$ParticipantInfo">
+        <result property="userChallengeId" column="user_challenge_id"/>
+        <result property="actualValue" column="actual_value"/>
+    </resultMap>
+
+    <select id="getParticipantsSortedByActualValue" resultMap="participantInfoMap">
+        SELECT
+            uc.ID AS user_challenge_id,
+            uc.actual_value
+        FROM user_challenge uc
+                 INNER JOIN challenge c ON uc.challenge_id = c.ID
+        WHERE c.ID = #{challengeId}
+          AND c.type = 'COMMON'
+        ORDER BY uc.actual_value ASC,
+                 (SELECT COUNT(*) FROM user_challenge sub WHERE sub.user_id = uc.user_id) DESC
+    </select>
+
+    <select id="getParticipantsSortedByActualValueInMonth" resultMap="participantInfoMap">
+        SELECT
+            uc.ID AS user_challenge_id,
+            uc.actual_value
+        FROM user_challenge uc
+                 INNER JOIN challenge c ON uc.challenge_id = c.ID
+        WHERE c.type = 'COMMON'
+          AND DATE_FORMAT(c.start_date, '%Y-%m') = #{month}
+        ORDER BY uc.actual_value ASC,
+                 (SELECT COUNT(*) FROM user_challenge sub WHERE sub.user_id = uc.user_id) DESC
+    </select>
+
+</mapper>

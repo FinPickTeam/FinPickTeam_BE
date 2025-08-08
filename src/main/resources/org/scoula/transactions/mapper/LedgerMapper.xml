@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.transactions.mapper.LedgerMapper">
+
+    <!-- 통합 조회 -->
+    <select id="findLedgers" resultType="org.scoula.transactions.domain.Ledger">
+        SELECT
+        l.id, l.user_id, l.source_type, l.source_name,
+        l.amount, l.type,
+        c.label AS category,
+        l.date, l.merchant_name
+        FROM ledger l
+        JOIN tr_category c ON l.category_id = c.id
+        LEFT JOIN account a ON l.account_id = a.id
+        LEFT JOIN card cd ON l.card_id = cd.id
+        WHERE l.user_id = #{userId}
+        AND (l.account_id IS NULL OR a.is_active = TRUE)
+        AND (l.card_id IS NULL OR cd.is_active = TRUE)
+        <if test="from != null">AND l.date &gt;= #{from}</if>
+        <if test="to != null">AND l.date &lt;= #{to}</if>
+        <if test="category != null">AND c.name = #{category}</if>
+        ORDER BY l.date DESC
+    </select>
+
+    <!-- 거래 상세 조회 -->
+    <select id="findLedgerDetail" resultType="org.scoula.transactions.domain.Ledger">
+        SELECT
+        l.id, l.user_id, l.source_type, l.source_name, l.amount, l.type,
+        l.memo, l.analysis, l.date, l.merchant_name, l.place,
+        l.account_id, l.card_id, l.source_id, l.created_at,
+        c.name AS category
+        FROM ledger l
+        JOIN tr_category c ON l.category_id = c.id
+        WHERE l.user_id = #{userId} AND l.id = #{ledgerId}
+    </select>
+
+
+    <insert id="accountInsert" parameterType="org.scoula.transactions.domain.Ledger">
+        INSERT INTO ledger (
+            user_id, source_type, source_name,
+            amount, type, category_id, memo, analysis,
+            date, merchant_name, place, account_id, card_id, source_id, created_at
+        ) VALUES (
+                     #{userId}, #{sourceType}, #{sourceName},
+                     #{amount}, #{type}, #{categoryId}, #{memo}, #{analysis},
+                     #{date}, #{merchantName}, #{place}, #{accountId}, #{cardId}, #{sourceId}, now()
+                 )
+    </insert>
+
+    <insert id="cardInsert" parameterType="org.scoula.transactions.domain.Ledger">
+        INSERT INTO ledger (
+            user_id, source_id, account_id, card_id, source_type,
+            source_name, type, amount, category_id, memo, analysis,
+            date, merchant_name, place, created_at
+        ) VALUES (
+                     #{userId}, #{sourceId}, #{accountId}, #{cardId}, #{sourceType},
+                     #{sourceName}, #{type}, #{amount}, #{categoryId}, #{memo}, #{analysis},
+                     #{date}, #{merchantName}, #{place}, #{createdAt}
+                 )
+    </insert>
+
+    <update id="updateLedgerCategory">
+        UPDATE ledger
+        SET category_id = #{categoryId}
+        WHERE id = #{ledgerId}
+    </update>
+
+    <update id="updateLedgerMemo">
+        UPDATE ledger
+        SET memo = #{memo}
+        WHERE id = #{ledgerId}
+    </update>
+
+    <update id="updateAnalysis">
+        UPDATE ledger
+        SET analysis = #{analysis}
+        WHERE id = #{ledgerId}
+    </update>
+
+    <select id="selectCategoryPrevAvg" resultType="double">
+        SELECT IFNULL(AVG(sub.month_total), 0)
+        FROM (
+        SELECT SUM(l.amount) AS month_total
+        FROM ledger l
+        JOIN tr_category c ON l.category_id = c.id
+        LEFT JOIN account a ON l.account_id = a.id
+        LEFT JOIN card cd ON l.card_id = cd.id
+        WHERE l.user_id = #{userId}
+        AND c.name = #{category}
+        AND (l.account_id IS NULL OR a.is_active = TRUE)
+        AND (l.card_id IS NULL OR cd.is_active = TRUE)
+        AND l.date >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL #{monthCount} MONTH), '%Y-%m-01')
+        AND l.date &lt; DATE_FORMAT(NOW(), '%Y-%m-01')
+        GROUP BY DATE_FORMAT(l.date, '%Y-%m')
+        ) AS sub
+    </select>
+
+
+    <!-- Ledger 기준: 계좌(INCOME) 거래만 합산 -->
+    <select id="selectUserMonthlyIncomeByLedger" resultType="bigdecimal">
+        SELECT IFNULL(SUM(l.amount), 0)
+        FROM ledger l
+        JOIN account a ON l.account_id = a.id AND a.is_active = TRUE
+        WHERE l.user_id = #{userId}
+        AND l.type = 'INCOME'
+        AND l.date >= #{monthStart}
+        AND l.date &lt; #{nextMonthStart}
+    </select>
+
+
+
+    <select id="existsCategoryBefore" resultType="int">
+        SELECT COUNT(1)
+        FROM ledger l
+        JOIN tr_category c ON l.category_id = c.id
+        LEFT JOIN account a ON l.account_id = a.id
+        LEFT JOIN card cd ON l.card_id = cd.id
+        WHERE l.user_id = #{userId}
+        AND c.name = #{category}
+        AND (l.account_id IS NULL OR a.is_active = TRUE)
+        AND (l.card_id IS NULL OR cd.is_active = TRUE)
+        AND l.date &lt; #{before}
+        LIMIT 1
+    </select>
+
+
+    <select id="selectTopCategories" resultType="string">
+        SELECT c.name
+        FROM ledger l
+                 JOIN tr_category c ON l.category_id = c.id
+                 LEFT JOIN account a ON l.account_id = a.id
+                 LEFT JOIN card cd ON l.card_id = cd.id
+        WHERE l.user_id = #{userId}
+          AND (l.account_id IS NULL OR a.is_active = TRUE)
+          AND (l.card_id IS NULL OR cd.is_active = TRUE)
+          AND l.date >= DATE_FORMAT(DATE_SUB(NOW(), INTERVAL #{monthCount} MONTH), '%Y-%m-01')
+        GROUP BY c.name
+        ORDER BY SUM(l.amount) DESC
+        LIMIT 3
+    </select>
+
+
+
+
+
+
+
+
+</mapper>

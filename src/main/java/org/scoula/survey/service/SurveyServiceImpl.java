@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.scoula.survey.domain.SurveyVO;
 import org.scoula.survey.dto.SurveyDTO;
+import org.scoula.survey.dto.SurveyRequestDTO;
 import org.scoula.survey.mapper.SurveyMapper;
 import org.springframework.stereotype.Service;
 
@@ -15,25 +16,39 @@ import java.util.List;
 @Service
 public class SurveyServiceImpl implements SurveyService {
 
-
     final SurveyMapper mapper;
 
     //투자성향저장
     @Override
-    public SurveyDTO insert(SurveyDTO surveyDTO) {
-        log.info("설문 데이터 처리 시작: {}", surveyDTO);
+    public SurveyDTO insert(Long userId, SurveyRequestDTO surveyRequestDTO) {
+
+        log.info("설문 데이터 처리 시작: {}, {}",userId,surveyRequestDTO);
+
+
+//        // 1. 답변 점수 계산
+//        int totalScore = calculateTotalScore(
+//                surveyRequestDTO.getAnswers()
+//        );
+//        surveyDTO.setTotalScore(totalScore); // 계산된 총점 DTO에 설정
+//        log.info("총점 계산 완료: {}", totalScore);
+//
+//        // 2. 투자 성향 타입 결정
+//        String propensityType = determinePropensityType(totalScore);
+//        surveyDTO.setPropensityType(propensityType); // 결정된 투자 성향 타입 DTO에 설정
+//        log.info("투자 성향 타입 결정 완료: {}", propensityType);
 
         // 1. 답변 점수 계산
-        int totalScore = calculateTotalScore(
-                surveyDTO.getAnswers()
-        );
-        surveyDTO.setTotalScore(totalScore); // 계산된 총점 DTO에 설정
-        log.info("총점 계산 완료: {}", totalScore);
-
+        int totalScore = calculateTotalScore(surveyRequestDTO.getAnswers());
         // 2. 투자 성향 타입 결정
         String propensityType = determinePropensityType(totalScore);
-        surveyDTO.setPropensityType(propensityType); // 결정된 투자 성향 타입 DTO에 설정
-        log.info("투자 성향 타입 결정 완료: {}", propensityType);
+
+        // 빌더 패턴을 사용하여 surveyDTO 객체를 한 번에 생성
+        SurveyDTO surveyDTO = SurveyDTO.builder()
+                .id(userId)
+                .answers(surveyRequestDTO.getAnswers())
+                .totalScore(totalScore)
+                .propensityType(propensityType)
+                .build();
 
         // 3. DTO를 VO로 변환하여 데이터베이스에 삽입
         SurveyVO surveyVO = surveyDTO.toVO();

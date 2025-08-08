@@ -9,14 +9,12 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import javax.sql.DataSource;
+
 
 @Slf4j
 @Configuration
@@ -28,7 +26,18 @@ import javax.sql.DataSource;
         "org.scoula.survey.mapper",
         "org.scoula.quiz.mapper",
         "org.scoula.dictionary.mapper",
-        "org.scoula.bubble.mapper"
+        "org.scoula.bubble.mapper",
+        "org.scoula.news.mapper",
+        "org.scoula.challenge.mapper",
+        "org.scoula.account.mapper",
+        "org.scoula.challenge.mapper",
+        "org.scoula.avatar.mapper",
+        "org.scoula.card.mapper",
+        "org.scoula.alarm.mapper",
+        "org.scoula.monthreport.mapper",
+        "org.scoula.coin.mapper",
+        "org.scoula.agree.mapper",
+        "org.scoula.challenge.rank.mapper"
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",
@@ -37,16 +46,37 @@ import javax.sql.DataSource;
         "org.scoula.common.*", // 공통 유틸이나 예외 추가할 여지
         "org.scoula.finance.controller",
         "org.scoula.finance.service",
+        "org.scoula.finance.util",
         "org.scoula.transactions.service",
         "org.scoula.transactions.util",
-        "org.scoula.transactions.exception",
         "org.scoula.survey.service",
         "org.scoula.quiz.service",
         "org.scoula.quiz.exception",
         "org.scoula.dictionary.service",
-        "org.scoula.bubble.service"
-})
+        "org.scoula.bubble.service",
+        "org.scoula.news.service",
+        "org.scoula.nhapi.service",
+        "org.scoula.nhapi.client",
+        "org.scoula.nhapi.parser",
+        "org.scoula.challenge.service",
+        "org.scoula.challenge.scheduler",
+        "org.scoula.user.util",
+        "org.scoula.avatar.service",
+        "org.scoula.account.service",
+        "org.scoula.alarm.service",
+        "org.scoula.card.service",
+        "org.scoula.monthreport.service",
+        "org.scoula.monthreport.scheduler",
+        "org.scoula.monthreport.util",
+        "org.scoula.agree.service",
+        "org.scoula.challenge.rank.scheduler",
+        "org.scoula.challenge.rank.service",
+        "org.scoula.challenge.rank.util",
+        "org.scoula.common.aop",
+        "org.scoula.summary.service",
+        })
 @EnableTransactionManagement
+@EnableAspectJAutoProxy
 public class RootConfig {
 
     @Autowired
@@ -95,12 +125,4 @@ public class RootConfig {
         return new DataSourceTransactionManager(dataSource());
     }
 
-    /*
-    static {
-        Dotenv d = Dotenv.configure()
-                .filename(".env")
-                .load();
-        d.entries().forEach(entry -> System.setProperty(entry.getKey(), entry.getValue()));
-    }
-    */
 }

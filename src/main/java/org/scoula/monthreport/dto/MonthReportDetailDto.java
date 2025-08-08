@@ -1,0 +1,32 @@
+package org.scoula.monthreport.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class MonthReportDetailDto {
+    private String month;
+    private BigDecimal totalExpense;
+    private CompareExpenseDto compareExpense; // <--- 객체로 확장
+    private MainCategoryDto mainCategory;     // <--- 주 소비 카테고리 추가
+
+    private List<MonthExpenseDto> sixMonthChart;
+    private List<CategoryRatioDto> categoryChart;
+    private List<CategoryAmountDto> top3Spending;
+
+    private List<SpendingPatternDto> spendingPatterns; // <--- 복수 패턴 + desc
+    private String spendingPatternFeedback;
+
+    private String nextGoal;
+    private List<RecommendedChallengeDto> recommendedChallenges;
+}
+
+

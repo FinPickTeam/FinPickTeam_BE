@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.challenge.mapper.ChallengeMapper">
+
+    <insert id="insertChallenge" parameterType="org.scoula.challenge.domain.Challenge" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO challenge
+        (title, category_id, start_date, end_date, description, type, max_participants, password, use_password, writer_id, status, goal_type, goal_value, participant_count, reward_point)
+        VALUES
+            (#{title}, #{categoryId}, #{startDate}, #{endDate}, #{description}, #{type}, #{maxParticipants}, #{password}, #{usePassword}, #{writerId}, #{status}, #{goalType}, #{goalValue}, #{participantCount}, #{rewardPoint})
+    </insert>
+
+    <insert id="insertUserChallenge">
+        INSERT INTO user_challenge (user_id, challenge_id, is_creator, is_completed, actual_value, is_success)
+        VALUES (#{userId}, #{challengeId}, #{isCreator}, #{isCompleted}, #{actualValue}, #{isSuccess});
+    </insert>
+
+    <select id="countUserOngoingChallenges" resultType="int">
+        SELECT COUNT(*) FROM user_challenge uc
+                                 JOIN challenge c ON uc.challenge_id = c.ID
+        WHERE uc.user_id = #{userId}
+          AND c.type = #{type}
+          AND c.status IN ('RECRUITING', 'IN_PROGRESS')
+    </select>
+
+    <select id="findChallenges" resultType="org.scoula.challenge.domain.Challenge">
+        SELECT * FROM challenge
+        WHERE (#{type} IS NULL OR type = #{type})
+          AND (#{status} IS NULL OR status = #{status})
+    </select>
+
+    <select id="findUserChallengeIds" resultType="long">
+        SELECT challenge_id FROM user_challenge
+        WHERE user_id = #{userId}
+    </select>
+
+    <select id="getUserProgress" resultType="double">
+        SELECT actual_value * 1.0 / goal_value
+        FROM user_challenge uc
+                 JOIN challenge c ON uc.challenge_id = c.id
+        WHERE uc.user_id = #{userId} AND uc.challenge_id = #{challengeId}
+    </select>
+
+    <select id="getGroupAverageProgress" resultType="double">
+        SELECT AVG(actual_value * 1.0 / c.goal_value)
+        FROM user_challenge uc
+                 JOIN challenge c ON uc.challenge_id = c.id
+        WHERE uc.challenge_id = #{challengeId}
+    </select>
+
+    <select id="getParticipantsCount" resultType="int">
+        SELECT COUNT(*) FROM user_challenge
+        WHERE challenge_id = #{challengeId}
+    </select>
+
+    <select id="findChallengeById" resultType="org.scoula.challenge.domain.Challenge">
+        SELECT * FROM challenge WHERE id = #{challengeId}
+    </select>
+
+    <select id="isUserParticipating" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM user_challenge
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </select>
+
+    <select id="getGroupMembersWithAvatar" resultType="org.scoula.challenge.dto.ChallengeMemberDTO">
+        SELECT u.id AS userId,
+               us.nickname AS nickname,
+               (uc.actual_value * 1.0 / c.goal_value) AS progress,
+               a.avatar_image AS avatarImage
+        FROM user_challenge uc
+                 JOIN user u ON uc.user_id = u.id
+                 JOIN user_status us ON u.id = us.id
+                 JOIN challenge c ON uc.challenge_id = c.id
+                 LEFT JOIN avatar a ON u.id = a.id
+        WHERE uc.challenge_id = #{challengeId}
+    </select>
+
+    <update id="incrementParticipantCount">
+        UPDATE challenge
+        SET participant_count = participant_count + 1
+        WHERE id = #{challengeId}
+    </update>
+
+    <update id="updateChallengeStatus">
+        UPDATE challenge
+        SET status = #{status}
+        WHERE id = #{challengeId}
+    </update>
+
+    <select id="findAllChallenges" resultType="org.scoula.challenge.domain.Challenge">
+        SELECT * FROM challenge
+    </select>
+
+    <update id="completeUserChallenges">
+        UPDATE user_challenge
+        SET is_completed = true, updated_at = NOW()
+        WHERE challenge_id = #{challengeId}
+    </update>
+
+    <select id="findUserIdsByChallengeId" resultType="long">
+        SELECT user_id FROM user_challenge WHERE challenge_id = #{challengeId}
+    </select>
+
+    <update id="updateActualValue">
+        UPDATE user_challenge
+        SET actual_value = #{actualValue}
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </update>
+
+    <update id="failUserChallenge">
+        UPDATE user_challenge
+        SET is_success = false, is_completed = true, updated_at = NOW()
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </update>
+
+    <update id="succeedUserChallenge">
+        UPDATE user_challenge
+        SET is_success = true, is_completed = true, updated_at = NOW()
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </update>
+
+    <select id="getCategoryNameById" resultType="string">
+        SELECT name FROM challenge_category WHERE id = #{categoryId}
+    </select>
+
+    <select id="getChallengeSummary" resultType="org.scoula.challenge.dto.ChallengeSummaryResponseDTO">
+        SELECT
+            total_challenges AS totalChallenges,
+            success_count AS successCount,
+            achievement_rate AS achievementRate
+        FROM user_challenge_summary
+        WHERE id = #{userId}
+    </select>
+
+    <insert id="insertOrUpdateUserChallengeSummary">
+        INSERT INTO user_challenge_summary (id, total_challenges, success_count, achievement_rate)
+        VALUES (#{userId}, 0, 0, 0.00)
+            ON DUPLICATE KEY UPDATE id = id
+    </insert>
+
+    <update id="incrementUserTotalChallenges">
+        UPDATE user_challenge_summary
+        SET total_challenges = total_challenges + 1
+        WHERE id = #{userId}
+    </update>
+
+    <update id="incrementUserSuccessCount">
+        UPDATE user_challenge_summary
+        SET success_count = success_count + 1
+        WHERE id = #{userId}
+    </update>
+
+    <update id="updateAchievementRate">
+        UPDATE user_challenge_summary
+        SET achievement_rate = ROUND(success_count * 100.0 / total_challenges, 2)
+        WHERE id = #{userId} AND total_challenges > 0
+    </update>
+
+    <select id="getActualValue" resultType="int">
+        SELECT actual_value FROM user_challenge
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </select>
+
+    <select id="getActualRewardPoint" resultType="int">
+        SELECT actual_reward_point FROM user_challenge
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </select>
+
+    <update id="markResultChecked">
+        UPDATE user_challenge
+        SET result_checked = 1
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </update>
+
+    <select id="existsUnconfirmedCompletedChallenge" resultType="boolean">
+        SELECT EXISTS (
+            SELECT 1 FROM user_challenge uc
+                              JOIN challenge c ON uc.challenge_id = c.id
+            WHERE uc.user_id = #{userId}
+              AND uc.result_checked = 0
+              AND c.status = 'COMPLETED'
+        )
+    </select>
+
+    <select id="isResultChecked" resultType="boolean">
+        SELECT result_checked FROM user_challenge
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </select>
+
+    <!-- 성공한 유저 수 조회 -->
+    <select id="countSuccessMembers" resultType="int">
+        SELECT COUNT(*) FROM user_challenge
+        WHERE challenge_id = #{challengeId} AND is_success = 1
+    </select>
+
+    <!-- actual_reward_point 저장 -->
+    <update id="saveActualRewardPoint">
+        UPDATE user_challenge
+        SET actual_reward_point = #{actualRewardPoint}
+        WHERE user_id = #{userId} AND challenge_id = #{challengeId}
+    </update>
+
+    <!-- 완료된(is_completed=1) 챌린지 히스토리: resultType 그대로 사용 -->
+    <select id="findCompletedHistoryByUser" resultType="org.scoula.challenge.dto.ChallengeHistoryItemDTO">
+        SELECT
+            uc.challenge_id              AS challengeId,
+            c.title                      AS title,
+            cc.name                      AS categoryName,
+            c.type                       AS type,
+            c.start_date                 AS startDate,
+            c.end_date                   AS endDate,
+            uc.is_success                AS isSuccess,
+            uc.is_completed              AS isCompleted,
+            uc.actual_value              AS actualValue,
+            c.goal_value                 AS goalValue,
+            uc.actual_reward_point       AS actualRewardPoint,
+            uc.result_checked            AS resultChecked,
+            DATE(uc.updated_at)          AS completedAt     -- ✅ LocalDate 매핑용으로 DATE() 처리
+        FROM user_challenge uc
+            JOIN challenge c
+        ON uc.challenge_id = c.id
+            LEFT JOIN challenge_category cc
+            ON c.category_id = cc.id
+        WHERE uc.user_id = #{userId}
+          AND uc.is_completed = 1
+        ORDER BY uc.updated_at DESC
+    </select>
+
+
+</mapper>

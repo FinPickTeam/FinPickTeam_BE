@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.news.mapper.NewsMapper">
+    <insert id="insertNews" parameterType="java.util.List">
+        INSERT INTO finpik (title, summary, link, published_at)
+        VALUES
+        <foreach collection="list" item="news" separator=",">
+            (#{news.title}, #{news.summary}, #{news.link}, #{news.publishedAt})
+        </foreach>
+
+    </insert>
+
+    <select id="getAllNews" resultType="org.scoula.news.domain.NewsVO">
+            SELECT * FROM finpik ORDER BY id DESC LIMIT 3
+    </select>
+</mapper>

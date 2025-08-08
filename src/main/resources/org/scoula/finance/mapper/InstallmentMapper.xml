@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.finance.mapper.InstallmentMapper">
+
+    <select id="getInstallmentList" parameterType="org.scoula.finance.dto.installment.InstallmentFilterDto" resultType="org.scoula.finance.dto.installment.InstallmentListDto">
+        SELECT
+            id,
+            installment_bank_name,
+            installment_product_name,
+            installment_type,
+            installment_basic_rate,
+            installment_max_rate,
+            installment_summary
+        FROM installment_list
+
+        <where>
+            <if test="installmentType != null and installmentType != ''">
+                installment_type = #{installmentType}
+            </if>
+            <if test="installmentBankName != null and installmentBankName != ''">
+                AND installment_bank_name = #{installmentBankName}
+            </if>
+        </where>
+
+        <choose>
+            <!-- 둘 다 있는 경우 -->
+            <when test="sortByInstallmentProductName != null and sortByInstallmentBasicRate != null">
+                ORDER BY installment_product_name ${sortByInstallmentProductName}, installment_basic_rate ${sortByInstallmentBasicRate}
+            </when>
+            <!-- 이름만 있는 경우 -->
+            <when test="sortByInstallmentProductName != null">
+                ORDER BY installment_product_name ${sortByInstallmentProductName}
+            </when>
+            <!-- 금리만 있는 경우 -->
+            <when test="sortByInstallmentBasicRate != null">
+                ORDER BY installment_basic_rate ${sortByInstallmentBasicRate}
+            </when>
+            <!-- 기본 정렬 -->
+            <otherwise>
+                ORDER BY installment_product_name ASC
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getInstallmentDetail" resultType="org.scoula.finance.dto.installment.InstallmentDetailDto">
+        SELECT
+            *
+        FROM installment_list
+        WHERE id = #{installmentProductId}
+    </select>
+
+    <select id="getInstallmentRecommendationList" resultType="org.scoula.finance.dto.installment.InstallmentRecommendationDto">
+        SELECT
+            *
+        FROM installment_list
+    </select>
+
+    <select id="getInstallmentListByProductId" resultType="org.scoula.finance.dto.installment.InstallmentListDto">
+        SELECT
+        *
+        FROM installment_list
+        WHERE id IN
+        <foreach item="name" collection="names" open="(" separator="," close=")">
+            #{name}
+        </foreach>
+        ORDER BY FIELD(id,
+        <foreach item="name" collection="names" separator=",">
+            #{name}
+        </foreach>
+        )
+    </select>
+</mapper>

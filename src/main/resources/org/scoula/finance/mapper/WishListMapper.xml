@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.finance.mapper.WishListMapper">
+
+    <select id="getProductIdByProductType" resultType="java.lang.Integer">
+        SELECT
+            product_id
+        FROM wishlist
+        WHERE user_id = #{userId}
+        AND product_type = #{productType}
+    </select>
+
+    <select id="getDepositListByProductId" resultType="org.scoula.finance.dto.deposit.DepositListDto">
+        SELECT
+            *
+        FROM deposit_list
+        <where>
+            <if test="productId != null and productId.size() > 0">
+                id IN
+                <foreach item="id" collection="productId" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="productId == null or productId.size() == 0">
+                1 = 0
+            </if>
+        </where>
+    </select>
+
+    <select id="getInstallmentListByProductId" resultType="org.scoula.finance.dto.installment.InstallmentListDto">
+        SELECT
+            *
+        FROM installment_list
+        <where>
+            <if test="productId != null and productId.size() > 0">
+                id IN
+                <foreach item="id" collection="productId" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="productId == null or productId.size() == 0">
+                1 = 0
+            </if>
+        </where>
+    </select>
+
+    <select id="getFundListByProductId" resultType="org.scoula.finance.dto.fund.FundListDto">
+        SELECT
+            *
+        FROM fund_list
+        <where>
+            <if test="productId != null and productId.size() > 0">
+                id IN
+                <foreach item="id" collection="productId" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="productId == null or productId.size() == 0">
+                1 = 0
+            </if>
+        </where>
+    </select>
+
+    <select id="getStockListByProductId" resultType="org.scoula.finance.dto.stock.StockCardListDto">
+        SELECT
+            *
+        FROM stock_list
+        <where>
+            <if test="productId != null and productId.size() > 0">
+                id IN
+                <foreach item="id" collection="productId" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+            <if test="productId == null or productId.size() == 0">
+                1 = 0
+            </if>
+        </where>
+    </select>
+
+    <select id="getStockCodeByStockId" resultType="java.lang.String">
+        SELECT
+            stock_code
+        FROM stock_list
+        WHERE id = #{id}
+    </select>
+
+    <select id="getStockDataByStockCode" resultType="org.scoula.finance.dto.stock.StockListDataDto">
+        SELECT
+            stock_code AS stockCode,
+            stock_name AS stockName,
+            stock_returns_data AS stockReturnsData,
+            market_type AS stockMarketType,
+            stock_summary AS stockSummary
+        FROM stock_list
+        WHERE stock_code = #{stockCode}
+    </select>
+
+    <insert id="insertWishList">
+        INSERT INTO wishlist (user_id, product_type, product_id)
+        VALUES (#{wish.userId}, #{wish.productType}, #{wish.productId})
+    </insert>
+
+    <delete id="deleteWishList" parameterType="org.scoula.finance.dto.wishlist.WishListDto">
+        DELETE FROM wishlist
+        WHERE user_id = #{userId}
+          AND product_type = #{productType}
+          AND product_id = #{productId}
+    </delete>
+
+</mapper>
