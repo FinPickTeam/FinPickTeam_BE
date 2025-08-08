@@ -400,5 +400,10 @@ public class ChallengeServiceImpl implements ChallengeService {
         return challengeMapper.existsUnconfirmedCompletedChallenge(userId);
     }
 
+    @Override
+    public List<ChallengeHistoryItemDTO> getChallengeHistory(Long userId) {
+        return challengeMapper.findCompletedHistoryByUser(userId);
+    }
+
 }
 

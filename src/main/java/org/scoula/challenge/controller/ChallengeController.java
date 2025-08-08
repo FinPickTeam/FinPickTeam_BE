@@ -108,4 +108,14 @@ public class ChallengeController {
         boolean result = challengeService.hasUnconfirmedResult(userId);
         return CommonResponseDTO.success("미확인 결과 존재 여부 확인", result);
     }
+
+    @GetMapping("/history")
+    public CommonResponseDTO<List<ChallengeHistoryItemDTO>> getChallengeHistory(
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        Long userId = user.getUserId();
+        List<ChallengeHistoryItemDTO> list = challengeService.getChallengeHistory(userId);
+        return CommonResponseDTO.success("챌린지 히스토리 조회 성공", list);
+    }
+
 }
