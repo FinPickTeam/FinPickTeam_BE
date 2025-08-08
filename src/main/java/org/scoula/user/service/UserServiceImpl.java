@@ -108,7 +108,10 @@ public class UserServiceImpl implements UserService {
         // 6. 옷장에 기본 착장 넣어주기
         avatarMapper.insertClothe(user.getId(), 1L);
 
-        // 7. 동의정보 초기화
+        // 7. 옷장에 상태 바꿔주기
+        avatarMapper.updateClotheByItemId(user.getId(),true,1L);
+
+        // 8. 동의정보 초기화
         agreeMapper.insert(user.getId());
 
         return UserResponseDTO.builder()

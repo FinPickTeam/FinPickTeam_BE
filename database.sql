@@ -94,6 +94,14 @@ CREATE TABLE `item` (
                         PRIMARY KEY (`id`)
 );
 
+insert into item values ('1','금융새싹','level',0,'s3://finpickbucket/level/SEEDLING/sprout.png'),
+                        ('2','금융견습','level',0,'s3://finpickbucket/level/TRAINEE/beginner.png'),
+                        ('3','금융법사','level',0,'s3://finpickbucket/level/WIZARD/wizardhat.png'),
+                        ('4','금융도사','shoes',0,'s3://finpickbucket/level/MASTER/dosa.png'),
+                        ('30','블러셔','accessory', 500, 's3://finpickbucket/accessory/blush.png'),
+                        ('31','선글라스','accessory',500,'s3://finpickbucket/accessory/sunglasses.png');
+
+
 -- 8. 옷장
 DROP TABLE IF EXISTS `clothes`;
 CREATE TABLE `clothes` (
@@ -115,6 +123,19 @@ CREATE TABLE `quiz` (
                         `explanation` TEXT NOT NULL,
                         PRIMARY KEY (`id`)
 );
+
+INSERT INTO `quiz` (`question`, `answer`, `explanation`) VALUES
+                                                             ('주식은 기업의 소유권을 나타내며, 채권은 기업에 대한 대여금을 나타낸다.', 'O', '주식은 기업의 소유 지분을 나타내는 반면, 채권은 기업이 투자자에게서 빌린 돈에 대한 채무 증서입니다.'),
+                                                             ('예금은 원금 손실의 위험이 없는 금융 상품이다.', 'O', '예금자 보호법에 따라 일정 금액까지 원금이 보장되므로, 가장 안전한 금융 상품 중 하나입니다.'),
+                                                             ('인플레이션이 발생하면 돈의 실질 가치는 상승한다.', 'X', '인플레이션(물가 상승)은 화폐의 구매력을 떨어뜨려 돈의 실질 가치를 하락시킵니다.'),
+                                                             ('신용카드를 사용하고 대금을 갚지 못해 다음 달로 이월하는 것을 리볼빙이라고 한다.', 'O', '리볼빙은 신용카드 대금 중 일부만 결제하고 나머지를 다음 달로 이월하는 서비스입니다. 높은 이자가 부과될 수 있습니다.'),
+                                                             ('분산 투자는 투자 위험을 줄이는 효과적인 방법이다.', 'O', '여러 자산에 나누어 투자함으로써 특정 종목의 손실이 전체 포트폴리오에 미치는 영향을 줄일 수 있습니다.'),
+                                                             ('가계부를 작성하는 것은 개인 금융 관리에서 중요하지 않다.', 'X', '가계부 작성을 통해 지출을 파악하고 불필요한 소비를 줄이는 등 효율적인 자산 관리가 가능합니다.'),
+                                                             ('만기일이 정해져 있지 않은 채권도 존재한다.', 'X', '채권은 발행 시점에 만기일과 이자 지급 방식이 정해지는 것이 일반적입니다.'),
+                                                             ('기업이 처음으로 주식을 일반인에게 공개하고 상장하는 것을 IPO라고 한다.', 'O', 'IPO(Initial Public Offering)는 기업 공개를 의미하며, 비상장 기업이 주식 시장에 상장되는 절차입니다.'),
+                                                             ('변동금리 대출은 시장 금리가 올라도 이자가 변하지 않는다.', 'X', '변동금리 대출은 시장 금리 변동에 따라 이자율이 달라지므로, 금리 상승 시 이자 부담이 커집니다.'),
+                                                             ('펀드 투자는 원금 보장이 되지 않는다.', 'O', '펀드는 주식, 채권 등에 투자하여 수익을 추구하는 상품으로, 투자 성과에 따라 원금 손실이 발생할 수 있습니다.')
+;
 
 -- 10. 퀴즈 기록
 DROP TABLE IF EXISTS `quiz_history`;
