@@ -42,7 +42,7 @@ def analyze():
     results = []
 
     for product in products:
-        name = product['name']
+        id = product['id']
         text = product['conditionText']
         matched_count = check_conditions(user_conditions, text)
 
@@ -54,14 +54,14 @@ def analyze():
             total_rate = sum(rate_values) if rate_values else 0.0
 
         results.append({
-            'name': name,
+            'id': id,
             'matchedCount': matched_count,
             'totalRate': round(total_rate, 3)
         })
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, 'w', newline='', encoding='utf-8-sig') as f:
-        writer = csv.DictWriter(f, fieldnames=['name', 'matchedCount', 'totalRate'])
+        writer = csv.DictWriter(f, fieldnames=['id', 'matchedCount', 'totalRate'])
         writer.writeheader()
         writer.writerows(results)
 

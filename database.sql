@@ -388,7 +388,7 @@ CREATE TABLE `wishlist` (
                             `id` INT NOT NULL AUTO_INCREMENT,
                             `user_id` BIGINT NOT NULL,
                             `product_type` ENUM('DEPOSIT', 'INSTALLMENT', 'FUND', 'STOCK') NOT NULL,
-                            `product_name` VARCHAR(255) NOT NULL,
+                            `product_id` INT NOT NULL,
                             PRIMARY KEY (`id`),
                             FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );

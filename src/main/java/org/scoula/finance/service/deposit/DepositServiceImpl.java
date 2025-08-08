@@ -33,7 +33,7 @@ public class DepositServiceImpl implements DepositService {
     // 예금 상세 조회
     @Override
     public DepositDetailDto selectDepositByProductName(Long depositId) {
-        return depositMapper.selectDepositByProductName(depositId);
+        return depositMapper.selectDepositByProductId(depositId);
     }
 
     // 예금 추천
@@ -55,7 +55,7 @@ public class DepositServiceImpl implements DepositService {
         try {
             // 1. payload 생성
             List<ProductConditionPayload> productPayloads = filteredList.stream()
-                    .map(dto -> new ProductConditionPayload(dto.getDepositProductName(), dto.getDepositPreferentialRate()))
+                    .map(dto -> new ProductConditionPayload(dto.getId(), dto.getDepositPreferentialRate()))
                     .toList();
             PythonRequestPayload payload = new PythonRequestPayload(depositUserConditionDto, productPayloads);
 
@@ -83,14 +83,13 @@ public class DepositServiceImpl implements DepositService {
             // 5. 유틸리티 계산
             UtilityCalculator calculator = new UtilityCalculator();
             for (Map<String, Object> row : csvResult) {
-                String name = (String) row.get("name");
+                Long strId = ((Number) row.get("id")).longValue();
                 double totalRate = (Double) row.get("totalRate");
                 int matchedCount = ((Double) row.get("matchedCount")).intValue();
 
                 Optional<DepositRecommendationDto> match = filteredList.stream()
                         .filter(dto -> {
-                            boolean matched = dto.getDepositProductName().equals(name);
-                            return matched;
+                            return (Objects.equals(dto.getId(), strId));
                         })
                         .findFirst();
 
@@ -104,8 +103,8 @@ public class DepositServiceImpl implements DepositService {
                     );
 
                     Map<String, Object> result = new HashMap<>();
-                    result.put("상품명", dto.getDepositProductName());
-                    result.put("유틸리티", utility);
+                    result.put("id", dto.getId());
+                    result.put("utility", utility);
                     resultList.add(result);
                 }
             }
@@ -113,13 +112,13 @@ public class DepositServiceImpl implements DepositService {
             System.out.println("resultList.size = " + resultList.size());
 
             // 6. 정렬 후 최종 추천
-            resultList.sort((a, b) -> Double.compare((Double) b.get("유틸리티"), (Double) a.get("유틸리티")));
-            List<String> top5Names = resultList.stream()
+            resultList.sort((a, b) -> Double.compare((Double) b.get("utility"), (Double) a.get("utility")));
+            List<Long> top5Names = resultList.stream()
                     .limit(5)
-                    .map(r -> (String) r.get("상품명"))
+                    .map(r -> (Long) r.get("id"))
                     .toList();
 
-            return depositMapper.selectDepositListByProductName(top5Names);
+            return depositMapper.selectDepositListByProductId(top5Names);
 
         } catch (Exception e) {
             e.printStackTrace(); // 예외 상세 출력

@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class ProductConditionPayload {
-    private String name;
+    private Long id;
     private String conditionText;
 }
