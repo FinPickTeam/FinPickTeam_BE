@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.scoula.card.domain.Card;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -49,26 +50,28 @@ public class Ledger {
     }
 
     // ✅ 카드 거래 전용 생성자
-    public static Ledger fromCardTransaction(CardTransaction tx) {
-        Ledger ledger = new Ledger();
-        ledger.setUserId(tx.getUserId());
-        ledger.setSourceId(tx.getId());                // card_transaction.id
-        ledger.setCardId(tx.getCardId());
-        ledger.setSourceType("CARD");
+    public static Ledger fromCardTransaction(CardTransaction tx, Card card) {
         String category = mapCategoryFromTpbcdNm(tx.getTpbcdNm());
         Long categoryId = mapCategoryIdFromName(category);
-        ledger.setCategoryId(categoryId.intValue());// 업종명 (or merchantName)
-        ledger.setType("EXPENSE");                     // 카드 지출은 무조건 EXPENSE
-        ledger.setAmount(tx.getAmount());
-        ledger.setCategory(tx.getTpbcdNm());           // 일단 업종명으로 저장
-        ledger.setMemo(null);                          // 초기엔 null
-        ledger.setAnalysis(null);                      // 분석 로직 이후에 채움
-        ledger.setDate(tx.getApprovedAt());
-        ledger.setMerchantName(tx.getMerchantName());
-        ledger.setPlace(tx.getMerchantName());         // 추후 장소 구분용
-        ledger.setCreatedAt(LocalDateTime.now());
-        return ledger;
+        return Ledger.builder()
+                .userId(tx.getUserId())
+                .sourceId(tx.getId())
+                .cardId(tx.getCardId())
+                .sourceType("CARD")
+                .sourceName(card.getCardName()) // 💡 여기에 카드 이름
+                .type("EXPENSE")
+                .amount(tx.getAmount())
+                .category(category)
+                .categoryId(categoryId.intValue())
+                .memo(null)
+                .analysis(null)
+                .date(tx.getApprovedAt())
+                .merchantName(tx.getMerchantName())
+                .place(tx.getMerchantName())
+                .createdAt(LocalDateTime.now())
+                .build();
     }
+
 
     public static String mapCategoryFromTpbcdNm(String tpbcdNm) {
         if (tpbcdNm == null) return "uncategorized";

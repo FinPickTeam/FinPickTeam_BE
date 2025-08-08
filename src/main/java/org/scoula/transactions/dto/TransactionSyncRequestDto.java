@@ -1,4 +1,3 @@
-// transactions.dto.TransactionSyncRequestDto
 package org.scoula.transactions.dto;
 
 import lombok.Data;

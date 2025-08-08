@@ -29,7 +29,6 @@ public class MonthReportReadServiceImpl implements MonthReportReadService {
         MonthReportDetailDto dto = new MonthReportDetailDto();
         dto.setMonth(month);
         dto.setTotalExpense(report.getTotalExpense());
-        dto.setCompareExpense(report.getCompareExpense());
 
         dto.setCategoryChart(parseJson(report.getCategoryChart(), new TypeReference<List<CategoryRatioDto>>() {}));
         dto.setSixMonthChart(parseJson(report.getSixMonthChart(), new TypeReference<List<MonthExpenseDto>>() {}));
@@ -48,7 +47,6 @@ public class MonthReportReadServiceImpl implements MonthReportReadService {
                 }).toList();
         dto.setTop3Spending(top3);
 
-        dto.setSpendingPatternLabel(report.getFeedback());
         dto.setSpendingPatternFeedback(generateSpendingAdvice(report.getFeedback()));
         dto.setNextGoal(report.getNextGoal());
 
@@ -78,9 +76,9 @@ public class MonthReportReadServiceImpl implements MonthReportReadService {
 
     private List<RecommendedChallengeDto> buildRecommendedChallenges(String feedback, BigDecimal totalExpense) {
         return List.of(
-                new RecommendedChallengeDto("저축률 회복하기", "최소 450,000원 저축해보아요.", false),
-                new RecommendedChallengeDto("식비 + 카페 지출 줄이기", "총합 350,000원 이하로 유지해보세요.", false),
-                new RecommendedChallengeDto("무지출 데이 도전!", "‘무지출 데이’를 2회 이상 가져보세요.", false)
+                new RecommendedChallengeDto("저축률 회복하기", "최소 450,000원 저축해보아요."),
+                new RecommendedChallengeDto("식비 + 카페 지출 줄이기", "총합 350,000원 이하로 유지해보세요."),
+                new RecommendedChallengeDto("무지출 데이 도전!", "‘무지출 데이’를 2회 이상 가져보세요.")
         );
     }
 }

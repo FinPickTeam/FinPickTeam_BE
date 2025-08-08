@@ -7,10 +7,12 @@ import org.scoula.card.domain.Card;
 import org.scoula.card.mapper.CardMapper;
 import org.scoula.common.exception.BaseException;
 import org.scoula.transactions.domain.Ledger;
+import org.scoula.transactions.dto.AnalysisResult;
 import org.scoula.transactions.dto.LedgerDetailDto;
 import org.scoula.transactions.dto.LedgerDto;
 import org.scoula.transactions.exception.LedgerNotFoundException;
 import org.scoula.transactions.mapper.LedgerMapper;
+import org.scoula.transactions.util.AnalysisEngine;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -25,6 +27,8 @@ public class LedgerServiceImpl implements LedgerService {
     private final LedgerMapper ledgerMapper;
     private final AccountMapper accountMapper;
     private final CardMapper cardMapper;
+    private final AnalysisEngine analysisEngine;
+
 
     @Override
     public List<LedgerDto> getLedgers(Long userId, String from, String to, String category) {
@@ -58,9 +62,30 @@ public class LedgerServiceImpl implements LedgerService {
             }
         }
 
+        // 1️⃣ 월 기준 전체 거래 목록 조회 (예시: 같은 달 전체)
+        LocalDateTime startOfMonth = ledger.getDate().withDayOfMonth(1).with(LocalTime.MIN);
+        LocalDateTime endOfMonth = ledger.getDate().withDayOfMonth(ledger.getDate().toLocalDate().lengthOfMonth()).with(LocalTime.MAX);
 
-        return convertToDetailDto(ledger);
+        List<Ledger> monthLedgers = ledgerMapper.findLedgers(
+                userId,
+                startOfMonth.toString(),
+                endOfMonth.toString(),
+                null // or ledger.getCategory()
+        );
+
+        // 2️⃣ analysis가 null이면, 정교한 분석!
+        String analysisText = ledger.getAnalysis();
+        if (analysisText == null || analysisText.isEmpty()) {
+            AnalysisResult result = analysisEngine.analyze(ledger, monthLedgers); // ⭐️이렇게!
+            analysisText = result.getMessage();
+            ledgerMapper.updateAnalysis(ledger.getId(), analysisText);
+        }
+
+        LedgerDetailDto dto = convertToDetailDto(ledger);
+        dto.setAnalysis(analysisText);
+        return dto;
     }
+
 
     private LedgerDto convertToDto(Ledger l) {
         LedgerDto dto = new LedgerDto();
