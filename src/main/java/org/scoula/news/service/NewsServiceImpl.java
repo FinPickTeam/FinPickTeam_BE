@@ -52,8 +52,8 @@ public class NewsServiceImpl implements NewsService {
 
         //http요청 헤더 구성
         HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Naver-Client-Id", id);
-        headers.set("X-Naver-Client-Secret", SECRET);
+        headers.set("X.Naver.Client.Id", id);
+        headers.set("X.Naver.Client.Secret", SECRET);
         headers.setAccept(List.of(new MediaType("application", "json", StandardCharsets.UTF_8)));
 
 
