@@ -11,13 +11,13 @@
         FROM fund_list
     </select>
 
-    <select id="getFundListByFundProductName" resultType="org.scoula.finance.dto.fund.FundListDto">
+    <select id="getFundListByFundProductId" resultType="org.scoula.finance.dto.fund.FundListDto">
         SELECT
         *
         FROM fund_list
-        WHERE fund_product_name IN
-        <foreach collection="list" item="name" open="(" separator="," close=")">
-            #{name}
+        WHERE id IN
+        <foreach collection="list" item="productId" open="(" separator="," close=")">
+            #{productId}
         </foreach>
     </select>
 
@@ -25,7 +25,7 @@
         SELECT
             *
         FROM fund_list
-        WHERE fund_product_name = #{fundProductName}
+        WHERE id = #{productId}
     </select>
 
     <select id="getFundRecommendationList" resultType="org.scoula.finance.dto.fund.FundRecommendationDto">

@@ -11,7 +11,7 @@ public interface DepositService {
     //예금 전체 목록
     List<DepositListDto> getDeposits(DepositFilterDto filter);
     // 예금 상세 정보
-    DepositDetailDto selectDepositByProductName(String depositProductName);
+    DepositDetailDto selectDepositByProductName(Long productId);
     // 예금 추천 로직
     List<DepositListDto> getAllDepositRecommendations(int amount, int period, DepositUserConditionDto userCondition);
 }

@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class FundRequestDto {
-    private String fundProductName;
+    private String id;
     private String fundRiskAversion;
     private String fundReturnsData;
 }

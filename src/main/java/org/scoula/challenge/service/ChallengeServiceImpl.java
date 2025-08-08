@@ -119,6 +119,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         // 챌린지 상태 및 초기 참여 인원 조건 분기
         if (req.getType() == ChallengeType.PERSONAL) {
+            System.out.println("개인 챌린지 생성");
             challenge.setStatus(ChallengeStatus.CLOSED); // 개인 챌린지는 혼자 하는 거니까 바로 모집마감
             challenge.setParticipantCount(1); // 본인만 참여
         } else if (req.getType() == ChallengeType.GROUP) {

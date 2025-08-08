@@ -21,6 +21,7 @@
 
     <select id="get" resultType="org.scoula.user.domain.UserStatus">
         SELECT * from user_status where id=#{userId}
+    </select>
 
     <select id="getNickname" resultType="java.lang.String">
         SELECT nickname from user_status where id=#{userId}
