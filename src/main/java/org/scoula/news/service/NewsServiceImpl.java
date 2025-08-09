@@ -81,12 +81,29 @@ public class NewsServiceImpl implements NewsService {
                 NaverNewsResponseDTO.class
         ).getBody();
 
+        log.info("네이버 뉴스 API 응답:");
+        log.info(naverNewsResponseDTO);
+
         if(naverNewsResponseDTO==null){
             throw new NullPointerException("네이버 뉴스 API 응답이 null입니다.");
         }
 
-        //new
-        List<NewsVO> newsVOList = naverNewsResponseDTO.toVO();
+
+        //뉴스검색결과를 api호출전용DTO에서 뉴스DTO로 변환
+        List<NewsDTO> newsDTOList = naverNewsResponseDTO.toDTO();
+
+
+        log.info("뉴스DTO변환: ");
+        log.info(newsDTOList);
+
+        List<NewsVO> newsVOList = new ArrayList<>();
+        for(NewsDTO newsDTO : newsDTOList){
+            newsDTO.setKeyword(keyword);
+            newsVOList.add(newsDTO.toVO());
+        }
+
+        log.info("뉴스VO변환: ");
+        log.info(newsVOList);
 
         if (!newsVOList.isEmpty()) { // 삽입할 데이터가 있을 경우에만 호출
             newsMapper.insertNews(newsVOList);

@@ -5,10 +5,10 @@
 
 <mapper namespace="org.scoula.news.mapper.NewsMapper">
     <insert id="insertNews" parameterType="java.util.List">
-        INSERT INTO finpik (title, summary, link, published_at)
+        INSERT INTO finpik (title, summary, link, published_at, keyword)
         VALUES
         <foreach collection="list" item="news" separator=",">
-            (#{news.title}, #{news.summary}, #{news.link}, #{news.publishedAt})
+            (#{news.title}, #{news.summary}, #{news.link}, #{news.publishedAt},#{news.keyword})
         </foreach>
 
     </insert>

@@ -20,6 +20,7 @@ public class NewsDTO {
     private String summary;
     private String link;
     private LocalDateTime publishedAt;
+    private String keyword;
 
 
     public static NewsDTO of(NewsVO newsVO){
@@ -30,6 +31,18 @@ public class NewsDTO {
                 .summary(newsVO.getSummary())
                 .link(newsVO.getLink())
                 .publishedAt(newsVO.getPublishedAt())
+                .keyword(newsVO.getKeyword())
                 .build();
+    }
+
+    public NewsVO toVO(){
+        NewsVO newsVO = new NewsVO();
+        newsVO.setId(id);
+        newsVO.setTitle(title);
+        newsVO.setSummary(summary);
+        newsVO.setLink(link);
+        newsVO.setPublishedAt(publishedAt);
+        newsVO.setKeyword(keyword);
+        return newsVO;
     }
 }
