@@ -41,27 +41,30 @@ public class AuthController {
             )
     })
     @PostMapping("/refresh")
-    public CommonResponseDTO<TokenResponseDTO> refresh(
+    public CommonResponseDTO<Void> refresh(
             @CookieValue(value = "refreshToken", required = false) String refreshToken,
-            HttpServletRequest request,
             HttpServletResponse response
     ) {
         if (refreshToken == null || refreshToken.isBlank()) {
             return CommonResponseDTO.error("리프레시 토큰 없음", 401);
         }
 
+        // 서비스에서 새 AT/RT 생성
         TokenResponseDTO token = userService.refresh(refreshToken);
 
-        boolean isDev = request.getServerName().contains("localhost");
-        int rtMaxAge = 7 * 24 * 60 * 60;
-        String sameSite = isDev ? "Lax" : "None";
-        boolean secure = !isDev;
+        // ★ 새 AT는 헤더로 전달
+        response.setHeader("Authorization", "Bearer " + token.getAccessToken());
 
-        CookieUtil.addHttpOnlyCookie(response,
-                "refreshToken", token.getRefreshToken(), rtMaxAge, secure, sameSite);
+        // ★ RT 회전(선택) — 보안권장. 회전 안 하면 아래 3줄 생략 가능
+        org.scoula.security.util.CookieUtil.addHttpOnlyCookie(
+                response, "refreshToken", token.getRefreshToken(),
+                7 * 24 * 60 * 60,  // Max-Age=7일
+                false,             // Secure=false (HTTP)
+                "Lax"              // SameSite=Lax
+        );
 
-        return CommonResponseDTO.success("토큰 재발급 성공",
-                new TokenResponseDTO(token.getAccessToken(), null));
+        // 바디엔 토큰 안 넣음
+        return CommonResponseDTO.success("토큰 재발급 성공");
     }
 
     /**

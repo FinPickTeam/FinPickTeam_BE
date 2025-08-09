@@ -4,10 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.common.dto.CommonResponseDTO;
 import org.scoula.common.redis.RedisService;
-import org.scoula.security.util.JwtUtil;
 import org.scoula.security.account.dto.AuthResultDTO;
 import org.scoula.security.account.dto.UserInfoDTO;
 import org.scoula.security.account.domain.CustomUserDetails;
+import org.scoula.security.util.CookieUtil;
+import org.scoula.security.util.JwtUtil;
 import org.scoula.security.util.JsonResponse;
 import org.scoula.user.mapper.UserStatusMapper;
 import org.springframework.security.core.Authentication;
@@ -33,41 +34,51 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
             HttpServletResponse response,
             Authentication authentication) throws IOException {
 
-        // 사용자 정보 추출
+        // 1) 사용자 정보
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long userId = userDetails.getUser().getId();
         String email = userDetails.getUsername();
-        Long id = userDetails.getUser().getId();
 
-        // JWT 토큰 생성
-        String accessToken = jwtUtil.generateAccessToken(id, email);
-        String refreshToken = jwtUtil.generateRefreshToken(id, email);
+        // 2) 토큰 생성
+        String accessToken = jwtUtil.generateAccessToken(userId, email);
+        String refreshToken = jwtUtil.generateRefreshToken(userId, email);
 
-        // Redis에 refreshToken 저장
+        // 3) RT Redis 저장
         try {
-            redisService.saveRefreshToken(id, refreshToken);
-            log.info("✅ Redis 저장 성공: {} → {}", id, refreshToken);
+            redisService.saveRefreshToken(userId, refreshToken);
+            log.info("✅ Redis 저장 성공: {} → {}", userId, refreshToken);
         } catch (Exception e) {
             log.error("❌ Redis 저장 실패: {}", e.getMessage());
         }
 
-        // ★ 쿠키로 refreshToken 내려주기
-        boolean isDev = request.getServerName().equals("localhost") || request.getServerName().equals("127.0.0.1");
-        int rtMaxAge = 7 * 24 * 60 * 60; // 7일
-        String sameSite = isDev ? "Lax" : "None";
-        boolean secure = !isDev; // dev http에서는 false, 운영 https에서는 true
+        // 4) RT를 httpOnly 쿠키로 발급 (HTTP + same-site 환경)
+        //    Vite 프록시/운영 Nginx 프록시로 동일 오리진처럼 보이므로 Lax/secure=false 사용
+        CookieUtil.addHttpOnlyCookie(
+                response,
+                "refreshToken",
+                refreshToken,
+                7 * 24 * 60 * 60,   // Max-Age = 7일
+                false,              // Secure=false (HTTP)
+                "Lax"               // SameSite=Lax
+        );
 
-        org.scoula.security.util.CookieUtil.addHttpOnlyCookie(response,
-                "refreshToken", refreshToken, rtMaxAge, secure, sameSite);
+        // 5) AT는 응답 헤더로 전달 (FE가 헤더에서 읽어 저장)
+        response.setHeader("Authorization", "Bearer " + accessToken);
 
-        // 유저 정보 DTO 변환
+        // 6) 응답 바디(토큰은 포함하지 않음)
         UserInfoDTO userInfo = UserInfoDTO.from(userDetails.getUser());
-        String nickname=userStatusMapper.getNickname(id);
+        String nickname = userStatusMapper.getNickname(userId);
 
-        // 응답용 DTO 생성 : 응답 바디에는 accessToken만
-        AuthResultDTO authResult = new AuthResultDTO(accessToken, null, userInfo, nickname);
-        CommonResponseDTO<AuthResultDTO> responseDTO = CommonResponseDTO.success("로그인 성공", authResult);
+        AuthResultDTO result = new AuthResultDTO(
+                null,               // accessToken 바디 미포함
+                null,               // refreshToken 바디 미포함
+                userInfo,
+                nickname
+        );
 
-        // JSON 응답 전송
-        JsonResponse.send(response, responseDTO);
+        CommonResponseDTO<AuthResultDTO> body =
+                CommonResponseDTO.success("로그인 성공", result);
+
+        JsonResponse.send(response, body);
     }
 }
