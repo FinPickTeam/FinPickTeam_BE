@@ -37,4 +37,16 @@
         SELECT cumulative_amount from coin where id=#{userId}
     </select>
 
+    <select id="getMonthlyCumulativeAmount" resultType="long">
+        SELECT COALESCE(monthly_cumulative_amount, 0)
+        FROM coin
+        WHERE id = #{userId}
+    </select>
+
+    <select id="getUpdatedAt" resultType="string">
+        SELECT DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s')
+        FROM coin
+        WHERE id = #{userId}
+    </select>
+
 </mapper>

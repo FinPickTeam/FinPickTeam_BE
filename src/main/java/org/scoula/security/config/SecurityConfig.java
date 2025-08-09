@@ -68,12 +68,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
+
         // TODO: 실제 프론트 도메인으로 교체
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173"
         ));
 
-        config.addAllowedOriginPattern("*");
+        // config.addAllowedOriginPattern("*");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
