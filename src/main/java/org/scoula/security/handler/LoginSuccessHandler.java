@@ -50,12 +50,21 @@ public class LoginSuccessHandler implements AuthenticationSuccessHandler {
             log.error("❌ Redis 저장 실패: {}", e.getMessage());
         }
 
+        // ★ 쿠키로 refreshToken 내려주기
+        boolean isDev = request.getServerName().equals("localhost") || request.getServerName().equals("127.0.0.1");
+        int rtMaxAge = 7 * 24 * 60 * 60; // 7일
+        String sameSite = isDev ? "Lax" : "None";
+        boolean secure = !isDev; // dev http에서는 false, 운영 https에서는 true
+
+        org.scoula.security.util.CookieUtil.addHttpOnlyCookie(response,
+                "refreshToken", refreshToken, rtMaxAge, secure, sameSite);
+
         // 유저 정보 DTO 변환
         UserInfoDTO userInfo = UserInfoDTO.from(userDetails.getUser());
         String nickname=userStatusMapper.getNickname(id);
 
-        // 응답용 DTO 생성
-        AuthResultDTO authResult = new AuthResultDTO(accessToken, refreshToken, userInfo,nickname);
+        // 응답용 DTO 생성 : 응답 바디에는 accessToken만
+        AuthResultDTO authResult = new AuthResultDTO(accessToken, null, userInfo, nickname);
         CommonResponseDTO<AuthResultDTO> responseDTO = CommonResponseDTO.success("로그인 성공", authResult);
 
         // JSON 응답 전송
