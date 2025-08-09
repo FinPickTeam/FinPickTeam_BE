@@ -130,6 +130,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                     .antMatchers(HttpMethod.POST,  "/api/auth/test-login").permitAll()
 
+                    .antMatchers(HttpMethod.GET, "/api/challenge/scheduler/**").permitAll()
+
                     // 그 외는 기본 차단(로그인 필요)
                     .anyRequest().authenticated()
 
