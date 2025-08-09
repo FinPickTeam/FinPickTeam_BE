@@ -17,5 +17,9 @@ public interface CoinMapper {
 
     //누적포인트 조회
     int getCumulativeAmount(@Param("userId") Long userId);
+
+    // 챌린지 홈 슬라이드에서 활용 월별 누적데이터
+    Long getMonthlyCumulativeAmount(@Param("userId") Long userId);
+    String getUpdatedAt(@Param("userId") Long userId);
 }
 
