@@ -77,6 +77,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
+        config.setExposedHeaders(List.of("Authorization"));
+
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
@@ -129,6 +131,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers(HttpMethod.POST, "/api/user/password-reset").permitAll()
                     .antMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                     .antMatchers(HttpMethod.POST,  "/api/auth/test-login").permitAll()
+                    .antMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
 
                     .antMatchers(HttpMethod.GET, "/api/challenge/scheduler/**").permitAll()
 
