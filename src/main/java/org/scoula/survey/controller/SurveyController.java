@@ -9,6 +9,7 @@ import org.scoula.common.dto.CommonResponseDTO;
 import org.scoula.security.account.domain.CustomUserDetails;
 import org.scoula.survey.dto.SurveyDTO;
 import org.scoula.survey.dto.SurveyRequestDTO;
+import org.scoula.survey.dto.SurveyResponseDTO;
 import org.scoula.survey.service.SurveyService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,9 +32,9 @@ public class SurveyController {
     // POST 요청으로 userId와 answers[]를 받는 경우
     @ApiOperation(value="투자성향저장", notes = "투자성향을 저장한다")
     @PostMapping("/submit-params")
-    public ResponseEntity<CommonResponseDTO<SurveyDTO>> submitSurvey(@AuthenticationPrincipal CustomUserDetails userDetails, @ModelAttribute SurveyRequestDTO surveyRequestDTO) {
+    public ResponseEntity<CommonResponseDTO<SurveyResponseDTO>> submitSurvey(@AuthenticationPrincipal CustomUserDetails userDetails, @ModelAttribute SurveyRequestDTO surveyRequestDTO) {
         log.info("설문 제출 요청 수신 (파라미터): userId={}, answers={}", userDetails.getUserId(), surveyRequestDTO.getAnswers());
-        SurveyDTO resultDTO = surveyService.insert(userDetails.getUserId(),surveyRequestDTO);
+        SurveyResponseDTO resultDTO = surveyService.insert(userDetails.getUserId(),surveyRequestDTO);
         log.info("설문 처리 및 저장 성공: {}", resultDTO);
 
         return ResponseEntity.ok(CommonResponseDTO.success("설문저장성공",resultDTO));

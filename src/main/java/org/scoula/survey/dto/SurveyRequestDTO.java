@@ -16,8 +16,5 @@ import java.util.stream.Collectors;
 @AllArgsConstructor // 모든 필드를 포함하는 생성자 자동 생성
 @Builder // 빌더 패턴 사용
 public class SurveyRequestDTO {
-    private Integer totalScore;
-    private String propensityType;
     private List<String> answers; // 질문 답변들을 List<String>으로 받음
-
 }
