@@ -6,8 +6,8 @@
 <mapper namespace="org.scoula.survey.mapper.SurveyMapper">
 
     <insert id="insertSurvey" parameterType="org.scoula.survey.domain.SurveyVO">
-        INSERT INTO investment_types (id, total_score, propensity_type, question1, question2, question3, question4)
-        VALUES (#{id}, #{totalScore}, #{propensityType}, #{question1}, #{question2}, #{question3}, #{question4})
+        INSERT INTO investment_types (id, total_score, propensity_type, question1, question2, question3, question4,question5)
+        VALUES (#{id}, #{totalScore}, #{propensityType}, #{question1}, #{question2}, #{question3}, #{question4}, #{question5})
     </insert>
 
     <select id="selectById" parameterType="long" resultType="org.scoula.survey.domain.SurveyVO">

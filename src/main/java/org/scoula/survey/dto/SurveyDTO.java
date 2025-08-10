@@ -33,7 +33,8 @@ public class SurveyDTO {
                         surveyVO.getQuestion1(),
                         surveyVO.getQuestion2(),
                         surveyVO.getQuestion3(),
-                        surveyVO.getQuestion4()
+                        surveyVO.getQuestion4(),
+                        surveyVO.getQuestion5()
                 ))
                 .build();
     }
@@ -50,6 +51,7 @@ public class SurveyDTO {
                 .question2(this.answers.get(1))
                 .question3(this.answers.get(2))
                 .question4(this.answers.get(3))
+                .question5(this.answers.get(4))
                 .build();
     }
 }
