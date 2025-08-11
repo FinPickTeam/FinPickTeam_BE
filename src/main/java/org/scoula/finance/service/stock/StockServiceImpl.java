@@ -262,6 +262,29 @@ public class StockServiceImpl implements StockService {
         }
     }
 
+    @Override
+    public String getStockReturn(String stockCode, String startDate, String endDate){
+        try{
+            ClassPathResource resource = new ClassPathResource("python/stock/getStockReturn.py");
+            File pythonFile = resource.getFile();
+            String path = pythonFile.getAbsolutePath();
+
+            PythonExecutorUtil.runPythonScript(path, stockCode, startDate, endDate);
+
+            File jsonFile = new File("./data/stock/output/stock_return.json");
+            if (!jsonFile.exists()) return "0";
+
+            JsonNode root = objectMapper.readTree(jsonFile);
+            if (root.hasNonNull("pnl")) {
+                return root.get("pnl").asText();
+            }
+            return "0";
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return stockCode;
+    }
+
     //주식 추천 로직
     @Override
     public List<StockListDto> getStockRecommendationList(Long userId, int limit, Integer amount) {
