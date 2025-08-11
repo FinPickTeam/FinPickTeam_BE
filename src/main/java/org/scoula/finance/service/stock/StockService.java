@@ -25,4 +25,6 @@ public interface StockService {
 
     // 사용자 맞춤 추식 추천
     List<StockListDto> getStockRecommendationList(Long userId, int limit, Integer amount);
+
+    String getStockReturn(String stockCode, String startDate, String endDate);
 }

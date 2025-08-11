@@ -120,4 +120,15 @@ public class StockController {
 
         return CommonResponseDTO.success("사용자 맞춤 주식 추천 성공", recommendData);
     }
+
+    @ApiOperation(value = "주식 수익률 가져오기", notes = "주식의 누적 수익률을 가져옵니다.")
+    @GetMapping("/stockReturns")
+    public CommonResponseDTO<String> getStockReturns(
+            @RequestParam String stockCode,
+            @RequestParam String startDate,
+            @RequestParam String endDate){
+        String result = stockService.getStockReturn(stockCode, startDate, endDate);
+
+        return CommonResponseDTO.success("`${stockCode}`의 수익률을 가져오는데 성공했습니다.", result);
+    }
 }
