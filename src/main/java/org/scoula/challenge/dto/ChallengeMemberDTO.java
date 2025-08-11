@@ -1,12 +1,17 @@
 package org.scoula.challenge.dto;
 
-import lombok.Builder;
 import lombok.Data;
 
-@Data // 기본 생성자 + setter 제공
+@Data
 public class ChallengeMemberDTO {
     private Long userId;
     private String nickname;
     private Double progress;
-    private String avatarImage;
+
+    // 레이어드 아바타용 파츠 ID들
+    private Long levelId;
+    private Long topId;
+    private Long shoesId;
+    private Long accessoryId;
+    private Long giftCardId;
 }
