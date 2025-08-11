@@ -61,11 +61,11 @@ public class WishListServiceImpl implements WishListService {
         if(!stockIdList.isEmpty()){
             String token = stockMapper.getUserToken(userId);
 
-            System.out.println("주식 ID: " + stockIdList);
+            System.out.println("주식 코드: " + stockIdList);
 
-            for(int stockId : stockIdList){
+            for(int intStockCode : stockIdList){
                 StockListDto dto = new StockListDto();
-                String stockCode = wishListMapper.getStockCodeByStockId(stockId);
+                String stockCode = String.format("%06d", intStockCode);
 
                 try{
                     String response = KiwoomApiUtils.sendPostRequest("/api/dostk/stkinfo", token,
