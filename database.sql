@@ -8,7 +8,7 @@ CREATE TABLE `user` (
                         `id` BIGINT NOT NULL AUTO_INCREMENT,
                         `email` VARCHAR(255) NOT NULL,
                         `password` VARCHAR(255) NOT NULL,
-                        `auth_pw` VARBINARY(255) NULL,
+                        `auth_pw` VARCHAR(255) NULL,
                         `user_name` VARCHAR(255) NULL,
                         `phone_num` VARCHAR(255) NULL,
                         `birthday` DATE NULL,
@@ -38,10 +38,11 @@ CREATE TABLE `investment_types` (
                                     `id` BIGINT NOT NULL,
                                     `total_score` INT NOT NULL,
                                     `propensity_type` VARCHAR(255) NOT NULL,
-                                    `question1` ENUM('A','B','C') NOT NULL,
-                                    `question2` ENUM('A','B','C') NOT NULL,
-                                    `question3` ENUM('A','B','C') NOT NULL,
-                                    `question4` ENUM('A','B','C') NOT NULL,
+                                    `question1` VARCHAR(255) NOT NULL,
+                                    `question2` VARCHAR (255) NOT NULL,
+                                    `question3` VARCHAR(255) NOT NULL,
+                                    `question4` VARCHAR(255)NOT NULL,
+                                    `question5` VARCHAR(255) NOT NULL,
                                     PRIMARY KEY (`id`),
                                     FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
@@ -594,6 +595,7 @@ CREATE TABLE `finpik` (
                           `summary` TEXT NOT NULL,
                           `link` VARCHAR(500) NOT NULL,
                           `published_at` DATETIME NOT NULL,
+                          `keyword` VARCHAR(255) NOT NULL,
                           PRIMARY KEY (`id`)
 );
 

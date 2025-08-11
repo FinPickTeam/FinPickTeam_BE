@@ -18,4 +18,5 @@ public class User {
     private LocalDateTime lastPwChangeAt;
     private Boolean isVerified;
     private Boolean isActive;
+    private String authPw;
 }

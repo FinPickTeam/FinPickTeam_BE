@@ -25,7 +25,7 @@ public class ChallengeController {
 
     private final ChallengeService challengeService;
 
-    // ✅ 토큰 직접 파싱 제거, @AuthenticationPrincipal 로 유저 주입
+    // 토큰 직접 파싱 제거, @AuthenticationPrincipal 로 유저 주입
     @PostMapping("/create")
     public CommonResponseDTO<ChallengeCreateResponseDTO> createChallenge(
             @RequestBody ChallengeCreateRequestDTO req,

@@ -12,4 +12,5 @@ public class NewsVO {
     private String link;
     private String summary;
     private LocalDateTime publishedAt;
+    private String keyword;
 }

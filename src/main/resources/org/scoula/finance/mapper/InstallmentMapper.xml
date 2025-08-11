@@ -23,6 +23,13 @@
             <if test="installmentBankName != null and installmentBankName != ''">
                 AND installment_bank_name = #{installmentBankName}
             </if>
+            <if test="contractPeriodMonth != null">
+                AND CAST(SUBSTRING_INDEX(installment_contract_period, '개월', 1) AS UNSIGNED) &lt;= #{contractPeriodMonth}
+            </if>
+
+            <if test="minSubscriptionAmount != null">
+                AND CAST(REPLACE(installment_subscription_amount, '만원', '') AS UNSIGNED) * 10000 &lt;= #{minSubscriptionAmount}
+            </if>
         </where>
 
         <choose>

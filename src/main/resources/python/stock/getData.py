@@ -13,7 +13,7 @@ def get_business_dates_one_month():
     yesterday = today - pd.tseries.offsets.BDay(1)
 
     # 한 달 전
-    one_month_before = yesterday - pd.DateOffset(months=1)
+    one_month_before = yesterday - pd.DateOffset(months=3)
 
     # 한 달 전이 주말이면 이전 영업일로 당겨서 보정
     while one_month_before.weekday() >= 5:  # 5=토, 6=일

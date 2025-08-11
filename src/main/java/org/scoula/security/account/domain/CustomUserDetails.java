@@ -62,4 +62,6 @@ public class CustomUserDetails implements UserDetails {
         return user.getUserName();
     }
 
+    public String getPin(){return user.getAuthPw();}
+
 }

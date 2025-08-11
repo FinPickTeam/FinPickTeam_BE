@@ -59,8 +59,6 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
         return dto;
     }
 
-
-
     @Override
     public void syncAccountTransactions(Account account, boolean isInitial) {
         Long userId = account.getUserId();
@@ -68,7 +66,7 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
 
         LocalDate to = LocalDate.now();
         LocalDate from = isInitial ? to.minusMonths(3)
-                : getLastSyncDate(account.getId(), to);
+                : getNextStartDate(account.getId(), to); // 마지막+1일
 
         List<NhAccountTransactionResponseDto> dtoList = nhAccountService.callTransactionList(
                 userId, account.getId(), finAcno,
@@ -77,29 +75,30 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
         );
 
         for (NhAccountTransactionResponseDto dto : dtoList) {
-            if (accountTransactionMapper.existsByUserIdAndTuNo(userId, dto.getTuNo())) continue;
+            if (accountTransactionMapper.existsByUserIdAndAccountIdAndTuNo(userId, account.getId(), dto.getTuNo())) continue;
 
             AccountTransaction tx = new AccountTransaction(dto, userId, account.getId());
             accountTransactionMapper.insert(tx);
 
             if (dto.isIncome()) {
-                int categoryId = 10; // "이체" 고정 ID
+                int categoryId = 10; // "이체"
                 Ledger ledger = new Ledger(tx, account.getProductName(), categoryId);
                 ledgerMapper.accountInsert(ledger);
             }
-
         }
 
-        log.info("✅ 계좌 {} 거래내역 동기화 완료 ({}건)", account.getId(), dtoList.size());
+        log.info("✅ 계좌 {} 거래내역 동기화 완료 ({}건, {} ~ {})", account.getId(), dtoList.size(), from, to);
     }
 
-    private LocalDate getLastSyncDate(Long accountId, LocalDate fallback) {
-        LocalDateTime last = accountTransactionMapper.findLastTransactionDate(accountId);
-        return last != null ? last.toLocalDate().plusDays(1) : fallback.minusMonths(3);
-    }
-
+    // 기본은 증분 동기화로
     @Override
     public void syncAccountTransactions(Account account) {
-        syncAccountTransactions(account, true);
+        syncAccountTransactions(account, false);
+    }
+
+    // 마지막 거래일의 다음날을 시작점으로(미존재 시 3개월 전)
+    private LocalDate getNextStartDate(Long accountId, LocalDate today) {
+        LocalDateTime last = accountTransactionMapper.findLastTransactionDate(accountId);
+        return last != null ? last.toLocalDate().plusDays(1) : today.minusMonths(3);
     }
 }

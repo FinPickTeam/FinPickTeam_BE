@@ -55,7 +55,7 @@ public class FundController {
     }
 
     @ApiOperation(value = "펀드 추천 리스트 조회", notes = "사용자의 투자성향과 펀드의 일간 수익률 데이터를 기반으로 상품을 추천합니다.")
-    @GetMapping("/recommned")
+    @GetMapping("/recommend")
     public CommonResponseDTO<List<FundListDto>> getRecommendFundList(){
         List<FundListDto> dto = fundService.getFundRecommendation();
 

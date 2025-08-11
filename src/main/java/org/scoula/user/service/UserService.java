@@ -14,4 +14,7 @@ public interface UserService {
     void logout(String token);
     void withdrawal(String token);
     void checkAndLevelUp(Long userId);
+    void setPin(Long userId, PinRequestDTO pinRequestDTO);
+    void resetPin(Long userId, PinRequestDTO pinRequestDTO);
+    void pinLogin(String email, Long userId, PinRequestDTO pinRequestDTO);
 }

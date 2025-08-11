@@ -19,9 +19,9 @@ public class NaverNewsResponseDTO {
     private int display;          // 한 번에 표시할 검색 결과 개수
     private List<Item> items;     // 검색 결과 뉴스 아이템 목록
 
-    public List<NewsVO> toVO() {
+    public List<NewsDTO> toDTO() {
         return this.items.stream()
-                .map(Item::toNewsVO) // 각 Item을 NewsVO로 변환
+                .map(Item::toNewsDTO) // 각 Item을 NewsDTO로 변환
                 .collect(Collectors.toList()); // 리스트로 수집
     }
 
@@ -33,7 +33,7 @@ public class NaverNewsResponseDTO {
         private String description;  // 뉴스 요약 (HTML 태그 포함 가능)
         private String pubDate;      // 뉴스 발행일 (RFC 2822 형식)
 
-        public NewsVO toNewsVO() {
+        public NewsDTO toNewsDTO() {
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
             LocalDateTime parsePubDate=LocalDateTime.parse(this.pubDate,formatter);
@@ -43,13 +43,20 @@ public class NaverNewsResponseDTO {
 
             String cleanTitle = unescapedTitle.replaceAll("<[^>]*>", "");
             String cleanDescription = unescapedDescription.replaceAll("<[^>]*>", "");
+//
+//            NewsVO newsVO = new NewsVO();
+//            newsVO.setTitle(cleanTitle);
+//            newsVO.setLink(this.originallink);
+//            newsVO.setSummary(cleanDescription);
+//            newsVO.setPublishedAt(parsePubDate);
 
-            NewsVO newsVO = new NewsVO();
-            newsVO.setTitle(cleanTitle);
-            newsVO.setLink(this.originallink);
-            newsVO.setSummary(cleanDescription);
-            newsVO.setPublishedAt(parsePubDate);
-            return newsVO;
+            return NewsDTO.builder()
+                    .title(cleanTitle)
+                    .keyword(null)
+                    .publishedAt(parsePubDate)
+                    .summary(cleanDescription)
+                    .link(this.originallink)
+                    .build();
         }
     }
 }

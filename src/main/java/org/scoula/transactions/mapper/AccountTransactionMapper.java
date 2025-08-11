@@ -17,8 +17,11 @@ public interface AccountTransactionMapper {
                                                      @Param("from") String from,
                                                      @Param("to") String to);
 
-    boolean existsByUserIdAndTuNo(@Param("userId") Long userId,
-                                  @Param("tuNo") Long tuNo);
+    boolean existsByUserIdAndAccountIdAndTuNo(
+            @Param("userId") Long userId,
+            @Param("accountId") Long accountId,
+            @Param("tuNo") Long tuNo
+    );
 
     LocalDateTime findLastTransactionDate(@Param("accountId") Long accountId);
 }

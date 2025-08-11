@@ -16,10 +16,11 @@ public interface CardTransactionMapper {
                                                @Param("to") String to);
     void insert(CardTransaction tx);
     void insertCardTransactions(List<CardTransaction> list);
-    boolean existsByUserIdAndKey(
+    boolean existsByUserIdAndCardIdAndKey(
             @Param("userId") Long userId,
+            @Param("cardId") Long cardId,
             @Param("authNumber") String authNumber,
-            @Param("approvedAt") String approvedAt
+            @Param("approvedAt") java.time.LocalDateTime approvedAt
     );
     LocalDateTime findLastTransactionDate(Long cardId);
     BigDecimal sumMonthlySpending(@Param("userId") Long userId,

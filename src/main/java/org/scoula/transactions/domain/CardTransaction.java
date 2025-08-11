@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.scoula.nhapi.dto.NhCardTransactionResponseDto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -19,7 +20,7 @@ public class CardTransaction {
     private String authNumber;
     private String salesType;
     private LocalDateTime approvedAt;
-    private String paymentDate;
+    private LocalDate paymentDate;
     private BigDecimal amount;
     private Boolean isCancelled;
     private BigDecimal cancelAmount;
@@ -37,12 +38,12 @@ public class CardTransaction {
         this.cardId = cardId;
         this.authNumber = dto.getAuthNumber();
         this.salesType = dto.getSalesType();
-        this.approvedAt = parseDateTime(dto.getApprovedAt());
-        this.paymentDate = dto.getPaymentDate(); // 문자열 그대로 저장
+        this.approvedAt = dto.getApprovedAt();
+        this.paymentDate = dto.getPaymentDate();  // 문자열 그대로 저장
         this.amount = dto.getAmount();
         this.isCancelled = dto.isCancelled();
         this.cancelAmount = dto.getCancelAmount();
-        this.cancelledAt = parseDateTime(dto.getCancelledAt());
+        this.cancelledAt = dto.getCancelledAt();
         this.merchantName = dto.getMerchantName();
         this.tpbcd = dto.getTpbcd();
         this.tpbcdNm = dto.getTpbcdNm();

@@ -153,19 +153,18 @@ public class ChallengeServiceImpl implements ChallengeService {
         return challenges.stream()
                 .filter(challenge -> {
                     boolean isParticipating = userChallengeIds.contains(challenge.getId());
-
-                    if (participating == null) return true; // 필터 안 씀
-                    if (participating) return isParticipating; // 참여한 챌린지만
-                    else return !isParticipating;              // 참여 안 한 챌린지만
+                    if (participating == null) return true;
+                    return participating ? isParticipating : !isParticipating;
                 })
                 .map(challenge -> {
                     boolean isParticipating = userChallengeIds.contains(challenge.getId());
                     String categoryName = challengeMapper.getCategoryNameById(challenge.getCategoryId());
 
-                    // 참여한 챌린지인 경우만 결과 확인 여부 조회
                     Boolean resultChecked = false;
                     if (isParticipating) {
-                        resultChecked = Boolean.TRUE.equals(challengeMapper.isResultChecked(userId, challenge.getId()));
+                        resultChecked = Boolean.TRUE.equals(
+                                challengeMapper.isResultChecked(userId, challenge.getId())
+                        );
                     }
 
                     Double myProgress = null;
@@ -180,16 +179,22 @@ public class ChallengeServiceImpl implements ChallengeService {
                     return ChallengeListResponseDTO.builder()
                             .id(challenge.getId())
                             .title(challenge.getTitle())
-                            .categoryName(categoryName)
                             .type(challenge.getType())
+                            .status(challenge.getStatus())                   // 추가
+                            .categoryName(categoryName)
                             .startDate(challenge.getStartDate())
                             .endDate(challenge.getEndDate())
-                            .isParticipating(isParticipating)
-                            .myProgressRate(myProgress)
+                            .goalType(challenge.getGoalType())               // 추가
+                            .goalValue(challenge.getGoalValue())             // 추가
+                            .maxParticipants(challenge.getMaxParticipants())  // 추가
                             .participantsCount(challenge.getParticipantCount())
-                            .isResultCheck(resultChecked)
+                            .rewardPoint(challenge.getRewardPoint())         // 추가
+                            .participating(isParticipating)                  // Boolean
+                            .myProgressRate(myProgress)
+                            .resultChecked(resultChecked)                    // Boolean
                             .build();
-                }).collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
     }
 
 
