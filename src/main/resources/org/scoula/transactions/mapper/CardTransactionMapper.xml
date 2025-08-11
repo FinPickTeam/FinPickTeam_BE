@@ -18,19 +18,28 @@
         ORDER BY approved_at DESC
     </select>
 
-    <insert id="insert" parameterType="org.scoula.transactions.domain.CardTransaction"
-            useGeneratedKeys="true" keyProperty="id">
+    <!-- CardTransactionMapper.xml -->
+    <insert id="insert"
+            parameterType="org.scoula.transactions.domain.CardTransaction"
+            useGeneratedKeys="true"
+            keyProperty="id">
         INSERT INTO card_transaction (
-            user_id, card_id, auth_number, sales_type, approved_at, payment_date,
-            amount, is_cancelled, cancel_amount, cancelled_at, merchant_name,
-            tpbcd, tpbcd_nm, installment_month, currency, foreign_amount, created_at
-        )
-        VALUES (
-                   #{userId}, #{cardId}, #{authNumber}, #{salesType}, #{approvedAt}, #{paymentDate},
-                   #{amount}, #{isCancelled}, #{cancelAmount}, #{cancelledAt}, #{merchantName},
-                   #{tpbcd}, #{tpbcdNm}, #{installmentMonth}, #{currency}, #{foreignAmount}, #{createdAt}
-               )
+            user_id, card_id, auth_number, sales_type,
+            approved_at, payment_date,
+            amount, is_cancelled, cancel_amount, cancelled_at,
+            merchant_name, tpbcd, tpbcd_nm, installment_month, currency, foreign_amount, created_at
+        ) VALUES (
+                     #{userId}, #{cardId}, #{authNumber}, #{salesType},
+                     #{approvedAt, jdbcType=TIMESTAMP, typeHandler=org.apache.ibatis.type.LocalDateTimeTypeHandler},
+                     #{paymentDate, jdbcType=DATE, typeHandler=org.apache.ibatis.type.LocalDateTypeHandler},
+                     #{amount}, #{isCancelled}, #{cancelAmount},
+                     #{cancelledAt, jdbcType=TIMESTAMP, typeHandler=org.apache.ibatis.type.LocalDateTimeTypeHandler},
+                     #{merchantName}, #{tpbcd}, #{tpbcdNm}, #{installmentMonth}, #{currency}, #{foreignAmount},
+                     NOW()
+                 )
     </insert>
+
+
 
 
 
@@ -51,19 +60,20 @@
         </foreach>
     </insert>
 
-    <select id="existsByUserIdAndKey" resultType="boolean">
-        SELECT EXISTS(
-            SELECT 1 FROM card_transaction
-            WHERE user_id = #{userId}
-              AND auth_number = #{authNumber}
-              AND approved_at = #{approvedAt}
-        )
+    <!-- 중복 체크 -->
+    <select id="existsByUserIdAndCardIdAndKey" resultType="boolean">
+        SELECT COUNT(1)
+        FROM card_transaction
+        WHERE user_id   = #{userId}
+        AND card_id   = #{cardId}
+        AND auth_number = #{authNumber}
+        AND approved_at = #{approvedAt, jdbcType=TIMESTAMP,
+        typeHandler=org.apache.ibatis.type.LocalDateTimeTypeHandler}  <!-- ✅ -->
     </select>
 
+    <!-- 마지막 승인일 -->
     <select id="findLastTransactionDate" resultType="java.time.LocalDateTime">
-        SELECT MAX(approved_at)
-        FROM card_transaction
-        WHERE card_id = #{cardId}
+        SELECT MAX(approved_at) FROM card_transaction WHERE card_id = #{cardId}
     </select>
 
     <select id="sumMonthlySpending" resultType="java.math.BigDecimal">

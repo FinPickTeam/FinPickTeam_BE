@@ -61,11 +61,11 @@ public class CardTransactionServiceImpl implements CardTransactionService {
         return dto;
     }
 
-    // ✅ 신규 메서드: 초기 여부 구분 포함 동기화
     @Override
     public void syncCardTransactions(Long userId, Long cardId, String finCard, boolean isInitial) {
         LocalDate to = LocalDate.now();
-        LocalDate from = isInitial ? to.minusMonths(3) : getLastSyncDate(cardId, to);
+        LocalDate from = isInitial ? to.minusMonths(3)
+                : getNextStartDate(cardId, to); // 마지막+1일
 
         List<NhCardTransactionResponseDto> dtoList = nhCardService.callCardTransactionList(
                 userId, finCard,
@@ -77,24 +77,31 @@ public class CardTransactionServiceImpl implements CardTransactionService {
         if (card == null) throw new BaseException("카드 정보가 존재하지 않습니다.", 404);
 
         for (NhCardTransactionResponseDto dto : dtoList) {
-            if (mapper.existsByUserIdAndKey(userId, dto.getAuthNumber(), dto.getApprovedAt())) continue;
+            if (dto.getApprovedAt() == null) {
+                log.warn("🚫 approvedAt null → skip. auth={}, mcht={}", dto.getAuthNumber(), dto.getMerchantName());
+                continue;
+            }
+
+            if (mapper.existsByUserIdAndCardIdAndKey(
+                    userId, cardId, dto.getAuthNumber(), dto.getApprovedAt()  // ✅ String.valueOf(...) 금지
+            )) continue;
 
             CardTransaction tx = new CardTransaction(dto, userId, cardId);
             mapper.insert(tx);
 
             if (!tx.getIsCancelled()) {
-                Ledger ledger = Ledger.fromCardTransaction(tx, card); // ✅ 카드 정보 포함
+                Ledger ledger = Ledger.fromCardTransaction(tx, card);
+                ledger.setSourceId(tx.getId());
                 ledgerMapper.cardInsert(ledger);
             }
         }
 
-
-        log.info("✅ 카드 {} 승인내역 동기화 완료 ({}건)", cardId, dtoList.size());
+        log.info("✅ 카드 {} 승인내역 동기화 완료 ({}건, {} ~ {})", cardId, dtoList.size(), from, to);
     }
 
-    // ✅ 마지막 승인일 기준 동기화 시작일 결정
-    private LocalDate getLastSyncDate(Long cardId, LocalDate fallback) {
+    // 마지막 승인일의 다음날을 시작점으로(미존재 시 3개월 전)
+    private LocalDate getNextStartDate(Long cardId, LocalDate today) {
         LocalDateTime last = mapper.findLastTransactionDate(cardId);
-        return last != null ? last.toLocalDate().plusDays(1) : fallback.minusMonths(3);
+        return last != null ? last.toLocalDate().plusDays(1) : today.minusMonths(3);
     }
 }
