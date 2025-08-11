@@ -1,6 +1,8 @@
 # 1️⃣ Tomcat 9 기반 이미지 사용
 FROM tomcat:9.0-jdk17
 
+ENV TZ=Asia/Seoul
+
 # 2️⃣ 기존 webapps 내용 제거 (기본 ROOT 등 제거)
 RUN rm -rf /usr/local/tomcat/webapps/*
 
