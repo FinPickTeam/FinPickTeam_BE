@@ -20,6 +20,7 @@ public class SpendingServiceImpl implements SpendingService {
     public BigDecimal getMonthlySpending(Long userId, YearMonth month) {
         LocalDateTime start = month.atDay(1).atStartOfDay();
         LocalDateTime end = month.atEndOfMonth().atTime(LocalTime.MAX);
-        return cardTransactionMapper.sumMonthlySpending(userId, start, end);
+        BigDecimal v = cardTransactionMapper.sumMonthlySpending(userId, start, end);
+        return v != null ? v : BigDecimal.ZERO; // ✅ null-safe
     }
 }
