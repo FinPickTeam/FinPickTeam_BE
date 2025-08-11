@@ -5,13 +5,48 @@
 
 <mapper namespace="org.scoula.survey.mapper.SurveyMapper">
 
-    <insert id="insertSurvey" parameterType="org.scoula.survey.domain.SurveyVO">
-        INSERT INTO investment_types (id, total_score, propensity_type, question1, question2, question3, question4,question5)
-        VALUES (#{id}, #{totalScore}, #{propensityType}, #{question1}, #{question2}, #{question3}, #{question4}, #{question5})
+    <insert id="insert" parameterType="org.scoula.survey.domain.SurveyVO">
+        INSERT INTO investment_types (id, total_score, propensity_type, question1, question2, question3, question4, question5, question6, question7, question8, question9, question10)
+        VALUES (#{id}, #{totalScore}, #{propensityType}, #{question1}, #{question2}, #{question3}, #{question4}, #{question5},#{question6},#{question7},#{question8},#{question9},#{question10})
     </insert>
+
+    <update id="update" parameterType="org.scoula.survey.domain.SurveyVO">
+        UPDATE investment_types
+        SET total_score=#{totalScore},
+            propensity_type=#{propensityType},
+            question1=#{question1},
+            question2=#{question2},
+            question3=#{question3},
+            question4=#{question4},
+            question5=#{question5},
+            question6=#{question6},
+            question7=#{question7},
+            question8=#{question8},
+            question9=#{question9},
+            question10=#{question10}
+        WHERE id=#{id}
+    </update>
 
     <select id="selectById" parameterType="long" resultType="org.scoula.survey.domain.SurveyVO">
         SELECT * FROM investment_types WHERE id = #{id}
+    </select>
+
+    <select id="isSurvey" resultType="java.lang.Boolean">
+        SELECT
+            question1 IS NOT NULL AND
+            question2 IS NOT NULL AND
+            question3 IS NOT NULL AND
+            question4 IS NOT NULL AND
+            question5 IS NOT NULL AND
+            question6 IS NOT NULL AND
+            question7 IS NOT NULL AND
+            question8 IS NOT NULL AND
+            question9 IS NOT NULL AND
+            question10 IS NOT NULL
+        FROM
+            investment_types
+        WHERE
+            id = #{userId}
     </select>
 
 </mapper>

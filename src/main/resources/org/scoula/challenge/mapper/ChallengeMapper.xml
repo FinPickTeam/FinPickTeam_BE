@@ -71,16 +71,25 @@
         WHERE user_id = #{userId} AND challenge_id = #{challengeId}
     </select>
 
-    <select id="getGroupMembersWithAvatar" resultType="org.scoula.challenge.dto.ChallengeMemberDTO">
-        SELECT u.id AS userId,
-               us.nickname AS nickname,
-               (uc.actual_value * 1.0 / c.goal_value) AS progress,
-               a.avatar_image AS avatarImage
+    <select id="getGroupMembersWithAvatar"
+            resultType="org.scoula.challenge.dto.ChallengeMemberDTO">
+        SELECT
+        u.id  AS userId,
+        us.nickname AS nickname,
+        CASE
+        WHEN c.goal_value IS NULL OR c.goal_value = 0 THEN 0
+        ELSE uc.actual_value * 1.0 / c.goal_value
+        END AS progress,
+        a.level_id     AS levelId,
+        a.top_id       AS topId,
+        a.shoes_id     AS shoesId,
+        a.accessory_id AS accessoryId,
+        a.gift_card_id AS giftCardId
         FROM user_challenge uc
-                 JOIN user u ON uc.user_id = u.id
-                 JOIN user_status us ON u.id = us.id
-                 JOIN challenge c ON uc.challenge_id = c.id
-                 LEFT JOIN avatar a ON u.id = a.id
+        JOIN user u        ON uc.user_id = u.id
+        JOIN user_status us ON us.id = u.id
+        JOIN challenge c    ON c.id = uc.challenge_id
+        LEFT JOIN avatar a  ON a.id = u.id
         WHERE uc.challenge_id = #{challengeId}
     </select>
 

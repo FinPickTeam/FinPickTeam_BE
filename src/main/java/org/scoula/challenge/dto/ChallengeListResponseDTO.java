@@ -29,7 +29,7 @@ public class ChallengeListResponseDTO {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
 
-    // 목표/보상/인원 정보도 리스트에서 바로 쓰게 전달
+    // 목표/보상/인원
     private String goalType;          // 예: "소비"
     private Integer goalValue;
     private Integer maxParticipants;  // 예: GROUP=6, PERSONAL=1
@@ -37,12 +37,15 @@ public class ChallengeListResponseDTO {
     private Integer rewardPoint;
 
     // 참여 여부 & 진행률 & 결과확인 여부
-    // 프론트 호환을 위해 JSON 키는 기존처럼 isParticipating / isResultCheck 로 유지
     @JsonProperty("isParticipating")
-    private Boolean participating;    // primitive X (널 안전)
+    private Boolean participating;    // null-safe
 
     private Double myProgressRate;    // null 가능 (미참여/COMMON 등)
 
     @JsonProperty("isResultCheck")
-    private Boolean resultChecked;    // primitive X (널 안전)
+    private Boolean resultChecked;    // null-safe
+
+    // 내가 만든 챌린지인지
+    @JsonProperty("isMine")
+    private Boolean isMine;           // null-safe
 }
