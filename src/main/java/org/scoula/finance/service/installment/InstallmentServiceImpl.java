@@ -46,9 +46,16 @@ public class InstallmentServiceImpl implements InstallmentService {
                         savingConditionUtils.checkAmount(dto.getInstallmentSubscriptionAmount(), amount))
                 .toList();
 
-        List<Map<String, Object>> resultList = new ArrayList<>();
+        if (filteredList.isEmpty()) return Collections.emptyList();
+
+        ClassPathResource res = new ClassPathResource("python/installment/analyze.py");
+        PythonExecutorUtil.JobWorkspace ws = null;
 
         try{
+            // 0) python 루트 & 워크스페이스
+            File pyRoot = PythonExecutorUtil.getPyRootFrom(res);
+            ws = PythonExecutorUtil.createJobWorkspace(pyRoot);
+
             // 1. payload 생성
             List<InstallmentConditionPayload> productPayloads = filteredList.stream()
                     .map(dto -> new InstallmentConditionPayload(dto.getId(), dto.getInstallmentPreferentialRate()))
@@ -56,28 +63,27 @@ public class InstallmentServiceImpl implements InstallmentService {
             InstallmentRequestPayload payload = new InstallmentRequestPayload(period, conditionDto, productPayloads);
 
             // 2. input.json 저장
-            File inputFile = new File("data/installment/input/input.json");
-            inputFile.getParentFile().mkdirs(); // 디렉토리 없으면 생성
+            File inputFile = ws.resolve("data/installment/input/input.json");
+            ws.mkdirsFor(inputFile);
             objectMapper.writeValue(inputFile, payload);
+            log.info("installment input.json: {}", inputFile.getAbsolutePath());
             System.out.println("input.json 저장 완료: " + inputFile.getAbsolutePath());
 
-            ClassPathResource resource = new ClassPathResource("python/installment/analyze.py");
-            File pythonFile = resource.getFile();
-            String path = pythonFile.getAbsolutePath();
-
             // 3. Python 실행
-            PythonExecutorUtil.runPythonScript(path);
+            File scriptFile = PythonExecutorUtil.asFileOrTemp(res);
+            PythonExecutorUtil.runPythonScript(scriptFile.getAbsolutePath(), ws.root);
             
             // 4. csv 결과 파싱
-            File outputFile = new File("data/installment/output/output.csv");
-            outputFile.getParentFile().mkdirs(); // 디렉토리 없으면 생성
-
+            File outputFile = ws.resolve("data/installment/output/output.csv");
             List<Map<String, Object>> csvResult = csvUtils.parseCsvResult(outputFile.getPath());
+            log.info("installment CSV rows: {}", csvResult.size());
             System.out.println("=== Python CSV 결과 ===");
             csvResult.forEach(System.out::println);
 
             // 5. 유틸리티 계산
             UtilityCalculator calculator = new UtilityCalculator();
+            List<Map<String, Object>> resultList = new ArrayList<>();
+
             for(Map<String, Object> row : csvResult){
                 Long strId = ((Number) row.get("id")).longValue();
                 double totalRate = (Double) row.get("totalRate");
@@ -123,8 +129,10 @@ public class InstallmentServiceImpl implements InstallmentService {
             return installmentMapper.getInstallmentListByProductId(top5Names);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("getInstallmentRecommendationList error", e);
             return Collections.emptyList();
+        } finally {
+            if (ws != null) ws.cleanupQuietly();
         }
     }
 

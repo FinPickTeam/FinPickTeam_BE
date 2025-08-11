@@ -38,8 +38,16 @@ public class FundServiceImpl  implements FundService {
     public List<FundListDto> getFundRecommendation(){
         List<Map<String, Object>> resultList = new ArrayList<>();
         List<FundRecommendationDto> recommendationList = fundMapper.getFundRecommendationList();
+        if (recommendationList.isEmpty()) return Collections.emptyList();
+
+        ClassPathResource res = new ClassPathResource("python/fund/analyze.py");
+        PythonExecutorUtil.JobWorkspace ws = null;
 
         try{
+            // 0) python 루트 & 워크스페이스
+            File pyRoot = PythonExecutorUtil.getPyRootFrom(res);
+            ws = PythonExecutorUtil.createJobWorkspace(pyRoot);
+
             // 투자성향을 이용해 A값을 1 ~ 50?로 설정 안정형일수록 높음
             // 1. paylaod 생성
             List<FundRequestDto> productPayload = recommendationList.stream()
@@ -47,23 +55,19 @@ public class FundServiceImpl  implements FundService {
                     .toList();
             
             // 2. input.json 저장
-            File inputFile = new File("data/fund/input/input.json");
-            inputFile.getParentFile().mkdirs();
+            File inputFile = ws.resolve("data/fund/input/input.json");
+            ws.mkdirsFor(inputFile);
             objectMapper.writeValue(inputFile, productPayload);
             System.out.printf("펀트 input.json 저장 완료" + inputFile.getAbsolutePath());
 
-            ClassPathResource resource = new ClassPathResource("python/fund/analyze.py");
-            File pythonFile = resource.getFile();
-            String path = pythonFile.getAbsolutePath();
-
-            // 3. Python 실행
-            PythonExecutorUtil.runPythonScript(path);
+            // 3) 실행
+            File scriptFile = PythonExecutorUtil.asFileOrTemp(res);
+            PythonExecutorUtil.runPythonScript(scriptFile.getAbsolutePath(), ws.root);
 
             // 4. csv 결과 파싱
-            File outputFile = new File("data/fund/output/output.csv");
-            outputFile.getParentFile().mkdirs(); // 디렉토리 없으면 생성
-
+            File outputFile = ws.resolve("data/fund/output/output.csv");
             List<Map<String, Object>> csvResult = csvUtils.parseCsvResult(outputFile.getPath());
+            log.info("펀드 CSV rows: {}", csvResult.size());
             System.out.println("=== Python CSV 결과 ===");
             csvResult.forEach(System.out::println);
 
@@ -90,8 +94,10 @@ public class FundServiceImpl  implements FundService {
             return fundMapper.getFundListByFundProductId(top5Names);
 
         } catch(Exception e){
-            e.printStackTrace();
+            log.error("getFundRecommendation error", e);
             return Collections.emptyList();
+        } finally {
+            if (ws != null) ws.cleanupQuietly();
         }
     }
 }

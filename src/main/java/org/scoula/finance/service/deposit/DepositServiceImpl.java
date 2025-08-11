@@ -52,7 +52,14 @@ public class DepositServiceImpl implements DepositService {
             return Collections.emptyList();
         }
 
+        ClassPathResource res = new ClassPathResource("python/deposit/analyze.py");
+        PythonExecutorUtil.JobWorkspace ws = null;
+
         try {
+            // 0) python 루트 & 워크스페이스
+            File pyRoot = PythonExecutorUtil.getPyRootFrom(res);
+            ws = PythonExecutorUtil.createJobWorkspace(pyRoot);
+
             // 1. payload 생성
             List<ProductConditionPayload> productPayloads = filteredList.stream()
                     .map(dto -> new ProductConditionPayload(dto.getId(), dto.getDepositPreferentialRate()))
@@ -60,22 +67,17 @@ public class DepositServiceImpl implements DepositService {
             PythonRequestPayload payload = new PythonRequestPayload(depositUserConditionDto, productPayloads);
 
             // 2. input.json 저장
-            File inputFile = new File("data/input/input.json");
-            inputFile.getParentFile().mkdirs(); // 디렉토리 없으면 생성
+            File inputFile = ws.resolve("data/input/input.json");
+            ws.mkdirsFor(inputFile);
             objectMapper.writeValue(inputFile, payload);
             System.out.println("✅ input.json 저장 완료: " + inputFile.getAbsolutePath());
 
-            ClassPathResource resource = new ClassPathResource("python/deposit/analyze.py");
-            File pythonFile = resource.getFile();
-            String path = pythonFile.getAbsolutePath();
-
-            // 3. Python 실행
-            PythonExecutorUtil.runPythonScript(path);
+            // 3) 실행 (CWD = ws.root)
+            File scriptFile = PythonExecutorUtil.asFileOrTemp(res);
+            PythonExecutorUtil.runPythonScript(scriptFile.getAbsolutePath(), ws.root);
 
             // 4. CSV 결과 파싱
-            File outputFile = new File("data/output/output.csv");
-            outputFile.getParentFile().mkdirs(); // 디렉토리 없으면 생성
-
+            File outputFile = ws.resolve("data/output/output.csv");
             List<Map<String, Object>> csvResult = csvUtils.parseCsvResult(outputFile.getPath());
             System.out.println("=== Python CSV 결과 ===");
             csvResult.forEach(System.out::println);
@@ -121,8 +123,10 @@ public class DepositServiceImpl implements DepositService {
             return depositMapper.selectDepositListByProductId(top5Names);
 
         } catch (Exception e) {
-            e.printStackTrace(); // 예외 상세 출력
+            e.printStackTrace();
             return Collections.emptyList();
+        } finally {
+            if (ws != null) ws.cleanupQuietly(); // ★ 요청 끝나면 삭제
         }
     }
 }
