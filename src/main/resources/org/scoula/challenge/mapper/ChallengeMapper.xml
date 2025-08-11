@@ -37,14 +37,21 @@
     </select>
 
     <select id="getUserProgress" resultType="double">
-        SELECT actual_value * 1.0 / goal_value
+        SELECT CASE
+                   WHEN c.goal_value IS NULL OR c.goal_value = 0 THEN NULL
+                   ELSE uc.actual_value * 1.0 / c.goal_value
+                   END
         FROM user_challenge uc
                  JOIN challenge c ON uc.challenge_id = c.id
         WHERE uc.user_id = #{userId} AND uc.challenge_id = #{challengeId}
     </select>
 
     <select id="getGroupAverageProgress" resultType="double">
-        SELECT AVG(actual_value * 1.0 / c.goal_value)
+        SELECT AVG(
+                       CASE WHEN c.goal_value IS NULL OR c.goal_value = 0 THEN NULL
+                            ELSE uc.actual_value * 1.0 / c.goal_value
+                           END
+               )
         FROM user_challenge uc
                  JOIN challenge c ON uc.challenge_id = c.id
         WHERE uc.challenge_id = #{challengeId}

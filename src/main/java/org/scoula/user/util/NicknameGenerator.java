@@ -22,7 +22,7 @@ public class NicknameGenerator {
 
     private static final MediaType JSON = MediaType.parse("application/json");
 
-    // ✅ 1) OkHttpClient는 앱 전역에서 재사용 (스레드세이프)
+    // 1) OkHttpClient는 앱 전역에서 재사용 (스레드세이프)
     private static final OkHttpClient CLIENT = new OkHttpClient.Builder()
             .connectTimeout(Duration.ofSeconds(5))
             .readTimeout(Duration.ofSeconds(15))
@@ -35,7 +35,7 @@ public class NicknameGenerator {
 
     public String generateNickname() {
         try {
-            String prompt = "랜덤한 {동사}하는{동물 또는 캐릭터} 형태의 한국어 닉네임을 한 개만 출력해줘. 예: '코딩하는토끼'";
+            String prompt = "랜덤한 {금융 관련 동사}하는 {동물 또는 캐릭터} 형태의 한국어 닉네임을 한 개만 출력해줘. 예: '주식하는 토끼'";
 
             JSONObject requestBody = new JSONObject()
                     .put("model", "gpt-4o")  // 필요시 gpt-4o-mini
