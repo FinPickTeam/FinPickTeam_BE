@@ -12,6 +12,12 @@
         WHERE user_id = #{userId}
         AND product_type = #{productType}
     </select>
+    
+    <select id="getStockCodeByProductType" resultType="java.lang.Integer">
+        SELECT
+            stock_code
+        FROM wishlist
+    </select>
 
     <select id="getDepositListByProductId" resultType="org.scoula.finance.dto.deposit.DepositListDto">
         SELECT

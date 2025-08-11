@@ -92,10 +92,10 @@ public class StockController {
 
     //주식 상세 정보 가져오기
     @ApiOperation(value = "주식 상세 정보 조회", notes = "주식코드로 상세 정보를 조회합니다.")
-    @GetMapping("/stocks/{stockCode}")
+    @GetMapping("/stockDetail/")
     public CommonResponseDTO<StockDetailDto> getStockDetail(
             @AuthenticationPrincipal CustomUserDetails user,
-            @PathVariable String stockCode) {
+            @RequestParam String stockCode) {
         Long userId = user.getUserId();
 
         StockDetailDto detail = stockService.getStockDetail(userId, stockCode);

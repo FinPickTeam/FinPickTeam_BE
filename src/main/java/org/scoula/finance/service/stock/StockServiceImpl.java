@@ -9,6 +9,8 @@ import org.scoula.finance.dto.stock.*;
 import org.scoula.finance.mapper.StockMapper;
 import org.scoula.finance.util.KiwoomApiUtils;
 import org.scoula.finance.util.PythonExecutorUtil;
+import org.scoula.survey.domain.SurveyVO;
+import org.scoula.survey.mapper.SurveyMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 
@@ -22,7 +24,13 @@ import java.util.*;
 import java.io.File;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @Service
@@ -30,11 +38,17 @@ import org.springframework.stereotype.Service;
 public class StockServiceImpl implements StockService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final StockMapper stockMapper;
+    private final SurveyMapper surveyMapper;
 
     @Value("${stock.api.key}")
     private String stockApiKey;
     @Value("${stock.api.secret}")
     private String stockApiSecret;
+
+    @Value("${openai.api.key}")
+    private String openaiApiKey;
+    @Value("${openai.api.url}")
+    private String openaiApiUrl;
 
     @Override
     public StockAccessTokenDto issueAndSaveToken(Long id) {
@@ -254,6 +268,7 @@ public class StockServiceImpl implements StockService {
         List<StockFactorDto> factorDto = stockMapper.getStockFactorData();
         List<Map<String,Object>> stockCodeList = stockMapper.getStockCodeList();
         List<StockListDto> recommendedStocks = new ArrayList<>();
+        List<String> gptRecommendedStocks = new ArrayList<>();
         String token = stockMapper.getUserToken(userId);
         try{
             objectMapper.writeValue(new File("factor_input.json"), factorDto);
@@ -261,7 +276,6 @@ public class StockServiceImpl implements StockService {
 
             System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(factorDto));
             System.out.println(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(stockCodeList));
-
 
             ClassPathResource resource = new ClassPathResource("python/stock/calcStock.py");
             File pythonFile = resource.getFile();
@@ -271,17 +285,64 @@ public class StockServiceImpl implements StockService {
 
             File resultFile = new File("./data/stock/output/calc_result.json");
 
+            System.out.println(resultFile);
+
             Map<String, Double> resultMap = objectMapper.readValue(
                     resultFile,
                     new TypeReference<>() {
                     }
             );
 
-            int count = 0;
-            for(Map.Entry<String, Double> entry : resultMap.entrySet()){
-                if(count >= limit) break;
+            List<String> stockCodeListForGpt = new ArrayList<>(resultMap.keySet());
+            SurveyVO surveyVo = surveyMapper.selectById(userId);
 
-                String stockCode = entry.getKey();
+            String prompt = generatePrompt(stockCodeListForGpt, surveyVo);
+
+            try {
+                String gptResponse = callOpenAiApi(prompt);
+                if (gptResponse == null) throw new IllegalStateException("GPT 응답 없음");
+
+                String content = gptResponse.trim();
+
+                content = content.replaceAll("(?s)^```(?:json)?\\s*", "")
+                        .replaceAll("(?s)\\s*```$", "");
+
+                System.out.println("gpt 응답 : " + content);
+
+                int s = content.indexOf('[');
+                int e = content.lastIndexOf(']');
+                if (s >= 0 && e > s) {
+                    content = content.substring(s, e + 1);
+                }
+
+                JsonNode root = objectMapper.readTree(content);
+                if (!root.isArray()) {
+                    throw new IllegalArgumentException("GPT 응답이 JSON 배열이 아님: " + content);
+                }
+
+                LinkedHashSet<String> dedup = new LinkedHashSet<>();
+                for (JsonNode node : root) {
+                    String stockCode = null;
+                    if (node.hasNonNull("stockCode")) {
+                        stockCode = node.get("stockCode").asText("");
+                    } else if (node.hasNonNull("stock_code")) {
+                        stockCode = node.get("stock_code").asText("");
+                    }
+                    if (stockCode != null) {
+                        stockCode = stockCode.trim();
+                        if (!stockCode.isEmpty()) {
+                            dedup.add(stockCode);
+                        }
+                    }
+                }
+                gptRecommendedStocks.addAll(dedup);
+            } catch (Exception e) {
+                e.printStackTrace(); // 필요시 로거로 변경
+            }
+
+            int count = 0;
+            for(String stockCode : gptRecommendedStocks){
+                if(count >= limit) break;
 
                 String response = KiwoomApiUtils.sendPostRequest("/api/dostk/stkinfo", token,
                         String.format("{\"stk_cd\" : \"%s\"}", stockCode), "ka10001");
@@ -333,5 +394,73 @@ public class StockServiceImpl implements StockService {
             log.error("createJsonData error: {}", e.getMessage());
             return "{}";
         }
+    }
+
+    // GPT 프롬프트
+    public String generatePrompt(List<String> stockCode, SurveyVO surveyVo) {
+        if(stockCode.isEmpty()){
+            return "데이터 없음";
+        }
+        
+        // 추후 수정 필요
+        StringBuilder sb = new StringBuilder();
+        sb.append("너는 금융 전문가이며, 4요인(4-Factor) 모델을 기반으로 주식 추천을 해주는 역할이야. ")
+                .append("아래는 이미 4요인 모델로 알파(α)를 계산하고, 정보 비율(IR) 기준으로 순위화된 주식 목록이야. ")
+                .append("사용자의 투자 성향 답변을 참고해서, 목록 중에서 정확히 5개 주식을 추천해. ")
+                .append("선정 시 다음 기준을 따르도록 해: ")
+                .append("1. 사용자의 위험 선호도와 투자 목적에 맞춰 변동성이 높은/낮은 종목을 선택해. ")
+                .append("2. 투자 경험이 적으면 안정적인 종목 비중을 높이고, 경험이 많으면 성장성 높은 종목을 포함해. ")
+                .append("3. 투자 금액이 적으면 분산투자 효과를 높이고, 금액이 크면 고수익 가능 종목을 일부 포함해. ")
+                .append("4. 목록의 순위가 높을수록 우선 추천하되, 투자 성향과 맞지 않으면 제외 가능. ")
+                .append("5. 동일 산업군 종목이 너무 많지 않도록 다양하게 구성해. ")
+                .append("5) 출력은 JSON 배열만. 설명·주석·코드펜스 금지. 키는 stockCode만 사용.")
+                .append(surveyVo.getQuestion1()).append("\n")
+                .append("2번째 투자 성향 질문은 [금융투자상품 취득 및 처분 목적]이고 사용자의 답변은 ")
+                .append(surveyVo.getQuestion2()).append("\n")
+                .append("3번째 투자 성향 질문은 [투자수익 및 위험에 대한 태도]이고 사용자의 답변은 ")
+                .append(surveyVo.getQuestion3()).append("\n")
+                .append("4번째 투자 성향 질문은 [투자경험]이고 사용자의 답변은 ")
+                .append(surveyVo.getQuestion4()).append("\n")
+                .append("5번째 투자 성향 질문은 [한달 동안의 투자 금액]이고 사용자의 답변은 ")
+                .append(surveyVo.getQuestion5()).append("\n")
+                .append("[주식 목록]\n")
+                .append(stockCode).append("\n\n")
+                .append("\n출력 예시(정확히 이 형식):\n")
+                .append("[\n")
+                .append("  { \"stockCode\": \"005930\" },\n")
+                .append("  { \"stockCode\": \"000660\" },\n")
+                .append("  { \"stockCode\": \"035420\" },\n")
+                .append("  { \"stockCode\": \"068270\" },\n")
+                .append("  { \"stockCode\": \"051910\" }\n")
+                .append("]\n")
+                .append("다른 말은 절대 하지 말고 JSON 배열만 반환해.");
+
+        return sb.toString();
+    }
+
+    private String callOpenAiApi(String prompt) throws Exception {
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.getMessageConverters()
+                .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+
+        String requestBody = objectMapper.writeValueAsString(
+                Map.of(
+                        "model", "gpt-4o",
+                        "messages", List.of(
+                                Map.of("role", "system", "content", "너는 주식 투자 전문가야."),
+                                Map.of("role", "user", "content", prompt)
+                        ),
+                        "temperature", 0.2
+                )
+        );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(openaiApiKey);
+        headers.set("Content-Type", "application/json; charset=UTF-8");
+
+        HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+        ResponseEntity<String> response = restTemplate.exchange(openaiApiUrl, HttpMethod.POST, request, String.class);
+
+        return objectMapper.readTree(response.getBody()).at("/choices/0/message/content").asText();
     }
 }
