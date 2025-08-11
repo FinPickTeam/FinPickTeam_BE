@@ -2,14 +2,18 @@ package org.scoula.user.controller;
 
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.common.redis.RedisService;
 import org.scoula.common.dto.CommonResponseDTO;
+import org.scoula.security.account.domain.CustomUserDetails;
 import org.scoula.security.account.dto.UserLoginRequestDTO;
 import org.scoula.security.util.CookieUtil;
+import org.scoula.user.dto.PinRequestDTO;
 import org.scoula.user.dto.TokenResponseDTO;
 import org.scoula.user.service.UserService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -97,4 +101,14 @@ public class AuthController {
     public void swaggerLoginForDocs(@RequestBody UserLoginRequestDTO request) {
         throw new IllegalStateException("swagger 상 필터호출을 위한 엔드포인트입니다.");
     }
+
+
+    //pin 로그인
+    @ApiOperation(value = "간편비밀번호 로그인", notes = "오픈뱅킹")
+    @PostMapping("/pin/login")
+    public CommonResponseDTO<Void> pinLogin(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody PinRequestDTO pinRequestDTO) {
+        userService.pinLogin(userDetails.getUsername(), userDetails.getUserId(), pinRequestDTO);
+        return CommonResponseDTO.success("간편 비밀번호 로그인이 성공했습니다.");
+    }
+
 }

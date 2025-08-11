@@ -1,5 +1,6 @@
 package org.scoula.user.service;
 
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.scoula.agree.mapper.AgreeMapper;
 import org.scoula.avatar.mapper.AvatarMapper;
@@ -8,10 +9,8 @@ import org.scoula.coin.mapper.CoinMapper;
 import org.scoula.common.redis.RedisService;
 import org.scoula.user.domain.User;
 import org.scoula.user.domain.UserStatus;
-import org.scoula.user.dto.TokenResponseDTO;
-import org.scoula.user.dto.UserJoinRequestDTO;
+import org.scoula.user.dto.*;
 import org.scoula.security.account.dto.UserLoginRequestDTO;
-import org.scoula.user.dto.UserResponseDTO;
 import org.scoula.user.enums.UserLevel;
 import org.scoula.user.exception.auth.*;
 import org.scoula.user.exception.signup.DuplicateEmailException;
@@ -27,6 +26,7 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -231,5 +231,50 @@ public class UserServiceImpl implements UserService {
         } else {
             log.info("포인트는 증가했으나, 승급에는 실패했습니다.");
         }
+    }
+
+    @ApiOperation(value = "간편비밀번호 설정 ", notes = "간편비밀번호를 초기 설정합니다.")
+    @Override
+    public void setPin(Long userId, PinRequestDTO req) {
+
+        log.info("🔒 간편비밀번호 설정 시도: {}", req.getPin());
+
+        //간편비밀번호 문자열로 형변환하여 암호화
+        String encodedPin= encoder.encode(String.valueOf(req.getPin()));
+
+        //유저테이블에 저장
+        User u=new User();
+        u.setId(userId);
+        u.setAuthPw(encodedPin);
+        userMapper.updatePin(u);
+    }
+
+    @ApiOperation(value = "간편비밀번호 일치여부 확인.", notes = "사용자가 입력한 간편비밀번호와 실제 간편비밀번호가 일치하는지 조회합니다.")
+    @Override
+    public void pinLogin(String email, Long userId, PinRequestDTO req) {
+
+        //유저정보 조회
+        User u = userMapper.findByEmail(email);
+
+        //유저정보의 pin과, 유저가 입력한 pin의 일치여부 판단
+        if (!encoder.matches(String.valueOf(req.getPin()), u.getAuthPw())) {
+            throw new InvalidPinException();
+        }
+    }
+
+    @ApiOperation(value = "간편비밀번호 재설정 ", notes = "간편비밀번호를 재설정합니다.")
+    @Override
+    public void resetPin(Long userId, PinRequestDTO req) {
+
+        log.info("🔒 간편비밀번호 재설정 시도: {}", req.getPin());
+
+        //간편비밀번호 암호화
+        String encodedPin= encoder.encode(String.valueOf(req.getPin()));
+
+        //암호화된 간편비밀번호 저장
+        User u=new User();
+        u.setId(userId);
+        u.setAuthPw(encodedPin);
+        userMapper.updatePin(u);
     }
 }

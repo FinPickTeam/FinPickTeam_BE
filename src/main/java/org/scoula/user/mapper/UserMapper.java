@@ -14,4 +14,7 @@ public interface UserMapper {
     void updatePassword(User user); // 비밀번호 재발급
     void insertUserChallengeSummary(@Param("userId") Long userId);
     void updateIsActive(@Param("id") Long id);
+
+    void updatePin(User user);
+    String getPin(@Param("userId") Long userId);
 }
