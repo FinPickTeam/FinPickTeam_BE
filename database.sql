@@ -8,7 +8,7 @@ CREATE TABLE `user` (
                         `id` BIGINT NOT NULL AUTO_INCREMENT,
                         `email` VARCHAR(255) NOT NULL,
                         `password` VARCHAR(255) NOT NULL,
-                        `auth_pw` VARBINARY(255) NULL,
+                        `auth_pw` VARCHAR(255) NULL,
                         `user_name` VARCHAR(255) NULL,
                         `phone_num` VARCHAR(255) NULL,
                         `birthday` DATE NULL,

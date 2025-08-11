@@ -1,13 +1,14 @@
 package org.scoula.user.controller;
 
+import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.common.dto.CommonResponseDTO;
+import org.scoula.security.account.domain.CustomUserDetails;
 import org.scoula.user.domain.User;
-import org.scoula.user.dto.UserJoinRequestDTO;
-import org.scoula.user.dto.UserEmailRequestDTO;
-import org.scoula.user.dto.UserResponseDTO;
+import org.scoula.user.dto.*;
 import org.scoula.user.service.UserService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
@@ -49,6 +50,22 @@ public class UserController {
     public CommonResponseDTO<Void> withdrawal(@RequestHeader("Authorization") String token) {
         userService.withdrawal(token);
         return CommonResponseDTO.success("회원 탈퇴가 완료되었습니다.");
+    }
+
+    //핀번호 세팅
+    @ApiOperation(value = "간편비밀번호 설정 ", notes = "간편비밀번호를 초기 설정합니다.")
+    @PostMapping("/pin")
+    public CommonResponseDTO<Void> setPin(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody PinRequestDTO pinRequestDTO) {
+        userService.setPin(userDetails.getUserId(),pinRequestDTO);
+        return CommonResponseDTO.success("간편비밀번호 설정이 완료되었습니다.");
+    }
+
+    //핀번호 리셋
+    @ApiOperation(value = "간편비밀번호 재설정 ", notes = "간편비밀번호를 다시 설정합니다.")
+    @PutMapping("/pin/reset")
+    public CommonResponseDTO<Void> resetLogin(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody PinRequestDTO pinRequestDTO) {
+        userService.resetPin(userDetails.getUserId(),pinRequestDTO);
+        return CommonResponseDTO.success("간편비밀번호 재설정이 완료되었습니다.");
     }
 
 }
