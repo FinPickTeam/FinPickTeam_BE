@@ -28,10 +28,11 @@
     </insert>
 
 
-    <select id="existsByUserIdAndTuNo" resultType="boolean">
-        SELECT COUNT(1) > 0
+    <select id="existsByUserIdAndAccountIdAndTuNo" resultType="boolean">
+        SELECT COUNT(1)
         FROM account_transaction
         WHERE user_id = #{userId}
+          AND account_id = #{accountId}
           AND tu_no = #{tuNo}
     </select>
 

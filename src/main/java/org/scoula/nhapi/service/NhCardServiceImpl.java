@@ -2,23 +2,23 @@ package org.scoula.nhapi.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.json.JSONObject;
 import org.scoula.nhapi.client.NHApiClient;
 import org.scoula.nhapi.dto.NhCardTransactionResponseDto;
 import org.scoula.nhapi.exception.NHApiException;
-import org.scoula.nhapi.parser.NhCardParser;
+import org.scoula.nhapi.parser.NhCardParser; // 이미 있다면 사용, 없으면 아래 주석 블록 참고
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class NhCardServiceImpl implements NhCardService {
+
     private final NHApiClient nhApiClient;
 
     @Override
@@ -27,26 +27,46 @@ public class NhCardServiceImpl implements NhCardService {
         int page = 1;
 
         while (true) {
-            JSONObject response = nhApiClient.callCardTransactionList(finCard, from, to, page);
-            String rpcd = response.getJSONObject("Header").getString("Rpcd");
+            JSONObject res = nhApiClient.callCardTransactionList(finCard, from, to, page);
+            String rpcd = res.getJSONObject("Header").optString("Rpcd", "");
 
             if ("A0090".equals(rpcd)) {
-                log.info("✅ 카드 승인내역 없음, 더미 데이터 반환 (핀카드: {})", finCard);
-                return createDummyTransactions(); // 👈 더미 리턴
+                log.info("✅ 카드 승인내역 없음 → 더미 반환 (핀카드: {})", finCard);
+                return createDummyTransactions();
+            }
+            if (!"00000".equals(rpcd)) {
+                throw new NHApiException("카드 승인내역 조회 실패: " + rpcd);
             }
 
-            if (!"00000".equals(rpcd)) throw new NHApiException("카드 승인내역 실패");
+            // 파서가 있으면 사용
+            List<NhCardTransactionResponseDto> parsed = NhCardParser.parse(res);
+            // 파서가 없다면 아래 주석 참고해서 간단 파싱 구현 가능
+            // List<NhCardTransactionResponseDto> parsed = simpleParse(res);
 
-            List<NhCardTransactionResponseDto> parsed = NhCardParser.parse(response);
             all.addAll(parsed);
 
-            if (!"Y".equals(response.optString("CtntDataYn"))) break;
+            // 더보기 여부
+            if (!"Y".equalsIgnoreCase(res.optString("CtntDataYn"))) break;
             page++;
         }
 
         return all.isEmpty() ? createDummyTransactions() : all;
     }
 
+    // 필요 시 간단 파서 (NhCardParser 없으면 사용)
+    /*
+    private List<NhCardTransactionResponseDto> simpleParse(JSONObject res) {
+        List<NhCardTransactionResponseDto> list = new ArrayList<>();
+        var arr = res.optJSONArray("Rec");
+        if (arr == null) return list;
+        for (int i = 0; i < arr.length(); i++) {
+            list.add(NhCardTransactionResponseDto.from(arr.getJSONObject(i)));
+        }
+        return list;
+    }
+    */
+
+    // 샘플/데모용 더미 데이터
     private List<NhCardTransactionResponseDto> createDummyTransactions() {
         List<NhCardTransactionResponseDto> list = new ArrayList<>();
 
@@ -56,73 +76,50 @@ public class NhCardServiceImpl implements NhCardService {
                 {"이마트", "마트"}, {"메가박스", "영화관"}, {"LG유플러스", "통신비"}, {"삼성생명", "보험"}
         };
 
-        int dayCursor = 1;
+        Map<String, String> mcc = Map.of(
+                "커피전문점", "D101","패스트푸드", "D102","화장품", "D103","편의점", "D104",
+                "정기결제", "D105","택시", "D106","마트", "D107","영화관", "D108",
+                "통신비", "D109","보험", "D110"
+        );
+
+        LocalDate base = LocalDate.of(2025, 4, 1);
         int total = 40;
 
         for (int i = 0; i < total; i++) {
-            NhCardTransactionResponseDto dto = new NhCardTransactionResponseDto();
-
-            // ✅ 월 분산: 4, 5, 6, 7월 균등 분포
-            int month = 4 + (i % 4); // 4 ~ 7
-            int day = (dayCursor++ % 28) + 1;
-            if (i % 7 == 0) dayCursor++; // 날짜 살짝 섞기
-
-            // ✅ 시간 랜덤
-            int hour = 10 + (i * 3) % 9;
+            int month = 4 + (i % 4); // 4~7월 분산
+            int day = ((i * 3) % 27) + 1;
+            int hour = 10 + (i * 5) % 10;
             int minute = (i * 7) % 60;
 
-            // ✅ 승인일시 및 결제일자
-            String date = "2025" + String.format("%02d", month) + String.format("%02d", day);
-            String approvedAt = date + "T" + String.format("%02d%02d00", hour, minute);
-            String paymentDate = "2025" + String.format("%02d", month) + String.format("%02d", Math.min(day + 2, 28));
+            LocalDateTime approvedAt = LocalDateTime.of(2025, month, day, hour, minute, 0);
+            LocalDate paymentDate = LocalDate.of(2025, month, Math.min(day + 2, 28));
 
-            // ✅ 업종명 → 업종코드 맵
-            Map<String, String> tpbcdMap = Map.of(
-                    "커피전문점", "D101",
-                    "패스트푸드", "D102",
-                    "화장품", "D103",
-                    "편의점", "D104",
-                    "정기결제", "D105",
-                    "택시", "D106",
-                    "마트", "D107",
-                    "영화관", "D108",
-                    "통신비", "D109",
-                    "보험", "D110"
-            );
-
-// ✅ 가맹점 정보
             String[] entry = merchants[i % merchants.length];
-            dto.setMerchantName(entry[0]);
-            dto.setTpbcdNm(entry[1]);
-            dto.setTpbcd(tpbcdMap.getOrDefault(entry[1], "D999"));
+            String merchantName = entry[0];
+            String tpbcdNm = entry[1];
+            String tpbcd = mcc.getOrDefault(tpbcdNm, "D999");
 
-            // ✅ 금액, 취소 여부
             BigDecimal amount = BigDecimal.valueOf(3000 + (i * 1500 % 25000));
-            boolean isCancelled = (i % 6 == 0);
+            boolean cancelled = (i % 6 == 0);
 
-            dto.setAmount(amount);
-            dto.setCancelled(isCancelled);
-            dto.setCancelAmount(isCancelled ? amount : BigDecimal.ZERO);
-            dto.setCancelledAt(isCancelled ? approvedAt : null);
-
-            // ✅ 기타 필드
-            dto.setApprovedAt(approvedAt);
-            dto.setPaymentDate(paymentDate);
-            dto.setAuthNumber("AUTH" + (10000 + i));
-
-            String[] salesTypes = {"1", "2", "3", "6", "7", "8"};
-            dto.setSalesType(salesTypes[i % salesTypes.length]); // 순환 방식
-
-            dto.setInstallmentMonth(0);
-            dto.setCurrency("KRW");
-            dto.setForeignAmount(BigDecimal.ZERO);
-
-            list.add(dto);
+            list.add(NhCardTransactionResponseDto.builder()
+                    .authNumber("AUTH" + (10000 + i))
+                    .salesType(new String[]{"1","2","3","6","7","8"}[i % 6])
+                    .approvedAt(approvedAt)
+                    .paymentDate(paymentDate)
+                    .amount(amount)
+                    .cancelled(cancelled)
+                    .cancelAmount(cancelled ? amount : BigDecimal.ZERO)
+                    .cancelledAt(cancelled ? approvedAt.plusMinutes(5) : null)
+                    .merchantName(merchantName)
+                    .tpbcd(tpbcd)
+                    .tpbcdNm(tpbcdNm)
+                    .installmentMonth(0)
+                    .currency("KRW")
+                    .foreignAmount(BigDecimal.ZERO)
+                    .build());
         }
 
         return list;
     }
-
 }
-
-
