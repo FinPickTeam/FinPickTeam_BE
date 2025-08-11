@@ -160,6 +160,7 @@ public class ChallengeServiceImpl implements ChallengeService {
                     boolean isParticipating = userChallengeIds.contains(challenge.getId());
                     String categoryName = challengeMapper.getCategoryNameById(challenge.getCategoryId());
 
+                    // Boolean 래퍼로 받아서 NPE 방지
                     Boolean resultChecked = false;
                     if (isParticipating) {
                         resultChecked = Boolean.TRUE.equals(
@@ -192,6 +193,7 @@ public class ChallengeServiceImpl implements ChallengeService {
                             .participating(isParticipating)                  // Boolean
                             .myProgressRate(myProgress)
                             .resultChecked(resultChecked)                    // Boolean
+                            .isMine(challenge.getWriterId() != null && challenge.getWriterId().equals(userId))
                             .build();
                 })
                 .collect(Collectors.toList());
