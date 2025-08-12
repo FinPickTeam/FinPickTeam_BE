@@ -2,6 +2,7 @@ package org.scoula.coin.service;
 
 import lombok.RequiredArgsConstructor;
 import org.scoula.coin.dto.CoinMonthlyResponseDTO;
+import org.scoula.coin.dto.CoinStatusResponseDTO;
 import org.scoula.coin.mapper.CoinMapper;
 import org.springframework.stereotype.Service;
 
@@ -26,5 +27,17 @@ public class CoinServiceImpl implements CoinService {
                 .amount(amount == null ? 0L : amount)
                 .updatedAt(updatedAt)
                 .build();
+    }
+
+    @Override
+    public CoinStatusResponseDTO getMyCoinStatus(Long userId) {
+        CoinStatusResponseDTO dto = coinMapper.getCoinStatus(userId);
+        if (dto == null) {
+            // coin row가 없다면 0으로 초기화 반환
+            return CoinStatusResponseDTO.builder()
+                    .amount(0).cumulativeAmount(0).monthlyCumulativeAmount(0)
+                    .updatedAt(null).build();
+        }
+        return dto;
     }
 }

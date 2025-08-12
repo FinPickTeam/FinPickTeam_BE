@@ -49,4 +49,24 @@
         WHERE id = #{userId}
     </select>
 
+    <select id="getCoinStatus" resultType="org.scoula.coin.dto.CoinStatusResponseDTO">
+        SELECT
+            COALESCE(amount, 0)                    AS amount,
+            COALESCE(cumulative_amount, 0)         AS cumulativeAmount,
+            COALESCE(monthly_cumulative_amount, 0) AS monthlyCumulativeAmount,
+            DATE_FORMAT(updated_at, '%Y-%m-%d %H:%i:%s') AS updatedAt
+        FROM coin
+        WHERE id = #{userId}
+    </select>
+
+    <!-- 신규: amount, cumulative_amount만 증가 (monthly_cumulative_amount 미반영) -->
+    <update id="addCoinAmountExceptMonthly">
+        UPDATE coin
+        SET amount = amount + #{amount},
+            cumulative_amount = cumulative_amount + #{amount}
+        WHERE id = #{userId}
+    </update>
+
+
+
 </mapper>

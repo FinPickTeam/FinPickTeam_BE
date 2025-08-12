@@ -254,45 +254,33 @@ public class ChallengeServiceImpl implements ChallengeService {
         Challenge challenge = challengeMapper.findChallengeById(challengeId);
         if (challenge == null) throw new ChallengeNotFoundException();
 
-        // 개인 챌린지는 아예 참여 자체 불가
         if (challenge.getType() == ChallengeType.PERSONAL) {
-            throw new InvalidChallengeTypeJoinException(); // 아래에서 클래스 생성
+            throw new InvalidChallengeTypeJoinException();
         }
-
-        // 모집 상태 확인
         if (!ChallengeStatus.RECRUITING.equals(challenge.getStatus())) {
             throw new ChallengeStatusException();
         }
-
-        // 이미 참여 중인지 확인
         if (challengeMapper.isUserParticipating(userId, challengeId)) {
             throw new ChallengeAlreadyJoinedException();
         }
 
-        // 참여 수 제한 체크
         int count = challengeMapper.countUserOngoingChallenges(userId, challenge.getType().name());
-        if (count >= 3) {
-            throw new ChallengeLimitExceededException(challenge.getType().name());
-        }
+        if (count >= 3) throw new ChallengeLimitExceededException(challenge.getType().name());
 
-        // 그룹 챌린지 전용 비밀번호 및 인원 제한 확인
         if (challenge.getType() == ChallengeType.GROUP) {
             if (Boolean.TRUE.equals(challenge.getUsePassword())) {
                 if (password == null || !password.equals(challenge.getPassword())) {
                     throw new ChallengePasswordMismatchException();
                 }
             }
-
             if (challenge.getParticipantCount() >= challenge.getMaxParticipants()) {
                 throw new ChallengeFullException();
             }
         }
 
-        // 챌린지 참여 비용 확인
         if (challenge.getType() != ChallengeType.PERSONAL) {
             int coin = coinMapper.getUserCoin(userId);
             if (coin < 100) throw new InsufficientCoinException();
-
             coinMapper.subtractCoin(userId, 100);
             coinMapper.insertCoinHistory(userId, 100, "minus", "CHALLENGE");
         }
@@ -305,6 +293,11 @@ public class ChallengeServiceImpl implements ChallengeService {
                 challenge.getParticipantCount() + 1 >= challenge.getMaxParticipants()) {
             challengeMapper.updateChallengeStatus(challengeId, ChallengeStatus.CLOSED.name());
         }
+
+        // 요약(참여자도 total +1)
+        challengeMapper.insertOrUpdateUserChallengeSummary(userId);
+        challengeMapper.incrementUserTotalChallenges(userId);
+        challengeMapper.updateAchievementRate(userId);
     }
 
     @Override
@@ -315,64 +308,58 @@ public class ChallengeServiceImpl implements ChallengeService {
 
     // 챌린지 결과 확인 관련 로직 + 내부 StockService 직접 호출
     @Override
-    public ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId)
-    {
+    public ChallengeResultResponseDTO getChallengeResult(Long userId, Long challengeId) {
         Challenge challenge = challengeMapper.findChallengeById(challengeId);
         if (challenge == null) throw new ChallengeNotFoundException();
 
-        // 목표 금액과 소비 금액
         int actual = challengeMapper.getActualValue(userId, challengeId);
         int goal = challenge.getGoalValue();
 
-        // 기본 포인트와 최종 받는 포인트
         int baseReward = challenge.getRewardPoint();
         int finalReward = baseReward;
 
-        // 포인트 계산 로직
-        // GROUP 챌린지 포인트 n빵 로직 (예외 방지 + 반올림 처리)
-        // PERSONAL은 baseReward 그대로
-        // COMMON 챌린지는 baseReward = 600으로 고정
-        // 이미 baseReward에 저장되어 있으므로 별도 계산 불필요
         if (challenge.getType() == ChallengeType.GROUP) {
             int successMembers = challengeMapper.countSuccessMembers(challenge.getId());
-
             if (successMembers > 0) {
                 int totalEntryFee = 100 * challenge.getParticipantCount();
                 int bonus = (int) Math.round((double) totalEntryFee / successMembers);
                 finalReward += bonus;
             }
-            // 성공자가 0명이면 추가 보상 없음 (기본 포인트만 유지)
         }
 
-        // actual_reward_point 저장
+        // 성공/실패 플래그 저장 + 완료 처리
+        if (actual <= goal) {
+            challengeMapper.succeedUserChallenge(userId, challengeId);
+        } else {
+            challengeMapper.failUserChallenge(userId, challengeId);
+        }
+
+        // 최종 보상 포인트만 저장
         challengeMapper.saveActualRewardPoint(userId, challengeId, finalReward);
 
-        // coin 지급 및 history 기록
-        coinMapper.addCoinAmount(userId, finalReward);
-        coinMapper.insertCoinHistory(userId, finalReward, "plus", "CHALLENGE");
+        int savedAmount = Math.max(0, goal - actual);
 
-        int savedAmount = goal - actual;
-
-        // 🟡 추천 주식: StockService 직접 호출 (유저 토큰 X)
         StockRecommendationDTO bestStock = null;
         if (savedAmount > 1000) {
             List<StockListDto> stocks = stockService.getStockRecommendationList(userId, 5, savedAmount);
 
-            // amount 이하에서 가장 비싼 것 선택
             StockListDto best = stocks.stream()
-                    .filter(s -> s.getStockPrice() > 0 && s.getStockPrice() <= savedAmount) // null 체크 제거, 값 검증만
+                    .filter(s -> s.getStockPrice() > 0 && s.getStockPrice() <= savedAmount)
                     .max(Comparator.comparingInt(StockListDto::getStockPrice))
                     .orElse(null);
 
             if (best != null) {
-                StockRecommendationDTO dto = new StockRecommendationDTO();
-                dto.setStockCode(best.getStockCode());
-                dto.setStockName(best.getStockName());
-                dto.setStockPrice(best.getStockPrice());
-                dto.setStockSummary(best.getStockSummary());
-                bestStock = dto;
+                bestStock = StockRecommendationDTO.builder()
+                        .stockCode(best.getStockCode())
+                        .stockName(best.getStockName())
+                        .stockReturnsData(best.getStockReturnsData())
+                        .stockPrice(best.getStockPrice())
+                        .stockMarketType(best.getStockMarketType())
+                        .stockPredictedPrice(best.getStockPredictedPrice())
+                        .stockChangeRate(best.getStockChangeRate())
+                        .stockSummary(best.getStockSummary())
+                        .build();
             }
-
         }
 
         if (actual < goal) {
@@ -398,9 +385,37 @@ public class ChallengeServiceImpl implements ChallengeService {
     }
 
     @Override
+    @Transactional
     public void confirmChallengeResult(Long userId, Long challengeId) {
+        // 이미 확인했으면 멱등 처리
+        Boolean already = challengeMapper.isResultChecked(userId, challengeId);
+        if (Boolean.TRUE.equals(already)) return;
+
+        Integer reward = challengeMapper.getActualRewardPoint(userId, challengeId);
+        if (reward == null) {
+            // 계산 누락 대비: 한번 계산 수행
+            getChallengeResult(userId, challengeId);
+            reward = challengeMapper.getActualRewardPoint(userId, challengeId);
+        }
+
+        // 코인 지급 + 히스토리 (amount/cumulative/monthly 동시 증가)
+        if (reward != null && reward > 0) {
+            coinMapper.addCoinAmount(userId, reward); // 기존 메서드 재사용
+            coinMapper.insertCoinHistory(userId, reward, "plus", "CHALLENGE");
+        }
+
+        // 요약 갱신
+        challengeMapper.insertOrUpdateUserChallengeSummary(userId);
+        Boolean isSuccess = challengeMapper.getIsSuccess(userId, challengeId);
+        if (Boolean.TRUE.equals(isSuccess)) {
+            challengeMapper.incrementUserSuccessCount(userId);
+        }
+        challengeMapper.updateAchievementRate(userId);
+
+        // 결과 확인 마킹
         challengeMapper.markResultChecked(userId, challengeId);
     }
+
 
     @Override
     public boolean hasUnconfirmedResult(Long userId) {
