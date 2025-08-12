@@ -18,11 +18,15 @@
     </insert>
 
     <select id="countUserOngoingChallenges" resultType="int">
-        SELECT COUNT(*) FROM user_challenge uc
-                                 JOIN challenge c ON uc.challenge_id = c.ID
+        SELECT COUNT(1)
+        FROM user_challenge uc
+                 JOIN challenge c ON c.id = uc.challenge_id
         WHERE uc.user_id = #{userId}
           AND c.type = #{type}
-          AND c.status IN ('RECRUITING', 'IN_PROGRESS')
+          AND (
+            c.status IN ('RECRUITING','IN_PROGRESS')
+                OR (c.status = 'COMPLETED' AND uc.result_checked = 0)
+            )
     </select>
 
     <select id="findChallenges" resultType="org.scoula.challenge.domain.Challenge">
@@ -179,7 +183,7 @@
         WHERE user_id = #{userId} AND challenge_id = #{challengeId}
     </select>
 
-    <select id="getActualRewardPoint" resultType="int">
+    <select id="getActualRewardPoint" resultType="java.lang.Integer">
         SELECT actual_reward_point FROM user_challenge
         WHERE user_id = #{userId} AND challenge_id = #{challengeId}
     </select>
@@ -242,6 +246,12 @@
         WHERE uc.user_id = #{userId}
           AND uc.is_completed = 1
         ORDER BY uc.updated_at DESC
+    </select>
+
+    <select id="getIsSuccess" resultType="boolean">
+        SELECT COALESCE(uc.is_success, 0)
+        FROM user_challenge uc
+        WHERE uc.user_id = #{userId} AND uc.challenge_id = #{challengeId}
     </select>
 
 
