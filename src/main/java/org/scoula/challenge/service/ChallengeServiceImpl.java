@@ -153,14 +153,32 @@ public class ChallengeServiceImpl implements ChallengeService {
         return challenges.stream()
                 .filter(challenge -> {
                     boolean isParticipating = userChallengeIds.contains(challenge.getId());
+
+                    // participating 파라미터가 없으면 전체
                     if (participating == null) return true;
-                    return participating ? isParticipating : !isParticipating;
+
+                    if (participating) {
+                        // 내가 참여한 것만
+                        if (!isParticipating) return false;
+
+                        // 이미 완료됐고(챌린지 상태 COMPLETED) 결과 확인까지 끝난 건 제외
+                        if (ChallengeStatus.COMPLETED.equals(challenge.getStatus())) {
+                            Boolean checked = challengeMapper.isResultChecked(userId, challenge.getId());
+                            if (Boolean.TRUE.equals(checked)) {
+                                return false; // 리스트에서 제외
+                            }
+                        }
+                        return true;
+                    } else {
+                        // 내가 참여하지 않은 것만
+                        return !isParticipating;
+                    }
                 })
                 .map(challenge -> {
                     boolean isParticipating = userChallengeIds.contains(challenge.getId());
                     String categoryName = challengeMapper.getCategoryNameById(challenge.getCategoryId());
 
-                    // Boolean 래퍼로 받아서 NPE 방지
+                    // 결과 확인 여부
                     Boolean resultChecked = false;
                     if (isParticipating) {
                         resultChecked = Boolean.TRUE.equals(
@@ -168,6 +186,7 @@ public class ChallengeServiceImpl implements ChallengeService {
                         );
                     }
 
+                    // 진행률
                     Double myProgress = null;
                     if (isParticipating) {
                         if (challenge.getType() == ChallengeType.PERSONAL) {
@@ -181,18 +200,18 @@ public class ChallengeServiceImpl implements ChallengeService {
                             .id(challenge.getId())
                             .title(challenge.getTitle())
                             .type(challenge.getType())
-                            .status(challenge.getStatus())                   // 추가
+                            .status(challenge.getStatus())
                             .categoryName(categoryName)
                             .startDate(challenge.getStartDate())
                             .endDate(challenge.getEndDate())
-                            .goalType(challenge.getGoalType())               // 추가
-                            .goalValue(challenge.getGoalValue())             // 추가
-                            .maxParticipants(challenge.getMaxParticipants())  // 추가
+                            .goalType(challenge.getGoalType())
+                            .goalValue(challenge.getGoalValue())
+                            .maxParticipants(challenge.getMaxParticipants())
                             .participantsCount(challenge.getParticipantCount())
-                            .rewardPoint(challenge.getRewardPoint())         // 추가
-                            .participating(isParticipating)                  // Boolean
+                            .rewardPoint(challenge.getRewardPoint())
+                            .participating(isParticipating)
                             .myProgressRate(myProgress)
-                            .resultChecked(resultChecked)                    // Boolean
+                            .resultChecked(resultChecked)
                             .isMine(challenge.getWriterId() != null && challenge.getWriterId().equals(userId))
                             .build();
                 })
