@@ -3,11 +3,13 @@ package org.scoula.challenge.rank.controller;
 import lombok.RequiredArgsConstructor;
 import org.scoula.challenge.rank.service.ChallengeCoinRankService;
 import org.scoula.challenge.rank.service.ChallengeRankService;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+@Component
 @RestController
 @RequestMapping("/api/challenge/rank/test")
 @RequiredArgsConstructor
