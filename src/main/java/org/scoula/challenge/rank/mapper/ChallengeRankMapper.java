@@ -8,7 +8,6 @@ import org.scoula.challenge.rank.util.ChallengeParticipantProvider.ParticipantIn
 
 import java.util.List;
 
-@Mapper
 public interface ChallengeRankMapper {
 
     List<ChallengeRankResponseDTO> getCurrentChallengeRanks(@Param("challengeId") Long challengeId);

@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.scoula.challenge.rank.dto.ChallengeCoinRankResponseDTO;
 import org.scoula.challenge.rank.dto.ChallengeCoinRankSnapshotResponseDTO;
 import org.scoula.challenge.rank.mapper.ChallengeCoinRankMapper;
-import org.scoula.challenge.rank.mapper.CommonQueryMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
 public class ChallengeCoinRankServiceImpl implements ChallengeCoinRankService {
 
     private final ChallengeCoinRankMapper rankMapper;
-    private final CommonQueryMapper commonQueryMapper;
 
     private String ym(LocalDate date) {
         return date.withDayOfMonth(1).toString().substring(0, 7); // YYYY-MM

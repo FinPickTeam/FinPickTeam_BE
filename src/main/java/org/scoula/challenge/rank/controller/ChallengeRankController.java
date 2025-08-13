@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.scoula.challenge.rank.dto.ChallengeRankResponseDTO;
 import org.scoula.challenge.rank.dto.ChallengeRankSnapshotResponseDTO;
 import org.scoula.challenge.rank.service.ChallengeRankService;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Component
 @RestController
 @RequestMapping("/api/challenge/rank")
 @RequiredArgsConstructor
