@@ -26,6 +26,8 @@ public class ChallengeDetailResponseDTO {
     private Integer participantsCount;
     private Boolean isResultCheck;
     private String categoryName; // 추가
+    // 추가: 비밀번호 사용 여부 (실제 비밀번호는 절대 제공 X)
+    private Boolean usePassword;
 
     // GROUP 전용
     private List<ChallengeMemberDTO> members;

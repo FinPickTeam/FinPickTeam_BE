@@ -264,6 +264,7 @@ public class ChallengeServiceImpl implements ChallengeService {
                 .myProgress(myProgress)
                 .participantsCount(challenge.getParticipantCount())
                 .isResultCheck(resultChecked)
+                .usePassword(challenge.getUsePassword())
                 .members(members)
                 .build();
     }
