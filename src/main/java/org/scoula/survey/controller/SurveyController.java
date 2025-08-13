@@ -33,7 +33,7 @@ public class SurveyController {
     // 첫번째 투자성향응시
     @ApiOperation(value="초기투자성향저장", notes = "회원가입시 투자성향을 저장한다")
     @PostMapping("/submit-param")
-    public ResponseEntity<CommonResponseDTO<SurveyResponseDTO>> firstSubmitSurvey(@AuthenticationPrincipal CustomUserDetails userDetails, @ModelAttribute FirstSurveyRequestDTO firstSurveyRequestDTO) {
+    public ResponseEntity<CommonResponseDTO<SurveyResponseDTO>> firstSubmitSurvey(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody FirstSurveyRequestDTO firstSurveyRequestDTO) {
         log.info("설문 제출 요청 수신 (파라미터): userId={}, answers={}", userDetails.getUserId(), firstSurveyRequestDTO);
         SurveyResponseDTO resultDTO = surveyService.insert(userDetails.getUserId(),firstSurveyRequestDTO);
         log.info("설문 처리 및 저장 성공: {}", resultDTO);
@@ -44,7 +44,7 @@ public class SurveyController {
     // 두번째 투자성향응시
     @ApiOperation(value="10문항 투자성향저장", notes = "10문항의 투자성향을 저장한다")
     @PostMapping("/submit-fullSurvey")
-    public ResponseEntity<CommonResponseDTO<SurveyResponseDTO>> submitSurvey(@AuthenticationPrincipal CustomUserDetails userDetails, @ModelAttribute SurveyRequestDTO surveyRequestDTO) {
+    public ResponseEntity<CommonResponseDTO<SurveyResponseDTO>> submitSurvey(@AuthenticationPrincipal CustomUserDetails userDetails, @RequestBody SurveyRequestDTO surveyRequestDTO) {
         log.info("설문 제출 요청 수신 (파라미터): userId={}, answers={}", userDetails.getUserId(), surveyRequestDTO);
         SurveyResponseDTO resultDTO = surveyService.update(userDetails.getUserId(), surveyRequestDTO);
         log.info("설문 처리 및 저장 성공: {}", resultDTO);
