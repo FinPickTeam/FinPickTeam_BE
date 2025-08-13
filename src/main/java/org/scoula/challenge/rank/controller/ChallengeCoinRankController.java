@@ -29,5 +29,4 @@ public class ChallengeCoinRankController {
     public void markCoinRankSnapshotChecked(@RequestParam String month, @RequestParam Long userId) {
         rankService.markSnapshotAsChecked(month, userId);
     }
-
 }
