@@ -4,11 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.scoula.challenge.rank.dto.ChallengeCoinRankResponseDTO;
 import org.scoula.challenge.rank.dto.ChallengeCoinRankSnapshotResponseDTO;
 import org.scoula.challenge.rank.mapper.ChallengeCoinRankMapper;
+import org.scoula.challenge.rank.mapper.CommonQueryMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -16,37 +16,55 @@ import java.util.stream.Collectors;
 public class ChallengeCoinRankServiceImpl implements ChallengeCoinRankService {
 
     private final ChallengeCoinRankMapper rankMapper;
+    private final CommonQueryMapper commonQueryMapper;
+
+    private String ym(LocalDate date) {
+        return date.withDayOfMonth(1).toString().substring(0, 7); // YYYY-MM
+    }
+
+    private String currentMonth() { return ym(LocalDate.now()); }
+    private String previousMonth() { return ym(LocalDate.now().minusMonths(1)); }
 
     @Override
     public List<ChallengeCoinRankResponseDTO> getTop5WithMyRank(Long userId) {
-        String currentMonth = LocalDate.now().withDayOfMonth(1).toString().substring(0, 7);
-        List<ChallengeCoinRankResponseDTO> top5 = rankMapper.getTop5CoinRank(currentMonth);
-        ChallengeCoinRankResponseDTO mine = rankMapper.getMyCoinRank(userId, currentMonth);
-
-        if (mine != null && top5.stream().noneMatch(r -> r.getUserId().equals(userId))) {
+        String month = currentMonth();
+        List<ChallengeCoinRankResponseDTO> top5 = rankMapper.getTop5CoinRank(month);
+        ChallengeCoinRankResponseDTO mine = rankMapper.getMyCoinRank(userId, month);
+        if (mine != null && top5.stream().noneMatch(r -> Objects.equals(r.getUserId(), userId))) {
             top5.add(mine);
         }
-
         return top5;
     }
 
     @Override
     public void calculateAndSaveRanks() {
-        String month = LocalDate.now().minusMonths(1).withDayOfMonth(1).toString().substring(0, 7);
-        List<Long> userIds = rankMapper.getAllUserIdsInMonth(month);
+        String month = currentMonth();
 
-        List<ChallengeCoinRankResponseDTO> ranks = userIds.stream().map(userId -> {
-                    ChallengeCoinRankResponseDTO dto = rankMapper.getMyCoinRank(userId, month);
-                    return dto != null ? dto : null;
-                }).filter(r -> r != null)
-                .sorted(Comparator.comparingLong(ChallengeCoinRankResponseDTO::getCumulativePoint).reversed()
+        // (C) 성공률 요약 갱신 (선택)
+        rankMapper.recomputeUserChallengeSummaryAll();
+
+        // (B) 대상 추출: 이번 달 월누적 > 0 인 유저
+        List<Long> userIds = rankMapper.getAllUserIdsForCurrentMonthFromCoin();
+
+        // 각 유저의 현재 달 row 조회 (rank 기준 값으로 사용)
+        List<ChallengeCoinRankResponseDTO> ranks = userIds.stream()
+                .map(uid -> rankMapper.getMyCoinRank(uid, month))
+                .filter(Objects::nonNull)
+                .sorted(Comparator
+                        .comparingLong(ChallengeCoinRankResponseDTO::getCumulativePoint).reversed()
                         .thenComparingInt(ChallengeCoinRankResponseDTO::getChallengeCount).reversed())
                 .collect(Collectors.toList());
 
         for (int i = 0; i < ranks.size(); i++) {
-            ChallengeCoinRankResponseDTO r = ranks.get(i);
+            var r = ranks.get(i);
             rankMapper.insertOrUpdateRank(r.getUserId(), month, r.getCumulativePoint(), r.getChallengeCount(), i + 1);
         }
+    }
+
+    @Override
+    public void snapshotLastMonthRanks() {
+        // (B) 지난달 데이터를 스냅샷 테이블로 업서트
+        rankMapper.upsertCoinRankSnapshotFromRank(previousMonth());
     }
 
     @Override
@@ -59,4 +77,8 @@ public class ChallengeCoinRankServiceImpl implements ChallengeCoinRankService {
         rankMapper.markCoinRankSnapshotChecked(month, userId);
     }
 
+    @Override
+    public void recomputeUserChallengeSummaryAll() {
+        rankMapper.recomputeUserChallengeSummaryAll();
+    }
 }

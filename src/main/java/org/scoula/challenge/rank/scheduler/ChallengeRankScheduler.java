@@ -14,7 +14,8 @@ public class ChallengeRankScheduler {
 
     private final ChallengeRankService rankService;
 
-    @Scheduled(cron = "0 0 5 1 * ?") // 매월 1일 새벽 5시
+    // (F) 매월 1일 05:00 (KST) : 지난달 공통 챌린지 랭킹 스냅샷
+    @Scheduled(cron = "0 0 5 1 * *", zone = "Asia/Seoul")
     public void generateMonthlyChallengeRankSnapshot() {
         String month = LocalDate.now().minusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM"));
         rankService.snapshotMonthlyRanks(month);

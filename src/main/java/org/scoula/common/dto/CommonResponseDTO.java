@@ -1,3 +1,4 @@
+// org/scoula/common/dto/CommonResponseDTO.java
 package org.scoula.common.dto;
 
 import lombok.AllArgsConstructor;
@@ -5,7 +6,6 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-
 public class CommonResponseDTO<T> {
     private int status;
     private String message;
@@ -15,9 +15,16 @@ public class CommonResponseDTO<T> {
     public static <T> CommonResponseDTO<T> success(String message, T data) {
         return new CommonResponseDTO<>(200, message, data);
     }
-
     public static <T> CommonResponseDTO<T> success(String message) {
         return new CommonResponseDTO<>(200, message, null);
+    }
+
+    // ✅ alias: ok()
+    public static <T> CommonResponseDTO<T> ok(T data) {
+        return new CommonResponseDTO<>(200, "OK", data);
+    }
+    public static <T> CommonResponseDTO<T> ok() {
+        return new CommonResponseDTO<>(200, "OK", null);
     }
 
     // 실패 응답
