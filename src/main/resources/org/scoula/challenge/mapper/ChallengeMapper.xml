@@ -24,7 +24,7 @@
         WHERE uc.user_id = #{userId}
           AND c.type = #{type}
           AND (
-            c.status IN ('RECRUITING','IN_PROGRESS')
+            c.status IN ('RECRUITING','IN_PROGRESS', 'CLOSED')
                 OR (c.status = 'COMPLETED' AND uc.result_checked = 0)
             )
     </select>
