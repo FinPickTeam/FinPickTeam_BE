@@ -213,6 +213,7 @@ public class ChallengeServiceImpl implements ChallengeService {
                             .myProgressRate(myProgress)
                             .resultChecked(resultChecked)
                             .isMine(challenge.getWriterId() != null && challenge.getWriterId().equals(userId))
+                            .usePassword(challenge.getUsePassword())
                             .build();
                 })
                 .collect(Collectors.toList());

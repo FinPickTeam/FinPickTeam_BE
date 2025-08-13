@@ -48,4 +48,7 @@ public class ChallengeListResponseDTO {
     // 내가 만든 챌린지인지
     @JsonProperty("isMine")
     private Boolean isMine;           // null-safe
+
+    // 추가: 비밀번호 사용 여부 (실제 비밀번호는 절대 제공 X)
+    private Boolean usePassword;
 }
