@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -30,6 +31,9 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
     private final LedgerMapper ledgerMapper;
     private final AccountMapper accountMapper;
 
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final int MAX_MONTHS_BACK = 6;
+
     @Override
     public List<AccountTransactionDto> getTransactions(Long userId, Long accountId, String from, String to) {
         Account acc = accountMapper.findById(accountId);
@@ -38,10 +42,9 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
             throw new BaseException("비활성화된 계좌입니다.", 400);
         }
 
-        List<AccountTransaction> txList = accountTransactionMapper.findAccountTransactions(userId, accountId, from, to);
-        if (txList == null || txList.isEmpty()) {
-            throw new AccountTransactionNotFoundException();
-        }
+        List<AccountTransaction> txList =
+                accountTransactionMapper.findAccountTransactions(userId, accountId, from, to);
+        if (txList == null || txList.isEmpty()) throw new AccountTransactionNotFoundException();
 
         return txList.stream().map(this::toDto).toList();
     }
@@ -64,9 +67,8 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
         Long userId = account.getUserId();
         String finAcno = account.getPinAccountNumber();
 
-        LocalDate to = LocalDate.now();
-        LocalDate from = isInitial ? to.minusMonths(3)
-                : getNextStartDate(account.getId(), to); // 마지막+1일
+        LocalDate to = LocalDate.now(KST);
+        LocalDate from = getNextStartDate(account.getId(), to); // ✅ 마지막+1일, 없으면 12개월
 
         List<NhAccountTransactionResponseDto> dtoList = nhAccountService.callTransactionList(
                 userId, account.getId(), finAcno,
@@ -75,7 +77,8 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
         );
 
         for (NhAccountTransactionResponseDto dto : dtoList) {
-            if (accountTransactionMapper.existsByUserIdAndAccountIdAndTuNo(userId, account.getId(), dto.getTuNo())) continue;
+            if (accountTransactionMapper.existsByUserIdAndAccountIdAndTuNo(userId, account.getId(), dto.getTuNo()))
+                continue;
 
             AccountTransaction tx = new AccountTransaction(dto, userId, account.getId());
             accountTransactionMapper.insert(tx);
@@ -87,18 +90,23 @@ public class AccountTransactionServiceImpl implements AccountTransactionService 
             }
         }
 
-        log.info("✅ 계좌 {} 거래내역 동기화 완료 ({}건, {} ~ {})", account.getId(), dtoList.size(), from, to);
+        LocalDateTime last = accountTransactionMapper.findLastTransactionDate(account.getId());
+        log.info("✅ 계좌 {} 거래내역 동기화 완료 ({}건, from={} ~ to={}, maxDate={})",
+                account.getId(), dtoList.size(), from, to, last);
     }
 
-    // 기본은 증분 동기화로
     @Override
     public void syncAccountTransactions(Account account) {
         syncAccountTransactions(account, false);
     }
 
-    // 마지막 거래일의 다음날을 시작점으로(미존재 시 3개월 전)
+    // ✅ 마지막 거래일+1일, 없으면 오늘-12개월(바닥)
     private LocalDate getNextStartDate(Long accountId, LocalDate today) {
-        LocalDateTime last = accountTransactionMapper.findLastTransactionDate(accountId);
-        return last != null ? last.toLocalDate().plusDays(1) : today.minusMonths(3);
+        LocalDate floor = today.minusMonths(MAX_MONTHS_BACK);
+        LocalDateTime last = accountTransactionMapper.findLastTransactionDate(accountId); // MAX(date)
+        LocalDate candidate = (last != null) ? last.toLocalDate().plusDays(1) : floor;
+        if (candidate.isBefore(floor)) candidate = floor;
+        if (candidate.isAfter(today))  candidate = today;
+        return candidate;
     }
 }

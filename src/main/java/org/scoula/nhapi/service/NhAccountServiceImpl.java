@@ -78,7 +78,6 @@ public class NhAccountServiceImpl implements NhAccountService {
         List<NhAccountTransactionResponseDto> list = new ArrayList<>();
         if (arr != null) {
             for (int i = 0; i < arr.length(); i++) {
-                // DTO 오버로드 버전이 있으면 from(obj, userId, accountId) 쓰세요.
                 NhAccountTransactionResponseDto dto = NhAccountTransactionResponseDto.from(arr.getJSONObject(i));
                 dto.setUserId(userId);
                 dto.setAccountId(accountId);
@@ -95,11 +94,8 @@ public class NhAccountServiceImpl implements NhAccountService {
     // 🔧 추가: 제너레이터 설정
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
-    // true면 'to' 파라미터와 무관하게 오늘까지 생성
     private static final boolean FORCE_UNTIL_TODAY = true;
-
-    // 과거 몇 개월부터 생성할지 (많~이 넣고 싶으면 36~60 추천)
-    private static final int DUMMY_MONTHS_BACK = 36; // 3년치
+    private static final int DUMMY_MONTHS_BACK = 6;
 
     // 하루 최소/최대 발생 건수 (평균치를 올리고 싶으면 올려주세요)
     private static final int MIN_DAILY = 2;

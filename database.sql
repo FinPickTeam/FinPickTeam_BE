@@ -274,6 +274,8 @@ CREATE TABLE `card_transaction` (
                                     `foreign_amount` DECIMAL(20,2) NULL,
                                     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                     PRIMARY KEY (`id`),
+                                    UNIQUE KEY `uq_card_tx` (`user_id`,`card_id`,`auth_number`,`approved_at`),
+                                    KEY `idx_card_last` (`card_id`,`approved_at`),
                                     FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
                                     FOREIGN KEY (`card_id`) REFERENCES `card`(`id`) ON DELETE CASCADE
 );
@@ -322,6 +324,7 @@ CREATE TABLE `ledger` (
                           `place` VARCHAR(100) NULL,
                           `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                           PRIMARY KEY (`id`),
+                          KEY `idx_ledger_card_date` (`card_id`,`date`),
                           FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE,
                           FOREIGN KEY (`category_id`) REFERENCES `tr_category`(`id`) ON DELETE RESTRICT
 );
