@@ -36,8 +36,16 @@ public interface MonthReportMapper {
                            @Param("compareSaving") BigDecimal compareSaving,
                            @Param("categoryChart") String categoryChart,
                            @Param("sixMonthChart") String sixMonthChart,
+                           @Param("patternLabel") String patternLabel,
                            @Param("feedback") String feedback,
                            @Param("nextGoal") String nextGoal);
 
+
     List<Long> findUsersWithCardTransactions();
+
+    List<org.scoula.transactions.domain.Ledger> findExpenseLedgersForReport(
+            @Param("userId") Long userId,
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to);
+
 }

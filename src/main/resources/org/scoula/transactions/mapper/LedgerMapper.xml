@@ -158,5 +158,24 @@
           AND l.date &lt; #{to}
     </select>
 
+    <select id="selectUserLedgersBetween" resultType="org.scoula.transactions.domain.Ledger">
+        SELECT
+        l.id, l.user_id    AS userId,
+        l.source_type      AS sourceType,
+        l.source_name      AS sourceName,
+        l.type, l.amount,
+        tc.label           AS category,   -- 화면에 라벨로 노출 중이면 label
+        l.memo, l.analysis, l.date,
+        l.merchant_name    AS merchantName,
+        l.place, l.account_id AS accountId, l.card_id AS cardId
+        FROM ledger l
+        JOIN tr_category tc ON tc.id = l.category_id
+        WHERE l.user_id = #{userId}
+          AND l.type = 'EXPENSE'
+          AND l.date >= #{from}
+        AND l.date &lt;  #{to}
+        ORDER BY l.date
+    </select>
+
 
 </mapper>

@@ -9,7 +9,7 @@
         SELECT
             u.id AS userId,
             us.nickname,
-            cr.rank AS rank,
+            cr.`rank` AS rank,
             cr.cumulative_point AS cumulativePoint,
             cr.challenge_count AS challengeCount,
             COALESCE(ucs.success_count, 0) AS successCount,
@@ -21,7 +21,7 @@
                  JOIN user_status us ON us.id = u.id
                  LEFT JOIN user_challenge_summary ucs ON ucs.id = u.id
         WHERE cr.month = #{month}
-        ORDER BY cr.rank ASC
+        ORDER BY cr.`rank` ASC
             LIMIT 5
     </select>
 
@@ -30,7 +30,7 @@
         SELECT
             u.id AS userId,
             us.nickname,
-            cr.rank AS rank,
+            cr.`rank` AS rank,
             cr.cumulative_point AS cumulativePoint,
             cr.challenge_count AS challengeCount,
             COALESCE(ucs.success_count, 0) AS successCount,
@@ -47,12 +47,12 @@
 
     <!-- (B) 저장/갱신 -->
     <insert id="insertOrUpdateRank">
-        INSERT INTO challenge_coin_rank (user_id, month, cumulative_point, challenge_count, rank, updated_at)
+        INSERT INTO challenge_coin_rank (user_id, month, cumulative_point, challenge_count, `rank`, updated_at)
         VALUES (#{userId}, #{month}, #{cumulativePoint}, #{challengeCount}, #{rank}, NOW())
             ON DUPLICATE KEY UPDATE
                                  cumulative_point = VALUES(cumulative_point),
                                  challenge_count   = VALUES(challenge_count),
-                                 rank              = VALUES(rank),
+                                 `rank`            = VALUES(`rank`),
                                  updated_at        = NOW()
     </insert>
 
@@ -65,11 +65,11 @@
 
     <!-- (A) 스냅샷 Top5 + 내 랭킹 -->
     <select id="getCoinRankSnapshotTop5WithMyRank" resultType="org.scoula.challenge.rank.dto.ChallengeCoinRankSnapshotResponseDTO">
-        SELECT cr.id, u.id AS userId, us.nickname, cr.rank, cr.cumulative_point AS totalCoin, cr.month
+        SELECT cr.id, u.id AS userId, us.nickname, cr.`rank`, cr.cumulative_point AS totalCoin, cr.month
         FROM (
                  SELECT * FROM challenge_coin_rank_snapshot
                  WHERE month = #{month}
-                 ORDER BY rank ASC
+                 ORDER BY `rank` ASC
                      LIMIT 5
              ) cr
                  JOIN user u ON cr.user_id = u.id
@@ -77,7 +77,7 @@
 
         UNION ALL
 
-        SELECT cr.id, u.id AS userId, us.nickname, cr.rank, cr.cumulative_point AS totalCoin, cr.month
+        SELECT cr.id, u.id AS userId, us.nickname, cr.`rank`, cr.cumulative_point AS totalCoin, cr.month
         FROM challenge_coin_rank_snapshot cr
                  JOIN user u ON cr.user_id = u.id
                  JOIN user_status us ON u.id = us.id
@@ -93,14 +93,14 @@
 
     <!-- (B) 월초: 지난달 랭킹을 스냅샷 테이블로 업서트 -->
     <insert id="upsertCoinRankSnapshotFromRank">
-        INSERT INTO challenge_coin_rank_snapshot (user_id, month, rank, cumulative_point, challenge_count, created_at)
-        SELECT user_id, month, rank, cumulative_point, challenge_count, NOW()
+        INSERT INTO challenge_coin_rank_snapshot (user_id, month, `rank`, cumulative_point, challenge_count, created_at)
+        SELECT user_id, month, `rank`, cumulative_point, challenge_count, NOW()
         FROM challenge_coin_rank
         WHERE month = #{month}
         ON DUPLICATE KEY UPDATE
-                             rank = VALUES(rank),
+                             `rank`           = VALUES(`rank`),
                              cumulative_point = VALUES(cumulative_point),
-                             challenge_count = VALUES(challenge_count);
+                             challenge_count  = VALUES(challenge_count)
     </insert>
 
     <!-- (C) 요약 재계산 (전 유저) -->
@@ -115,10 +115,10 @@
             GROUP BY u.id
             ) agg ON agg.user_id = ucs.id
             SET ucs.total_challenges = agg.total_challenges,
-                ucs.success_count = agg.success_count,
+                ucs.success_count    = agg.success_count,
                 ucs.achievement_rate = CASE WHEN agg.total_challenges = 0 THEN 0
                 ELSE ROUND((agg.success_count / agg.total_challenges) * 100, 2) END,
-            ucs.updated_at = NOW()
+            ucs.updated_at       = NOW()
     </update>
 
     <!-- (C) 특정 유저 upsert -->
@@ -136,9 +136,9 @@
         WHERE u.id = #{userId}
             ON DUPLICATE KEY UPDATE
                                  total_challenges = VALUES(total_challenges),
-                                 success_count = VALUES(success_count),
+                                 success_count    = VALUES(success_count),
                                  achievement_rate = VALUES(achievement_rate),
-                                 updated_at = NOW()
+                                 updated_at       = NOW()
     </insert>
 
     <!-- 신규: coin + summary에서 당월 스탯을 직접 가져오기 -->
@@ -163,13 +163,13 @@
 
     <!-- 이벤트 기반: 해당 유저의 당월 row upsert -->
     <insert id="upsertRankRowForUserCurrentMonth">
-        INSERT INTO challenge_coin_rank (user_id, month, cumulative_point, challenge_count, rank, updated_at)
+        INSERT INTO challenge_coin_rank (user_id, month, cumulative_point, challenge_count, `rank`, updated_at)
         SELECT
-            u.id AS user_id,
-            #{month} AS month,
-            c.monthly_cumulative_amount AS cumulative_point,
-            COALESCE(ucs.total_challenges, 0) AS challenge_count,
-            0 AS rank,  -- 임시값, 아래 refreshRanksForMonth에서 재계산
+            u.id                               AS user_id,
+            #{month}                           AS month,
+            c.monthly_cumulative_amount        AS cumulative_point,
+            COALESCE(ucs.total_challenges, 0)  AS challenge_count,
+            0                                  AS `rank`,  -- 임시값, 아래 refreshRanksForMonth에서 재계산
             NOW()
         FROM coin c
             JOIN user u ON u.id = c.id
@@ -188,16 +188,13 @@
             SELECT
             user_id,
             month,
-            DENSE_RANK() OVER (
-            ORDER BY cumulative_point DESC, challenge_count DESC
-            ) AS new_rank
+            DENSE_RANK() OVER (ORDER BY cumulative_point DESC, challenge_count DESC) AS new_rank
             FROM challenge_coin_rank
             WHERE month = #{month}
             ) ranked
         ON ranked.user_id = cr.user_id AND ranked.month = cr.month
-            SET cr.rank = ranked.new_rank
+            SET cr.`rank` = ranked.new_rank
         WHERE cr.month = #{month}
     </update>
-
 
 </mapper>

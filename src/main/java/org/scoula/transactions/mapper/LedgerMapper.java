@@ -51,5 +51,11 @@ public interface LedgerMapper {
                                                @Param("from") LocalDateTime from,
                                                @Param("to") LocalDateTime to);
 
+    List<Ledger> selectUserLedgersBetween(
+            @org.apache.ibatis.annotations.Param("userId") Long userId,
+            @org.apache.ibatis.annotations.Param("from") java.time.LocalDateTime from,
+            @org.apache.ibatis.annotations.Param("to")   java.time.LocalDateTime to
+    );
+
 }
 

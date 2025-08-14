@@ -15,6 +15,7 @@ public class MonthReport {
     private BigDecimal compareSaving;
     private String categoryChart; // JSON
     private String sixMonthChart; // JSON
+    private String patternLabel;
     private String feedback;
     private String nextGoal;
 }

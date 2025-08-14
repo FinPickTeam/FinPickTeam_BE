@@ -6,6 +6,9 @@ public enum AnalysisCode {
     MART_HABIT,
     CATEGORY_SURGE,
     INCOME_OVER,
+    HIGH_AMOUNT,    // 고액 결제
+    INSTALLMENT,    // 할부 결제
+    INDUSTRY_HINT,
     NEW_CATEGORY,
     LATE_NIGHT,
     SAME_MERCHANT,
