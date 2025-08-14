@@ -10,7 +10,7 @@
             resultType="org.scoula.challenge.rank.dto.ChallengeRankResponseDTO">
         SELECT
             u.id                               AS userId,
-            COALESCE(us.nickname, u.nickname)  AS nickname,
+            IFNULL(us.nickname, CONCAT('user#', u.id)) AS nickname,
             cr.`rank`                          AS `rank`,
             uc.actual_value                    AS actualValue
         FROM challenge_rank cr
@@ -39,12 +39,12 @@
     <select id="getChallengeRankSnapshots"
             resultType="org.scoula.challenge.rank.dto.ChallengeRankSnapshotResponseDTO">
         SELECT
-            u.id                               AS userId,
-            COALESCE(us.nickname, u.nickname)  AS nickname,
-            crs.`rank`                         AS `rank`,
-            crs.actual_value                   AS actualValue,
-            crs.month                          AS month,
-        crs.is_checked                     AS isChecked
+            u.id                                         AS userId,
+            IFNULL(us.nickname, CONCAT('user#', u.id))   AS nickname,
+            crs.`rank`                                   AS `rank`,
+            crs.actual_value                             AS actualValue,
+            crs.month                                    AS month,
+            crs.is_checked                               AS isChecked
         FROM challenge_rank_snapshot crs
             JOIN user_challenge uc ON crs.user_challenge_id = uc.id
             JOIN user u            ON u.id = uc.user_id
