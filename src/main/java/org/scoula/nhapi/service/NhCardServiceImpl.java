@@ -12,6 +12,13 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.DayOfWeek;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 import java.util.*;
 
 @Slf4j
@@ -20,9 +27,15 @@ import java.util.*;
 public class NhCardServiceImpl implements NhCardService {
 
     private final NHApiClient nhApiClient;
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final int CARD_DUMMY_MONTHS_BACK = 18; // 1.5년치
+    private static final int CARD_MIN_DAILY = 1;
+    private static final int CARD_MAX_DAILY = 12;
 
     @Override
-    public List<NhCardTransactionResponseDto> callCardTransactionList(Long userId, String finCard, String from, String to) {
+    public List<NhCardTransactionResponseDto> callCardTransactionList(
+            Long userId, String finCard, String from, String to
+    ) {
         List<NhCardTransactionResponseDto> all = new ArrayList<>();
         int page = 1;
 
@@ -32,94 +45,97 @@ public class NhCardServiceImpl implements NhCardService {
 
             if ("A0090".equals(rpcd)) {
                 log.info("✅ 카드 승인내역 없음 → 더미 반환 (핀카드: {})", finCard);
-                return createDummyTransactions();
+                return createCardDummyTransactions(userId, finCard);
             }
             if (!"00000".equals(rpcd)) {
                 throw new NHApiException("카드 승인내역 조회 실패: " + rpcd);
             }
 
-            // 파서가 있으면 사용
-            List<NhCardTransactionResponseDto> parsed = NhCardParser.parse(res);
-            // 파서가 없다면 아래 주석 참고해서 간단 파싱 구현 가능
-            // List<NhCardTransactionResponseDto> parsed = simpleParse(res);
-
+            List<NhCardTransactionResponseDto> parsed = NhCardParser.parse(res); // 파서 있으면 사용
             all.addAll(parsed);
 
-            // 더보기 여부
             if (!"Y".equalsIgnoreCase(res.optString("CtntDataYn"))) break;
             page++;
         }
-
-        return all.isEmpty() ? createDummyTransactions() : all;
+        return all.isEmpty() ? createCardDummyTransactions(userId, finCard) : all;
     }
 
-    // 필요 시 간단 파서 (NhCardParser 없으면 사용)
-    /*
-    private List<NhCardTransactionResponseDto> simpleParse(JSONObject res) {
-        List<NhCardTransactionResponseDto> list = new ArrayList<>();
-        var arr = res.optJSONArray("Rec");
-        if (arr == null) return list;
-        for (int i = 0; i < arr.length(); i++) {
-            list.add(NhCardTransactionResponseDto.from(arr.getJSONObject(i)));
-        }
-        return list;
-    }
-    */
 
-    // 샘플/데모용 더미 데이터
-    private List<NhCardTransactionResponseDto> createDummyTransactions() {
+
+    private List<NhCardTransactionResponseDto> createCardDummyTransactions(Long userId, String finCard) {
         List<NhCardTransactionResponseDto> list = new ArrayList<>();
 
         String[][] merchants = {
-                {"스타벅스", "커피전문점"}, {"맥도날드", "패스트푸드"}, {"올리브영", "화장품"},
-                {"GS25", "편의점"}, {"넷플릭스", "정기결제"}, {"카카오모빌리티", "택시"},
-                {"이마트", "마트"}, {"메가박스", "영화관"}, {"LG유플러스", "통신비"}, {"삼성생명", "보험"}
+                {"스타벅스","커피전문점"}, {"맥도날드","패스트푸드"}, {"올리브영","화장품"},
+                {"GS25","편의점"}, {"넷플릭스","정기결제"}, {"카카오모빌리티","택시"},
+                {"이마트","마트"}, {"메가박스","영화관"}, {"LG유플러스","통신비"},
+                {"삼성생명","보험"}, {"무신사","쇼핑"}, {"마켓컬리","식자재"},
+                {"배달의민족","배달"}, {"쿠팡","쇼핑"}
         };
 
-        Map<String, String> mcc = Map.of(
-                "커피전문점", "D101","패스트푸드", "D102","화장품", "D103","편의점", "D104",
-                "정기결제", "D105","택시", "D106","마트", "D107","영화관", "D108",
-                "통신비", "D109","보험", "D110"
-        );
+        Map<String, String> mcc = new HashMap<String, String>();
+        mcc.put("커피전문점","D101"); mcc.put("패스트푸드","D102"); mcc.put("화장품","D103");
+        mcc.put("편의점","D104"); mcc.put("정기결제","D105"); mcc.put("택시","D106");
+        mcc.put("마트","D107"); mcc.put("영화관","D108"); mcc.put("통신비","D109");
+        mcc.put("보험","D110"); mcc.put("쇼핑","D111"); mcc.put("식자재","D112");
+        mcc.put("배달","D113");
 
-        LocalDate base = LocalDate.of(2025, 4, 1);
-        int total = 40;
+        LocalDate end = LocalDate.now(KST);
+        LocalDate start = end.minusMonths(CARD_DUMMY_MONTHS_BACK);
 
-        for (int i = 0; i < total; i++) {
-            int month = 4 + (i % 4); // 4~7월 분산
-            int day = ((i * 3) % 27) + 1;
-            int hour = 10 + (i * 5) % 10;
-            int minute = (i * 7) % 60;
+        long seed = Math.abs(Objects.hash(userId, finCard, start, end, "CARD_HEAVY"));
+        Random rnd = new Random(seed);
+        String[] salesTypes = {"1","2","3","6","7","8"};
 
-            LocalDateTime approvedAt = LocalDateTime.of(2025, month, day, hour, minute, 0);
-            LocalDate paymentDate = LocalDate.of(2025, month, Math.min(day + 2, 28));
+        long globalIndex = 0;
+        for (LocalDate d = start; !d.isAfter(end); d = d.plusDays(1)) {
+            int base = CARD_MIN_DAILY + rnd.nextInt(CARD_MAX_DAILY - CARD_MIN_DAILY + 1);
+            DayOfWeek dow = d.getDayOfWeek();
+            if (dow == DayOfWeek.FRIDAY || dow == DayOfWeek.SATURDAY) {
+                base += rnd.nextInt(4); // 금/토 증량
+            }
 
-            String[] entry = merchants[i % merchants.length];
-            String merchantName = entry[0];
-            String tpbcdNm = entry[1];
-            String tpbcd = mcc.getOrDefault(tpbcdNm, "D999");
+            for (int i = 0; i < base; i++) {
+                String[] entry = merchants[rnd.nextInt(merchants.length)];
+                String merchantName = entry[0];
+                String tpbcdNm = entry[1];
+                String tpbcd = mcc.containsKey(tpbcdNm) ? mcc.get(tpbcdNm) : "D999";
 
-            BigDecimal amount = BigDecimal.valueOf(3000 + (i * 1500 % 25000));
-            boolean cancelled = (i % 6 == 0);
+                int hour = 8 + rnd.nextInt(16); // 08~23
+                int minute = rnd.nextInt(60);
+                int second = rnd.nextInt(60);
+                LocalDateTime approvedAt = d.atTime(hour, minute, second);
+                LocalDate paymentDate = d.plusDays(2 + rnd.nextInt(4));
 
-            list.add(NhCardTransactionResponseDto.builder()
-                    .authNumber("AUTH" + (10000 + i))
-                    .salesType(new String[]{"1","2","3","6","7","8"}[i % 6])
-                    .approvedAt(approvedAt)
-                    .paymentDate(paymentDate)
-                    .amount(amount)
-                    .cancelled(cancelled)
-                    .cancelAmount(cancelled ? amount : BigDecimal.ZERO)
-                    .cancelledAt(cancelled ? approvedAt.plusMinutes(5) : null)
-                    .merchantName(merchantName)
-                    .tpbcd(tpbcd)
-                    .tpbcdNm(tpbcdNm)
-                    .installmentMonth(0)
-                    .currency("KRW")
-                    .foreignAmount(BigDecimal.ZERO)
-                    .build());
+                BigDecimal amount = BigDecimal.valueOf(3000 + rnd.nextInt(250000));
+                boolean cancelled = rnd.nextInt(8) == 0; // 12.5%
+                BigDecimal cancelAmt = cancelled ? amount : BigDecimal.ZERO;
+
+                String salesType = salesTypes[rnd.nextInt(salesTypes.length)];
+
+                long authSeq = Math.abs(31L * approvedAt.toEpochSecond(ZoneOffset.ofHours(9)) + globalIndex);
+                String authNumber = "DUM" + authSeq;
+
+                list.add(NhCardTransactionResponseDto.builder()
+                        .authNumber(authNumber)
+                        .salesType(salesType)
+                        .approvedAt(approvedAt)
+                        .paymentDate(paymentDate)
+                        .amount(amount)
+                        .cancelled(cancelled)
+                        .cancelAmount(cancelAmt)
+                        .cancelledAt(cancelled ? approvedAt.plusMinutes(5) : null)
+                        .merchantName(merchantName)
+                        .tpbcd(tpbcd)
+                        .tpbcdNm(tpbcdNm)
+                        .installmentMonth("2".equals(salesType) ? (1 + rnd.nextInt(12)) : 0)
+                        .currency("KRW")
+                        .foreignAmount(BigDecimal.ZERO)
+                        .build());
+                globalIndex++;
+            }
         }
-
         return list;
     }
+
 }
