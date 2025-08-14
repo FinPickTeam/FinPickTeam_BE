@@ -70,10 +70,9 @@ public class UserController {
 
     //핀번호 여부 조회
     @ApiOperation(value = "간편비밀번호 여부 조회 ", notes = "간편비밀번호를 설정했는지 여부를 조회합니다.")
-    @PutMapping("/pin/isCreated")
+    @GetMapping("/pin/isCreated")
     public CommonResponseDTO<Boolean> isPinCreated (@AuthenticationPrincipal CustomUserDetails userDetails) {
         Boolean isPin=userService.isPin(userDetails.getUserId());
         return CommonResponseDTO.success("간편비밀번호 설정여부 조회가 완료되었습니다.",isPin);
     }
-
 }
