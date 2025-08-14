@@ -24,6 +24,7 @@ public class ChallengeDetailResponseDTO {
     private Boolean isMine;
     private Double myProgress;
     private Integer participantsCount;
+    private Boolean isSuccess;
     private Boolean isResultCheck;
     private String categoryName; // 추가
     // 추가: 비밀번호 사용 여부 (실제 비밀번호는 절대 제공 X)

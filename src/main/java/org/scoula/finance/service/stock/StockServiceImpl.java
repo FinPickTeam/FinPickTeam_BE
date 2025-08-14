@@ -377,36 +377,49 @@ public class StockServiceImpl implements StockService {
             return "데이터 없음";
         }
         StringBuilder sb = new StringBuilder();
-        sb.append("너는 금융 전문가이며, 4요인(4-Factor) 모델을 기반으로 주식 추천을 해주는 역할이야. ")
-                .append("아래는 이미 4요인 모델로 알파(α)를 계산하고, 정보 비율(IR) 기준으로 순위화된 주식 목록이야. ")
-                .append("사용자의 투자 성향 답변을 참고해서, 목록 중에서 정확히 5개 주식을 추천해. ")
-                .append("선정 시 다음 기준을 따르도록 해: ")
-                .append("1. 사용자의 위험 선호도와 투자 목적에 맞춰 변동성이 높은/낮은 종목을 선택해. ")
-                .append("2. 투자 경험이 적으면 안정적인 종목 비중을 높이고, 경험이 많으면 성장성 높은 종목을 포함해. ")
-                .append("3. 투자 금액이 적으면 분산투자 효과를 높이고, 금액이 크면 고수익 가능 종목을 일부 포함해. ")
-                .append("4. 목록의 순위가 높을수록 우선 추천하되, 투자 성향과 맞지 않으면 제외 가능. ")
-                .append("5. 동일 산업군 종목이 너무 많지 않도록 다양하게 구성해. ")
-                .append("5) 출력은 JSON 배열만. 설명·주석·코드펜스 금지. 키는 stockCode만 사용.")
-                .append(surveyVo.getQuestion1()).append("\n")
-                .append("2번째 투자 성향 질문은 [금융투자상품 취득 및 처분 목적]이고 사용자의 답변은 ")
-                .append(surveyVo.getQuestion2()).append("\n")
-                .append("3번째 투자 성향 질문은 [투자수익 및 위험에 대한 태도]이고 사용자의 답변은 ")
-                .append(surveyVo.getQuestion3()).append("\n")
-                .append("4번째 투자 성향 질문은 [투자경험]이고 사용자의 답변은 ")
-                .append(surveyVo.getQuestion4()).append("\n")
-                .append("5번째 투자 성향 질문은 [한달 동안의 투자 금액]이고 사용자의 답변은 ")
-                .append(surveyVo.getQuestion5()).append("\n")
-                .append("[주식 목록]\n")
+        sb.append("너는 금융 전문가이며, 다양한 시장 지표와 성과 분석을 종합해 ")
+                .append("사용자의 투자 성향에 맞는 종목을 추천하는 역할이다. ")
+                .append("아래 정보(투자 성향 답변, 정렬된 후보 리스트)를 활용해 정확히 5개 종목을 JSON 배열로 반환하라. ")
+                .append("설명 금지. 키는 stockCode만 사용.\n\n")
+
+                .append("선정 규칙:\n")
+                .append("1) 사용자의 위험 선호/목표에 맞춰 변동성 높은·낮은 종목 비중을 조절.\n")
+                .append("2) 투자 경험이 적으면 안정적 종목 비중↑, 경험이 많으면 성장성 종목 일부 포함.\n")
+                .append("3) 투자 금액이 적으면 분산 효과↑, 금액이 크면 고수익 가능 종목 일부 포함.\n")
+                .append("4) 상위 순위(IR·알파 등) 우선. 단, 성향과 불일치 시 제외 가능.\n")
+                .append("5) 산업군 과밀 회피(동일 산업군 과도한 편중 금지).\n")
+                .append("6) 중복 금지, 후보 리스트 바깥 종목 금지.\n")
+                .append("7) 동순위·판단이 애매하면 상위 순위 > 산업 다양성 > 유동성(시총 큰 종목) 순으로 타이브레이크.\n")
+                .append("8) 무작위성 사용 금지.\n\n")
+
+                .append("출력 형식:\n")
+                .append("- 오직 JSON 배열(길이 5).\n")
+                .append("- 각 원소는 { \"stockCode\": \"<코드>\" } 형태만 허용.\n")
+                .append("- 다른 키·텍스트·주석·코드펜스 금지.\n\n")
+
+                .append("투자 성향 답변:\n")
+                .append("1) [금융투자상품 취득 및 처분 목적]: ").append(surveyVo.getQuestion1()).append("\n")
+                .append("2) [투자수익 및 위험 태도]: ").append(surveyVo.getQuestion2()).append("\n")
+                .append("3) [투자경험]: ").append(surveyVo.getQuestion3()).append("\n")
+                .append("4) [한달 투자 금액]: ").append(surveyVo.getQuestion5()).append("\n")
+                .append("5) [연간 소득]: ").append(surveyVo.getQuestion6()).append("\n")
+                .append("6) [파생 투자경험]: ").append(surveyVo.getQuestion7()).append("\n")
+                .append("7) [투자 형태/금융 자산]: ").append(surveyVo.getQuestion8()).append("\n")
+                .append("8) [기대수익률 및 손실감내도]: ").append(surveyVo.getQuestion9()).append("\n")
+                .append("9) [총 자산(순자산)]: ").append(surveyVo.getQuestion10()).append("\n\n")
+
+                .append("후보 리스트(이 중에서만 선택):\n")
                 .append(stockCode).append("\n\n")
-                .append("\n출력 예시(정확히 이 형식):\n")
+
+                .append("출력 예시(정확히 이 형식):\n")
                 .append("[\n")
                 .append("  { \"stockCode\": \"005930\" },\n")
                 .append("  { \"stockCode\": \"000660\" },\n")
                 .append("  { \"stockCode\": \"035420\" },\n")
                 .append("  { \"stockCode\": \"068270\" },\n")
                 .append("  { \"stockCode\": \"051910\" }\n")
-                .append("]\n")
-                .append("다른 말은 절대 하지 말고 JSON 배열만 반환해.");
+                .append("]\n\n")
+                .append("오직 JSON 배열만 반환하라. 길이 5, 후보 외 종목 금지, 중복 금지.");
         return sb.toString();
     }
 

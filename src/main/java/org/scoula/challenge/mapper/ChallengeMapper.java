@@ -19,7 +19,7 @@ public interface ChallengeMapper {
                              @Param("isCreator") boolean isCreator,
                              @Param("isCompleted") boolean isCompleted,
                              @Param("actualValue") int actualValue,
-                             @Param("isSuccess") boolean isSuccess);
+                             @Param("isSuccess") Boolean isSuccess);
 
     int countUserOngoingChallenges(@Param("userId") Long userId, @Param("type") String type);
 
