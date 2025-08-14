@@ -342,6 +342,7 @@ CREATE TABLE `monthreport` (
                                `compare_saving` DECIMAL(10,2) NOT NULL,
                                `category_chart` TEXT NOT NULL,
                                `six_month_chart` TEXT NOT NULL,
+                               `pattern_label` VARCHAR(50) NOT NULL,
                                `feedback` TEXT NOT NULL,
                                `next_goal` TEXT NOT NULL,
                                `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,

@@ -22,6 +22,8 @@ public class MonthReportDetailDto {
     private List<CategoryRatioDto> categoryChart;
     private List<CategoryAmountDto> top3Spending;
 
+    private org.scoula.monthreport.dto.AverageComparisonDto averageComparison;
+
     private List<SpendingPatternDto> spendingPatterns; // <--- 복수 패턴 + desc
     private String spendingPatternFeedback;
 
