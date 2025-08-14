@@ -359,6 +359,32 @@ public class StockServiceImpl implements StockService {
         return recommendedStocks;
     }
 
+    @Override
+    public StockCompareDataDto getStockCompareData(Long userId, String stockCode){
+        String token = stockMapper.getUserToken(userId);
+        StockCompareDataDto dto = new StockCompareDataDto();
+
+        try {
+
+            String response = KiwoomApiUtils.sendPostRequest("/api/dostk/stkinfo", token,
+                    String.format("{\"stk_cd\" : \"%s\"}", stockCode), "ka10001");
+
+            JsonNode root = objectMapper.readTree(response);
+
+            dto.setStockCode(stockCode);
+            dto.setStockBps(root.path("bps").asText());
+            dto.setStockPbr(root.path("pbr").asText());
+            dto.setStockEps(root.path("eps").asText());
+            dto.setStockRoe(root.path("roe").asText());
+            dto.setStockDiv(stockMapper.getStockDivByStockCode(stockCode));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return dto;
+    }
+
     public String createJsonData() {
         Map<String, String> payload = new HashMap<>();
         payload.put("grant_type", "client_credentials");
@@ -379,7 +405,7 @@ public class StockServiceImpl implements StockService {
         StringBuilder sb = new StringBuilder();
         sb.append("너는 금융 전문가이며, 다양한 시장 지표와 성과 분석을 종합해 ")
                 .append("사용자의 투자 성향에 맞는 종목을 추천하는 역할이다. ")
-                .append("아래 정보(투자 성향 답변, 정렬된 후보 리스트)를 활용해 정확히 5개 종목을 JSON 배열로 반환하라. ")
+                .append("아래 정보(투자 성향 답변, 정렬된 후보 리스트)를 활용해 5개의 종목을 JSON 배열로 반환하라. ")
                 .append("설명 금지. 키는 stockCode만 사용.\n\n")
 
                 .append("선정 규칙:\n")
@@ -419,7 +445,7 @@ public class StockServiceImpl implements StockService {
                 .append("  { \"stockCode\": \"068270\" },\n")
                 .append("  { \"stockCode\": \"051910\" }\n")
                 .append("]\n\n")
-                .append("오직 JSON 배열만 반환하라. 길이 5, 후보 외 종목 금지, 중복 금지.");
+                .append("오직 JSON 배열만 반환하라. 주식 종목은 무조건 5개, 후보 외 종목 금지, 중복 금지.");
         return sb.toString();
     }
 

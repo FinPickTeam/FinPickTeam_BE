@@ -17,4 +17,5 @@ public interface UserService {
     void setPin(Long userId, PinRequestDTO pinRequestDTO);
     void resetPin(Long userId, PinRequestDTO pinRequestDTO);
     void pinLogin(String email, Long userId, PinRequestDTO pinRequestDTO);
+    Boolean isPin(Long userId);
 }

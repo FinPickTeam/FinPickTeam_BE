@@ -37,7 +37,8 @@ import javax.sql.DataSource;
         "org.scoula.monthreport.mapper",
         "org.scoula.coin.mapper",
         "org.scoula.agree.mapper",
-        "org.scoula.challenge.rank.mapper"
+        "org.scoula.challenge.rank.mapper",
+        "org.scoula.summary.mapper"
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",

@@ -7,53 +7,62 @@
 
     <!-- 🗓 거래내역 존재하는 월 목록 (ledger 기준) -->
     <select id="findTransactionMonths" resultType="string">
-        SELECT DISTINCT DATE_FORMAT(date, '%Y-%m') AS month
-        FROM ledger
-        WHERE user_id = #{userId}
-          AND source_type = 'CARD'
-          AND type = 'EXPENSE'
+        SELECT DISTINCT DATE_FORMAT(l.date, '%Y-%m') AS month
+        FROM ledger l
+        WHERE l.user_id = #{userId}
+          AND l.source_type = 'CARD'
+          AND l.type = 'EXPENSE'
         ORDER BY month ASC
     </select>
 
     <!-- 📆 이미 생성된 월간 리포트 목록 -->
     <select id="findExistingReportMonths" resultType="string">
-        SELECT month
-        FROM monthreport
-        WHERE user_id = #{userId}
+        SELECT mr.month
+        FROM monthreport mr
+        WHERE mr.user_id = #{userId}
+        ORDER BY mr.month ASC
     </select>
 
-    <!-- 💳 해당 월 ledger 조회 -->
-    <select id="findLedgerTransactions" resultType="org.scoula.monthreport.domain.LedgerTransaction">
+    <!-- 💳 해당 월 ledger 조회 (활성 계좌/카드만, 카멜 매핑 alias) -->
+    <select id="findLedgerTransactions"
+            resultType="org.scoula.monthreport.domain.LedgerTransaction">
         SELECT
-            l.amount,
-            c.label AS categoryName,
-            l.source_type AS sourceType,
-            l.account_id AS accountId,
-            l.card_id AS cardId
+            l.amount        AS amount,
+            c.label         AS categoryName,
+            l.source_type   AS sourceType,
+            l.account_id    AS accountId,
+            l.card_id       AS cardId,
+            l.date          AS date
         FROM ledger l
                  JOIN tr_category c ON l.category_id = c.id
+                 LEFT JOIN account a ON a.id = l.account_id AND a.user_id = l.user_id
+                 LEFT JOIN card    cd ON cd.id = l.card_id   AND cd.user_id = l.user_id
         WHERE l.user_id = #{userId}
           AND l.date BETWEEN #{from} AND #{to}
           AND l.type = 'EXPENSE'
+          AND (
+            (l.source_type = 'ACCOUNT' AND a.is_active = 1)
+                OR (l.source_type = 'CARD'    AND cd.is_active = 1)
+            )
     </select>
-
 
     <!-- 🔁 전월 리포트 조회 -->
     <select id="findMonthReport" resultType="org.scoula.monthreport.domain.MonthReport">
-        SELECT *
-        FROM monthreport
-        WHERE user_id = #{userId}
-          AND month = #{month}
+        SELECT mr.*
+        FROM monthreport mr
+        WHERE mr.user_id = #{userId}
+          AND mr.month = #{month}
         LIMIT 1
     </select>
 
-    <!-- 📈 최근 6개월 리포트 (현재 월 포함) -->
-    <select id="findRecentMonthReportsInclusive" resultType="org.scoula.monthreport.domain.MonthReport">
-        SELECT month, total_expense
-        FROM monthreport
-        WHERE user_id = #{userId}
-        AND month &lt;= #{currentMonth}
-        ORDER BY month DESC
+    <!-- 📈 최근 6개월 리포트 (현재 월 포함 요청 전용) -->
+    <select id="findRecentMonthReportsInclusive"
+            resultType="org.scoula.monthreport.domain.MonthReport">
+        SELECT mr.month, mr.total_expense
+        FROM monthreport mr
+        WHERE mr.user_id = #{userId}
+          AND mr.month &lt;= #{currentMonth}
+        ORDER BY mr.month DESC
         LIMIT #{limit}
     </select>
 
@@ -70,13 +79,12 @@
                  )
     </insert>
 
-    <!-- MonthReportMapper.xml -->
+    <!-- 👥 카드 거래 보유 사용자 -->
     <select id="findUsersWithCardTransactions" resultType="long">
-        SELECT DISTINCT user_id
-        FROM ledger
-        WHERE source_type = 'CARD'
-          AND type = 'EXPENSE'
+        SELECT DISTINCT l.user_id
+        FROM ledger l
+        WHERE l.source_type = 'CARD'
+          AND l.type = 'EXPENSE'
     </select>
-
 
 </mapper>
