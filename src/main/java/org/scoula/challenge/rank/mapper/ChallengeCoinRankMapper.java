@@ -17,15 +17,24 @@ public interface ChallengeCoinRankMapper {
                             @Param("challengeCount") int challengeCount,
                             @Param("rank") int rank);
 
+    // (기존) 사용하지 않아도 되지만 남겨둠
     List<Long> getAllUserIdsForCurrentMonthFromCoin();
 
     List<ChallengeCoinRankSnapshotResponseDTO> getCoinRankSnapshotTop5WithMyRank(@Param("month") String month,
                                                                                  @Param("userId") Long userId);
     void markCoinRankSnapshotChecked(@Param("month") String month, @Param("userId") Long userId);
 
-    // ✅ 추가: 지난달 랭킹 → 스냅샷 업서트
     void upsertCoinRankSnapshotFromRank(@Param("month") String month);
 
     void recomputeUserChallengeSummaryAll();
     void upsertUserChallengeSummaryForUser(@Param("userId") Long userId);
+
+    // 신규: coin + summary에서 당월 스탯을 직접 가져온다
+    List<ChallengeCoinRankResponseDTO> selectCurrentMonthCoinStats();
+
+    /** 이벤트 기반: 특정 유저의 당월 row upsert */
+    int upsertRankRowForUserCurrentMonth(@Param("userId") Long userId, @Param("month") String month);
+
+    /** 이벤트 기반: 해당 월 전체 랭크를 윈도우 함수로 재계산 */
+    int refreshRanksForMonth(@Param("month") String month);
 }

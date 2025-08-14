@@ -5,23 +5,23 @@
 
 <mapper namespace="org.scoula.challenge.rank.mapper.ChallengeRankMapper">
 
-    <!-- 현재 랭킹 조회: user & user_status에서 닉네임 보강 -->
+    <!-- 현재 랭킹 조회 -->
     <select id="getCurrentChallengeRanks"
             resultType="org.scoula.challenge.rank.dto.ChallengeRankResponseDTO">
         SELECT
-            u.id                                               AS userId,
-            COALESCE(us.nickname, u.nickname)                 AS nickname,
-            cr.rank                                           AS rank,
-            uc.actual_value                                   AS actualValue
+            u.id                                 AS userId,
+            COALESCE(us.nickname, u.nickname)    AS nickname,
+            cr.rank                               AS rank,
+            uc.actual_value                       AS actualValue
         FROM challenge_rank cr
                  JOIN user_challenge uc ON uc.id = cr.user_challenge_id
-                 JOIN user u           ON u.id = uc.user_id
+                 JOIN user u            ON u.id = uc.user_id
                  LEFT JOIN user_status us ON us.id = u.id
         WHERE uc.challenge_id = #{challengeId}
         ORDER BY cr.rank ASC
     </select>
 
-    <!-- 해당 챌린지 행 전체 제거(비상 시) -->
+    <!-- 특정 챌린지 랭크 전체 삭제(비상용) -->
     <delete id="clearCurrentChallengeRanks">
         DELETE cr
     FROM challenge_rank cr
@@ -39,12 +39,12 @@
     <select id="getChallengeRankSnapshots"
             resultType="org.scoula.challenge.rank.dto.ChallengeRankSnapshotResponseDTO">
         SELECT
-            u.id                                AS userId,
-            COALESCE(us.nickname, u.nickname)   AS nickname,
-            crs.rank                            AS rank,
-            crs.actual_value                    AS actualValue,
-            crs.month                           AS month,
-      crs.is_checked                      AS isChecked
+            u.id                                 AS userId,
+            COALESCE(us.nickname, u.nickname)    AS nickname,
+            crs.rank                              AS rank,
+            crs.actual_value                      AS actualValue,
+            crs.month                             AS month,
+      crs.is_checked                        AS isChecked
         FROM challenge_rank_snapshot crs
             JOIN user_challenge uc ON crs.user_challenge_id = uc.id
             JOIN user u            ON u.id = uc.user_id
@@ -61,17 +61,16 @@
             (#{userChallengeId}, #{month}, #{rank}, #{actualValue}, 0, NOW())
     </insert>
 
-    <!-- ParticipantInfo 매핑 -->
+    <!-- 참가자 POJO 매핑 (setter 방식) -->
     <resultMap id="participantInfoMap"
-               type="org.scoula.challenge.rank.util.ChallengeParticipantProvider$ParticipantInfo">
+               type="org.scoula.challenge.rank.model.ParticipantInfo">
         <result property="userChallengeId" column="user_challenge_id"/>
         <result property="actualValue"     column="actual_value"/>
     </resultMap>
 
-    <!-- 실제 값 기준 정렬: 값 같으면 과거 참여 많은 사람이 유리 -->
     <select id="getParticipantsSortedByActualValue" resultMap="participantInfoMap">
         SELECT
-            uc.id          AS user_challenge_id,
+            uc.id           AS user_challenge_id,
             uc.actual_value
         FROM user_challenge uc
                  JOIN challenge c ON uc.challenge_id = c.id
@@ -83,7 +82,7 @@
 
     <select id="getParticipantsSortedByActualValueInMonth" resultMap="participantInfoMap">
         SELECT
-            uc.id          AS user_challenge_id,
+            uc.id           AS user_challenge_id,
             uc.actual_value
         FROM user_challenge uc
                  JOIN challenge c ON uc.challenge_id = c.id
@@ -103,7 +102,7 @@
                                  updated_at   = NOW()
     </insert>
 
-    <!-- 이번 계산에 포함되지 않은 행 정리 (탈퇴/제외 등) -->
+    <!-- 계산에서 빠진 기존 행 정리 -->
     <delete id="deleteRanksNotIn">
         DELETE cr
         FROM challenge_rank cr
