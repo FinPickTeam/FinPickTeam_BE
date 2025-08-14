@@ -20,7 +20,8 @@ public interface MonthlySnapshotMapper {
                         @Param("expense") BigDecimal expense);
 
     BigDecimal sumMonthEndAsset(@Param("userId") Long userId,
-                                @Param("monthEnd") String monthEndTs);
+                                @Param("monthEnd") java.time.LocalDateTime monthEnd);
+
 
     BigDecimal sumAccountsBalanceNow(@Param("userId") Long userId);
 

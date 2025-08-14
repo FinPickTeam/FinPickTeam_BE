@@ -14,17 +14,17 @@
     </resultMap>
 
     <select id="findSnapshot" resultMap="MonthlySnapshotMap">
-        SELECT user_id, month, total_asset, balance, total_amount, computed_at
+        SELECT user_id, month, total_asset, income, total_amount, computed_at
         FROM monthly_snapshot
         WHERE user_id = #{userId} AND month = #{month}
     </select>
 
     <insert id="upsertSnapshot">
-        INSERT INTO monthly_snapshot(user_id, month, total_asset, balance, total_amount, computed_at)
+        INSERT INTO monthly_snapshot(user_id, month, total_asset, income, total_amount, computed_at)
         VALUES(#{userId}, #{month}, #{totalAsset}, #{income}, #{expense}, NOW())
         ON DUPLICATE KEY UPDATE
                              total_asset = VALUES(total_asset),
-                             balance     = VALUES(balance),
+                             income     = VALUES(income),
                              total_amount= VALUES(total_amount),
                              computed_at = NOW()
     </insert>

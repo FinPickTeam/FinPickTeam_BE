@@ -33,7 +33,7 @@ public class MonthlySnapshotServiceImpl implements MonthlySnapshotService {
         String ym = month.format(YM);
         // 1) 총자산(월말 시점)
         LocalDateTime monthEnd = month.atEndOfMonth().atTime(LocalTime.MAX);
-        BigDecimal totalAsset = nvl(snapshotMapper.sumMonthEndAsset(userId, monthEnd.toString()));
+        BigDecimal totalAsset = snapshotMapper.sumMonthEndAsset(userId, monthEnd);
         // 현재월이고 월말 거래데이터가 없으면 account.balance로 대체
         if (isZero(totalAsset) && YearMonth.now().equals(month)) {
             totalAsset = nvl(snapshotMapper.sumAccountsBalanceNow(userId));

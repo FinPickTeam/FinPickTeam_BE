@@ -353,7 +353,7 @@ CREATE TABLE IF NOT EXISTS `monthly_snapshot` (
                                                 user_id BIGINT NOT NULL,
                                                 month CHAR(7) NOT NULL,                          -- 'YYYY-MM'
                                                 total_asset DECIMAL(20,2) NOT NULL DEFAULT 0,    -- 월말 총자산
-                                                balance DECIMAL(20,2) NOT NULL DEFAULT 0,        -- 월 총수입
+                                                income DECIMAL(20,2) NOT NULL DEFAULT 0,        -- 월 총수입
                                                 total_amount DECIMAL(20,2) NOT NULL DEFAULT 0,   -- 월 총지출
                                                 computed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                                 PRIMARY KEY (id),
