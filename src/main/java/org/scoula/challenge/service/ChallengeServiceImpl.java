@@ -9,6 +9,7 @@ import org.scoula.challenge.exception.*;
 import org.scoula.challenge.exception.ChallengeLimitExceededException;
 import org.scoula.challenge.exception.join.*;
 import org.scoula.challenge.mapper.ChallengeMapper;
+import org.scoula.challenge.rank.service.ChallengeRankService;
 import org.scoula.coin.exception.InsufficientCoinException;
 import org.scoula.coin.mapper.CoinMapper;
 import org.scoula.finance.dto.stock.StockListDto;
@@ -38,6 +39,7 @@ public class ChallengeServiceImpl implements ChallengeService {
     private final UserMapper userMapper;
     private final CoinMapper coinMapper;
     private final StockService stockService; // 내부 서비스 직접 호출 (액세스 토큰 전달 제거)
+    private final ChallengeRankService challengeRankService;
 
     @Override
     public ChallengeCreateResponseDTO createChallenge(Long userId, ChallengeCreateRequestDTO req) {
@@ -193,7 +195,7 @@ public class ChallengeServiceImpl implements ChallengeService {
                         }
                     }
 
-                    // ✅ 성공 여부 (참여한 경우에만 조회; 완료 전이면 NULL)
+                    // 성공 여부 (참여한 경우에만 조회; 완료 전이면 NULL)
                     Boolean isSuccess = null;
                     if (isParticipating) {
                         isSuccess = challengeMapper.getIsSuccess(userId, challenge.getId());
@@ -215,7 +217,7 @@ public class ChallengeServiceImpl implements ChallengeService {
                             .participating(isParticipating)
                             .myProgressRate(myProgress)
                             .resultChecked(resultChecked)
-                            .isSuccess(isSuccess)                  // ✅ 추가
+                            .isSuccess(isSuccess)
                             .isMine(challenge.getWriterId() != null && challenge.getWriterId().equals(userId))
                             .usePassword(challenge.getUsePassword())
                             .build();
@@ -252,7 +254,7 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         String categoryName = challengeMapper.getCategoryNameById(challenge.getCategoryId());
 
-        // ✅ 성공 여부 (참여한 경우에만 조회; 완료 전이면 NULL)
+        // 성공 여부 (참여한 경우에만 조회; 완료 전이면 NULL)
         Boolean isSuccess = null;
         if (isParticipating) {
             isSuccess = challengeMapper.getIsSuccess(userId, challengeId);
@@ -274,7 +276,7 @@ public class ChallengeServiceImpl implements ChallengeService {
                 .myProgress(myProgress)
                 .participantsCount(challenge.getParticipantCount())
                 .isResultCheck(resultChecked)
-                .isSuccess(isSuccess)               // ✅ 추가
+                .isSuccess(isSuccess)
                 .usePassword(challenge.getUsePassword())
                 .members(members)
                 .build();
@@ -320,6 +322,11 @@ public class ChallengeServiceImpl implements ChallengeService {
         // 참여 처리
         challengeMapper.insertUserChallenge(userId, challengeId, false, false, 0, null);
         challengeMapper.incrementParticipantCount(challengeId);
+
+        // 공통 챌린지면 랭킹 즉시 갱신
+        if (challenge.getType() == ChallengeType.COMMON) {
+            challengeRankService.updateCurrentRanks(challengeId);
+        }
 
         if (challenge.getType() == ChallengeType.GROUP &&
                 challenge.getParticipantCount() + 1 >= challenge.getMaxParticipants()) {
