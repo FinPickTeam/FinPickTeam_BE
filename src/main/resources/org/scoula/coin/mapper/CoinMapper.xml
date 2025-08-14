@@ -67,6 +67,10 @@
         WHERE id = #{userId}
     </update>
 
-
+    <!-- 신규: 월누적 전체 리셋 -->
+    <update id="resetMonthlyCumulativeAll">
+        UPDATE coin
+        SET monthly_cumulative_amount = 0
+    </update>
 
 </mapper>

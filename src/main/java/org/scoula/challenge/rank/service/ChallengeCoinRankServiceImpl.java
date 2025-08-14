@@ -19,7 +19,6 @@ public class ChallengeCoinRankServiceImpl implements ChallengeCoinRankService {
     private String ym(LocalDate date) {
         return date.withDayOfMonth(1).toString().substring(0, 7); // YYYY-MM
     }
-
     private String currentMonth() { return ym(LocalDate.now()); }
     private String previousMonth() { return ym(LocalDate.now().minusMonths(1)); }
 
@@ -28,6 +27,8 @@ public class ChallengeCoinRankServiceImpl implements ChallengeCoinRankService {
         String month = currentMonth();
         List<ChallengeCoinRankResponseDTO> top5 = rankMapper.getTop5CoinRank(month);
         ChallengeCoinRankResponseDTO mine = rankMapper.getMyCoinRank(userId, month);
+
+        // 내 랭킹이 top5에 없다면 추가(프론트는 rank<=5만 top에 보여주고 나머지는 내 카드에서 사용)
         if (mine != null && top5.stream().noneMatch(r -> Objects.equals(r.getUserId(), userId))) {
             top5.add(mine);
         }
@@ -38,30 +39,32 @@ public class ChallengeCoinRankServiceImpl implements ChallengeCoinRankService {
     public void calculateAndSaveRanks() {
         String month = currentMonth();
 
-        // (C) 성공률 요약 갱신 (선택)
+        // (선택) 요약 재계산
         rankMapper.recomputeUserChallengeSummaryAll();
 
-        // (B) 대상 추출: 이번 달 월누적 > 0 인 유저
-        List<Long> userIds = rankMapper.getAllUserIdsForCurrentMonthFromCoin();
+        // (핵심) coin.monthly_cumulative_amount > 0 인 유저의 당월 스탯을 직접 조회
+        //  - cumulativePoint: coin.monthly_cumulative_amount
+        //  - challengeCount: user_challenge_summary.total_challenges
+        //  - successRate: summary 기반 계산
+        List<ChallengeCoinRankResponseDTO> stats = rankMapper.selectCurrentMonthCoinStats();
 
-        // 각 유저의 현재 달 row 조회 (rank 기준 값으로 사용)
-        List<ChallengeCoinRankResponseDTO> ranks = userIds.stream()
-                .map(uid -> rankMapper.getMyCoinRank(uid, month))
-                .filter(Objects::nonNull)
+        // 내림차순 정렬: 포인트 → 참여수
+        List<ChallengeCoinRankResponseDTO> sorted = stats.stream()
                 .sorted(Comparator
                         .comparingLong(ChallengeCoinRankResponseDTO::getCumulativePoint).reversed()
                         .thenComparingInt(ChallengeCoinRankResponseDTO::getChallengeCount).reversed())
                 .collect(Collectors.toList());
 
-        for (int i = 0; i < ranks.size(); i++) {
-            var r = ranks.get(i);
-            rankMapper.insertOrUpdateRank(r.getUserId(), month, r.getCumulativePoint(), r.getChallengeCount(), i + 1);
+        // 순위 매겨 upsert
+        for (int i = 0; i < sorted.size(); i++) {
+            ChallengeCoinRankResponseDTO r = sorted.get(i);
+            int rank = i + 1;
+            rankMapper.insertOrUpdateRank(r.getUserId(), month, r.getCumulativePoint(), r.getChallengeCount(), rank);
         }
     }
 
     @Override
     public void snapshotLastMonthRanks() {
-        // (B) 지난달 데이터를 스냅샷 테이블로 업서트
         rankMapper.upsertCoinRankSnapshotFromRank(previousMonth());
     }
 
