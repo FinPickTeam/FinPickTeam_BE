@@ -31,4 +31,6 @@ public interface StockMapper {
     void insertStockFactorData(StockFactorDto stockFactorDto);
 
     List<StockFactorDto> getStockFactorData();
+
+    String getStockDivByStockCode(String stockCode);
 }
