@@ -7,8 +7,8 @@ import org.scoula.monthreport.dto.SpendingPatternDto;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.InputStream;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -18,9 +18,13 @@ public class MonthReportPdfGenerator {
         try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             PdfRendererBuilder builder = new PdfRendererBuilder();
             builder.useFastMode();
-            builder.withHtmlContent(html, null); // baseUri: null or public dir
+            builder.withHtmlContent(html, null);
+
+            // 폰트가 리소스에 없을 수도 있으니 널체크
             InputStream fontStream = getClass().getClassLoader().getResourceAsStream("fonts/NanumGothic.ttf");
-            builder.useFont(() -> fontStream, "NanumGothic", 400, BaseRendererBuilder.FontStyle.NORMAL, true);
+            if (fontStream != null) {
+                builder.useFont(() -> fontStream, "NanumGothic", 400, BaseRendererBuilder.FontStyle.NORMAL, true);
+            }
             builder.defaultTextDirection(PdfRendererBuilder.TextDirection.LTR);
             builder.toStream(out);
             builder.run();
@@ -37,7 +41,7 @@ public class MonthReportPdfGenerator {
         sb.append("<html lang='ko'><head>");
         sb.append("<meta charset='UTF-8'/>");
         sb.append("<style>");
-        sb.append("body { font-family: 'NanumGothic'; padding: 30px; }");
+        sb.append("body { font-family: 'NanumGothic', sans-serif; padding: 30px; }");
         sb.append("h1, h2, h3 { color: #333; }");
         sb.append("table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }");
         sb.append("th, td { border: 1px solid #999; padding: 8px; text-align: left; font-size: 12px; }");
@@ -63,9 +67,12 @@ public class MonthReportPdfGenerator {
         sb.append("<div class='section'>");
         sb.append("<h3>📌 카테고리 비율</h3>");
         sb.append("<table><tr><th>카테고리</th><th>비율</th></tr>");
-        dto.getCategoryChart().forEach(c -> {
-            sb.append("<tr><td>").append(c.getCategory()).append("</td><td>").append(c.getRatio()).append("%</td></tr>");
-        });
+        if (dto.getCategoryChart() != null) {
+            dto.getCategoryChart().forEach(c -> {
+                sb.append("<tr><td>").append(c.getCategory())
+                        .append("</td><td>").append(c.getRatio()).append("%</td></tr>");
+            });
+        }
         sb.append("</table>");
         sb.append("</div>");
 
@@ -73,51 +80,59 @@ public class MonthReportPdfGenerator {
         sb.append("<div class='section'>");
         sb.append("<h3>🔥 이번 달 지출 TOP 3</h3>");
         sb.append("<table><tr><th>카테고리</th><th>금액</th><th>비율</th></tr>");
-        dto.getTop3Spending().forEach(t -> {
-            sb.append("<tr><td>").append(t.getCategory()).append("</td><td>")
-                    .append(t.getAmount()).append("원</td><td>").append(t.getRatio()).append("%</td></tr>");
-        });
+        if (dto.getTop3Spending() != null) {
+            dto.getTop3Spending().forEach(t -> {
+                sb.append("<tr><td>").append(t.getCategory()).append("</td><td>")
+                        .append(t.getAmount()).append("원</td><td>").append(t.getRatio()).append("%</td></tr>");
+            });
+        }
         sb.append("</table>");
         sb.append("</div>");
 
         // 🧠 소비 성향
         sb.append("<div class='section'>");
         sb.append("<h3>🧠 소비 성향 분석</h3>");
+
+        List<SpendingPatternDto> patterns = dto.getSpendingPatterns();
+        boolean hasPatterns = patterns != null && !patterns.isEmpty();
+
         sb.append("<p><span class='label'>소비 성향:</span> ");
-        if (dto.getSpendingPatterns() != null && !dto.getSpendingPatterns().isEmpty()) {
+        if (hasPatterns) {
+            // 보통 1개만 들어오지만 다건 대비하여 join
             sb.append(
-                    dto.getSpendingPatterns().stream()
-                            .map(SpendingPatternDto::getLabel)
+                    patterns.stream()
+                            .map(SpendingPatternDto::getLabel) // 우리가 DTO에 추가한 파생 메서드
                             .collect(Collectors.joining(" / "))
             );
         } else {
             sb.append("없음");
         }
         sb.append("</p>");
-// 상세 설명도 보여주고 싶으면 아래처럼
-        sb.append("<ul>");
-        dto.getSpendingPatterns().forEach(p ->
-                sb.append("<li>").append(p.getDesc()).append("</li>")
-        );
-        sb.append("</ul>");
-        sb.append("<p>").append(dto.getSpendingPatternFeedback()).append("</p>");
-        sb.append("</div>");
 
+        sb.append("<ul>");
+        if (hasPatterns) {
+            patterns.forEach(p -> sb.append("<li>").append(p.getDesc()).append("</li>")); // 파생 메서드
+        }
+        sb.append("</ul>");
+
+        if (dto.getSpendingPatternFeedback() != null) {
+            sb.append("<p>").append(dto.getSpendingPatternFeedback()).append("</p>");
+        }
+        sb.append("</div>");
 
         // 🎯 챌린지
         sb.append("<div class='section'>");
         sb.append("<h3>🎯 다음 달 추천 챌린지</h3>");
         sb.append("<ul>");
-        dto.getRecommendedChallenges().forEach(c -> {
-            sb.append("<li>").append(c.getTitle()).append(" – ").append(c.getDescription()).append("</li>");
-        });
+        if (dto.getRecommendedChallenges() != null) {
+            dto.getRecommendedChallenges().forEach(c -> {
+                sb.append("<li>").append(c.getTitle()).append(" – ").append(c.getDescription()).append("</li>");
+            });
+        }
         sb.append("</ul>");
         sb.append("</div>");
 
         sb.append("</body></html>");
         return sb.toString();
     }
-
-
-
 }

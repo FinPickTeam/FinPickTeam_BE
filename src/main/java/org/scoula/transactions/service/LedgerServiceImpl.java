@@ -46,7 +46,6 @@ public class LedgerServiceImpl implements LedgerService {
     @Override
     public LedgerDetailDto getLedgerDetail(Long userId, Long ledgerId) {
         Ledger ledger = ledgerMapper.findLedgerDetail(userId, ledgerId);
-
         if (ledger == null) throw new LedgerNotFoundException();
 
         if (ledger.getAccountId() != null) {
@@ -62,28 +61,39 @@ public class LedgerServiceImpl implements LedgerService {
             }
         }
 
-        // 1️⃣ 월 기준 전체 거래 목록 조회 (예시: 같은 달 전체)
-        LocalDateTime startOfMonth = ledger.getDate().withDayOfMonth(1).with(LocalTime.MIN);
-        LocalDateTime endOfMonth = ledger.getDate().withDayOfMonth(ledger.getDate().toLocalDate().lengthOfMonth()).with(LocalTime.MAX);
+        // 월 범위 [월초, 다음달 1일) + EXPENSE만 조회하는 쿼리 사용 권장
+        var ym = java.time.YearMonth.from(ledger.getDate());
+        var monthStart = ym.atDay(1).atStartOfDay();
+        var nextMonthStart = ym.plusMonths(1).atDay(1).atStartOfDay();
 
-        List<Ledger> monthLedgers = ledgerMapper.findLedgers(
-                userId,
-                startOfMonth.toString(),
-                endOfMonth.toString(),
-                null // or ledger.getCategory()
+        List<Ledger> monthLedgers = ledgerMapper.selectUserLedgersBetween(
+                userId, monthStart, nextMonthStart // 이 쿼리에서 AND l.type='EXPENSE'
         );
 
-        // 2️⃣ analysis가 null이면, 정교한 분석!
+
+        // analysis가 null이면, 정교한 분석!
         String analysisText = ledger.getAnalysis();
-        if (analysisText == null || analysisText.isEmpty()) {
-            AnalysisResult result = analysisEngine.analyze(ledger, monthLedgers); // ⭐️이렇게!
-            analysisText = result.getMessage();
-            ledgerMapper.updateAnalysis(ledger.getId(), analysisText);
+        if ((analysisText == null || analysisText.isEmpty())
+                && "EXPENSE".equalsIgnoreCase(ledger.getType())) {
+
+            AnalysisResult ar = analysisEngine.analyze(ledger, monthLedgers);
+
+            // 결과 메시지가 비었으면 저장 스킵
+            if (ar != null && ar.getMessage() != null && !ar.getMessage().isBlank()) {
+                String onlyMessage = ar.getMessage(); // ◀︎ 태그 없이 “메시지만” 저장
+                ledgerMapper.updateAnalysis(ledger.getId(), onlyMessage);
+                analysisText = onlyMessage;
+            }
         }
 
         LedgerDetailDto dto = convertToDetailDto(ledger);
-        dto.setAnalysis(analysisText);
+        dto.setAnalysis(stripTag(analysisText));
         return dto;
+    }
+
+    private String stripTag(String s) {
+        if (s == null) return null;
+        return s.replaceFirst("^\\[[^\\]]+\\]\\s*", "");
     }
 
 

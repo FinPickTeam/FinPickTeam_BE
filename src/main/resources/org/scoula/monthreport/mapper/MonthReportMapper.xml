@@ -71,11 +71,11 @@
         INSERT INTO monthreport (
             user_id, month, total_expense, total_saving, saving_rate,
             compare_expense, compare_saving, category_chart, six_month_chart,
-            feedback, next_goal
+            pattern_label, feedback, next_goal
         ) VALUES (
                      #{userId}, #{month}, #{totalExpense}, #{totalSaving}, #{savingRate},
                      #{compareExpense}, #{compareSaving}, #{categoryChart}, #{sixMonthChart},
-                     #{feedback}, #{nextGoal}
+                     #{patternLabel}, #{feedback}, #{nextGoal}
                  )
     </insert>
 
@@ -86,5 +86,32 @@
         WHERE l.source_type = 'CARD'
           AND l.type = 'EXPENSE'
     </select>
+
+    <!-- src/main/resources/mappers/MonthReportMapper.xml -->
+    <resultMap id="TxLedgerMap" type="org.scoula.transactions.domain.Ledger">
+        <result property="userId"       column="user_id"/>
+        <result property="type"         column="type"/>
+        <result property="amount"       column="amount"/>
+        <result property="category"     column="category"/>
+        <result property="date"         column="date"/>
+        <result property="merchantName" column="merchant_name"/>
+    </resultMap>
+
+    <select id="findExpenseLedgersForReport" resultMap="TxLedgerMap">
+        SELECT
+        l.user_id            AS user_id,
+        l.type               AS type,               -- 'EXPENSE'로 필터하지만 필드에도 그대로 매핑
+        l.amount             AS amount,
+        tc.label              AS category,           -- ✅ 엔진이 쓰는 '표준 카테고리 키'를 바로 주자
+        l.date               AS date,
+        l.merchant_name      AS merchant_name
+        FROM ledger l
+        JOIN tr_category tc ON tc.id = l.category_id
+        WHERE l.user_id = #{userId}
+        AND l.type = 'EXPENSE'
+        AND l.date >= #{from}
+        AND l.date &lt;  #{to} + INTERVAL 1 DAY
+    </select>
+
 
 </mapper>

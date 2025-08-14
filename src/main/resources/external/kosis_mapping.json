@@ -1,0 +1,27 @@
+{
+  "periodKey": "PRD_DE",
+  "valueKey": "DT",
+
+  "filters": {
+    "PRD_SE": "A",
+    "ITM_ID": "T12",
+    "C1_NM": "39세이하가구"
+  },
+
+  "categorySelector": "C2_NM",
+
+  "categoryMap": {
+    "01.식료품 · 비주류음료": "mart",
+    "02.주류 · 담배": "etc",
+    "03.의류 · 신발": "shopping",
+    "04.주거 · 수도 · 광열": "house",
+    "05.가정용품 · 가사서비스": "house",
+    "06.보건": "etc",
+    "07.교통": "transport",
+    "08.통신": "house",
+    "09.오락 · 문화": "hobby",
+    "10.교육": "hobby",
+    "11.음식점 · 숙박": "food",
+    "12.기타상품 · 서비스": "etc"
+  }
+}
