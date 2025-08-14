@@ -340,7 +340,23 @@ CREATE TABLE `monthreport` (
                                FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 
--- 8. 예금 상품 목록
+-- 8. 월말 자산 스냅샷
+DROP TABLE IF EXISTS `monthly_snapshot`;
+CREATE TABLE IF NOT EXISTS `monthly_snapshot` (
+                                                id BIGINT NOT NULL AUTO_INCREMENT,
+                                                user_id BIGINT NOT NULL,
+                                                month CHAR(7) NOT NULL,                          -- 'YYYY-MM'
+                                                total_asset DECIMAL(20,2) NOT NULL DEFAULT 0,    -- 월말 총자산
+                                                balance DECIMAL(20,2) NOT NULL DEFAULT 0,        -- 월 총수입
+                                                total_amount DECIMAL(20,2) NOT NULL DEFAULT 0,   -- 월 총지출
+                                                computed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                                PRIMARY KEY (id),
+                                                UNIQUE KEY uniq_user_month (user_id, month),
+                                                FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);
+
+
+-- 9. 예금 상품 목록
 DROP TABLE IF EXISTS `deposit_list`;
 CREATE TABLE `deposit_list` (
                                 `id` INT NOT NULL AUTO_INCREMENT,
@@ -357,7 +373,7 @@ CREATE TABLE `deposit_list` (
                                 PRIMARY KEY (`id`)
 );
 
--- 9. 적금 상품 목록
+-- 10. 적금 상품 목록
 DROP TABLE IF EXISTS `installment_list`;
 CREATE TABLE `installment_list` (
                                     `id` INT NOT NULL AUTO_INCREMENT,
@@ -375,7 +391,7 @@ CREATE TABLE `installment_list` (
                                     PRIMARY KEY (`id`)
 );
 
--- 10. 펀드 상품 목록
+-- 11. 펀드 상품 목록
 DROP TABLE IF EXISTS `fund_list`;
 CREATE TABLE `fund_list` (
                              `id` INT NOT NULL AUTO_INCREMENT,
@@ -392,7 +408,7 @@ CREATE TABLE `fund_list` (
                              PRIMARY KEY (`id`)
 );
 
--- 11. 주식 상품 목록
+-- 12. 주식 상품 목록
 DROP TABLE IF EXISTS `stock_list`;
 CREATE TABLE `stock_list` (
                               `id` INT NOT NULL AUTO_INCREMENT,
@@ -404,7 +420,7 @@ CREATE TABLE `stock_list` (
                               PRIMARY KEY (`id`)
 );
 
--- 12. 찜한 상품 (유저별)
+-- 13. 찜한 상품 (유저별)
 DROP TABLE IF EXISTS `wishlist`;
 CREATE TABLE `wishlist` (
                             `id` INT NOT NULL AUTO_INCREMENT,
@@ -415,7 +431,7 @@ CREATE TABLE `wishlist` (
                             FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );
 
--- 13. 키움증권 REST API 접근 토큰
+-- 14. 키움증권 REST API 접근 토큰
 DROP TABLE IF EXISTS `user_kiwoom_access_token`;
 CREATE TABLE `user_kiwoom_access_token` (
                                             `id` BIGINT NOT NULL,
@@ -426,7 +442,7 @@ CREATE TABLE `user_kiwoom_access_token` (
                                             FOREIGN KEY (`id`) REFERENCES `user` (`id`) ON DELETE CASCADE
 );
 
--- 14. 팩터값
+-- 15. 팩터값
 DROP TABLE IF EXISTS `factor_list`;
 CREATE TABLE `factor_list`(
                               `id` INT NOT NULL AUTO_INCREMENT,
