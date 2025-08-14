@@ -258,7 +258,7 @@ public class UserServiceImpl implements UserService {
         userMapper.updatePin(u);
     }
 
-    @ApiOperation(value = "간편비밀번호 일치여부 확인.", notes = "사용자가 입력한 간편비밀번호와 실제 간편비밀번호가 일치하는지 조회합니다.")
+
     @Override
     public void pinLogin(String email, Long userId, PinRequestDTO req) {
 
@@ -271,7 +271,6 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    @ApiOperation(value = "간편비밀번호 재설정 ", notes = "간편비밀번호를 재설정합니다.")
     @Override
     public void resetPin(Long userId, PinRequestDTO req) {
 
@@ -285,5 +284,10 @@ public class UserServiceImpl implements UserService {
         u.setId(userId);
         u.setAuthPw(encodedPin);
         userMapper.updatePin(u);
+    }
+    //간편비밀번호가 있는 여부 조회
+    @Override
+    public Boolean isPin(Long userId) {
+        return userMapper.getIsPin(userId);
     }
 }
