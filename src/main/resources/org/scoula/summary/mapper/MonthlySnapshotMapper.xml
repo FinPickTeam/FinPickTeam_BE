@@ -37,7 +37,7 @@
         SELECT account_id, MAX(date) AS max_date
         FROM account_transaction
         WHERE user_id = #{userId}
-        AND date <= #{monthEnd}
+        AND date &lt;= #{monthEnd}
         GROUP BY account_id
         ) x ON x.account_id = t.account_id AND x.max_date = t.date
         WHERE t.user_id = #{userId}
