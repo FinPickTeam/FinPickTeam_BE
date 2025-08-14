@@ -43,5 +43,13 @@ public interface LedgerMapper {
     // 4. 최근 N개월간 가장 많이 쓴 카테고리 Top N
     List<String> selectTopCategories(@Param("userId") Long userId,
                                      @Param("monthCount") int monthCount);
+
+
+    // 추가: 사용자/카테고리/기간합(지출) 집계
+    Integer sumExpenseByUserAndCategoryBetween(@Param("userId") Long userId,
+                                               @Param("category") String category,
+                                               @Param("from") LocalDateTime from,
+                                               @Param("to") LocalDateTime to);
+
 }
 

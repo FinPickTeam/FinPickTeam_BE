@@ -142,5 +142,21 @@
         LIMIT 3
     </select>
 
+    <!-- 추가: 사용자/카테고리/기간 합계(지출) -->
+    <select id="sumExpenseByUserAndCategoryBetween" resultType="int">
+        SELECT IFNULL(SUM(l.amount), 0)
+        FROM ledger l
+                 JOIN tr_category c ON l.category_id = c.id
+                 LEFT JOIN account a ON l.account_id = a.id
+                 LEFT JOIN card cd ON l.card_id = cd.id
+        WHERE l.user_id = #{userId}
+          AND c.name = #{category}
+          AND l.type = 'EXPENSE'
+          AND (l.account_id IS NULL OR a.is_active = TRUE)
+          AND (l.card_id IS NULL OR cd.is_active = TRUE)
+          AND l.date &gt;= #{from}
+          AND l.date &lt; #{to}
+    </select>
+
 
 </mapper>
