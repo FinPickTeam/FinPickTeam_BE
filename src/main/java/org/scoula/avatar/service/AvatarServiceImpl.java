@@ -126,7 +126,6 @@ public class AvatarServiceImpl implements AvatarService {
         mapper.insertClothe(userId, itemId); //의상소유내역 삽입
         coinMapper.subtractCoin(userId, itemCost);
         coinMapper.insertCoinHistory(userId,itemCost,"minus","AVATAR");
-
     }
 
     @Override
