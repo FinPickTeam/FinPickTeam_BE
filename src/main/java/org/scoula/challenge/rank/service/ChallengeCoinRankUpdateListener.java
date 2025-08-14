@@ -20,6 +20,7 @@ public class ChallengeCoinRankUpdateListener {
      * 트랜잭션 커밋 이후 실행: 코인 변경이 월누적에 반영된 경우에만 랭킹 업데이트
      * (동기 처리로도 충분하면 @Async 제거 가능)
      */
+    @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void onCoinChanged(CoinChangedEvent event) {
         if (!event.isMonthlyAffected()) return;
