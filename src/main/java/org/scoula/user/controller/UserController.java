@@ -75,4 +75,6 @@ public class UserController {
         Boolean isPin=userService.isPin(userDetails.getUserId());
         return CommonResponseDTO.success("간편비밀번호 설정여부 조회가 완료되었습니다.",isPin);
     }
+
+
 }
