@@ -45,6 +45,9 @@ public class ChallengeListResponseDTO {
     @JsonProperty("isResultCheck")
     private Boolean resultChecked;    // null-safe
 
+    @JsonProperty("isSuccess")
+    private Boolean isSuccess;
+
     // 내가 만든 챌린지인지
     @JsonProperty("isMine")
     private Boolean isMine;           // null-safe

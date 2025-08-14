@@ -14,7 +14,7 @@
 
     <insert id="insertUserChallenge">
         INSERT INTO user_challenge (user_id, challenge_id, is_creator, is_completed, actual_value, is_success)
-        VALUES (#{userId}, #{challengeId}, #{isCreator}, #{isCompleted}, #{actualValue}, #{isSuccess});
+        VALUES (#{userId}, #{challengeId}, #{isCreator}, #{isCompleted}, #{actualValue}, #{isSuccess,jdbcType=TINYINT});
     </insert>
 
     <select id="countUserOngoingChallenges" resultType="int">
@@ -248,8 +248,8 @@
         ORDER BY uc.updated_at DESC
     </select>
 
-    <select id="getIsSuccess" resultType="boolean">
-        SELECT COALESCE(uc.is_success, 0)
+    <select id="getIsSuccess" resultType="java.lang.Boolean">
+        SELECT uc.is_success
         FROM user_challenge uc
         WHERE uc.user_id = #{userId} AND uc.challenge_id = #{challengeId}
     </select>

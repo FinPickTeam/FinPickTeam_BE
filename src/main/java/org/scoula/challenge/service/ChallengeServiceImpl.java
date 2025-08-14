@@ -22,6 +22,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.web.client.RestTemplate;
@@ -131,7 +132,7 @@ public class ChallengeServiceImpl implements ChallengeService {
         challengeMapper.insertChallenge(challenge);
 
         // 7. UserChallenge 생성 (is_creator = true)
-        challengeMapper.insertUserChallenge(userId, challenge.getId(), true, false, 0, false);
+        challengeMapper.insertUserChallenge(userId, challenge.getId(), true, false, 0, null);
 
         // 8. 닉네임 조회
         String nickname = userMapper.findNicknameById(userId);
@@ -154,23 +155,19 @@ public class ChallengeServiceImpl implements ChallengeService {
                 .filter(challenge -> {
                     boolean isParticipating = userChallengeIds.contains(challenge.getId());
 
-                    // participating 파라미터가 없으면 전체
                     if (participating == null) return true;
 
                     if (participating) {
-                        // 내가 참여한 것만
                         if (!isParticipating) return false;
 
-                        // 이미 완료됐고(챌린지 상태 COMPLETED) 결과 확인까지 끝난 건 제외
                         if (ChallengeStatus.COMPLETED.equals(challenge.getStatus())) {
                             Boolean checked = challengeMapper.isResultChecked(userId, challenge.getId());
                             if (Boolean.TRUE.equals(checked)) {
-                                return false; // 리스트에서 제외
+                                return false;
                             }
                         }
                         return true;
                     } else {
-                        // 내가 참여하지 않은 것만
                         return !isParticipating;
                     }
                 })
@@ -196,6 +193,12 @@ public class ChallengeServiceImpl implements ChallengeService {
                         }
                     }
 
+                    // ✅ 성공 여부 (참여한 경우에만 조회; 완료 전이면 NULL)
+                    Boolean isSuccess = null;
+                    if (isParticipating) {
+                        isSuccess = challengeMapper.getIsSuccess(userId, challenge.getId());
+                    }
+
                     return ChallengeListResponseDTO.builder()
                             .id(challenge.getId())
                             .title(challenge.getTitle())
@@ -212,6 +215,7 @@ public class ChallengeServiceImpl implements ChallengeService {
                             .participating(isParticipating)
                             .myProgressRate(myProgress)
                             .resultChecked(resultChecked)
+                            .isSuccess(isSuccess)                  // ✅ 추가
                             .isMine(challenge.getWriterId() != null && challenge.getWriterId().equals(userId))
                             .usePassword(challenge.getUsePassword())
                             .build();
@@ -226,10 +230,10 @@ public class ChallengeServiceImpl implements ChallengeService {
         Challenge challenge = challengeMapper.findChallengeById(challengeId);
         if (challenge == null) throw new ChallengeNotFoundException();
 
-        boolean isMine = challenge.getWriterId().equals(userId);
+        boolean isMine = Objects.equals(challenge.getWriterId(), userId);
         boolean isParticipating = challengeMapper.isUserParticipating(userId, challengeId);
 
-        // 참여한 경우만 조회, 아니면 기본값 false
+        // 결과 확인 여부
         Boolean resultChecked = false;
         if (isParticipating) {
             resultChecked = Boolean.TRUE.equals(challengeMapper.isResultChecked(userId, challenge.getId()));
@@ -248,6 +252,12 @@ public class ChallengeServiceImpl implements ChallengeService {
 
         String categoryName = challengeMapper.getCategoryNameById(challenge.getCategoryId());
 
+        // ✅ 성공 여부 (참여한 경우에만 조회; 완료 전이면 NULL)
+        Boolean isSuccess = null;
+        if (isParticipating) {
+            isSuccess = challengeMapper.getIsSuccess(userId, challengeId);
+        }
+
         return ChallengeDetailResponseDTO.builder()
                 .id(challenge.getId())
                 .title(challenge.getTitle())
@@ -264,6 +274,7 @@ public class ChallengeServiceImpl implements ChallengeService {
                 .myProgress(myProgress)
                 .participantsCount(challenge.getParticipantCount())
                 .isResultCheck(resultChecked)
+                .isSuccess(isSuccess)               // ✅ 추가
                 .usePassword(challenge.getUsePassword())
                 .members(members)
                 .build();
@@ -307,7 +318,7 @@ public class ChallengeServiceImpl implements ChallengeService {
         }
 
         // 참여 처리
-        challengeMapper.insertUserChallenge(userId, challengeId, false, false, 0, false);
+        challengeMapper.insertUserChallenge(userId, challengeId, false, false, 0, null);
         challengeMapper.incrementParticipantCount(challengeId);
 
         if (challenge.getType() == ChallengeType.GROUP &&
