@@ -14,8 +14,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -30,15 +32,22 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CharacterEncodingFilter;
 import org.springframework.web.filter.CorsFilter;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableScheduling // (2) 스케줄링 활성화
 @Slf4j
-@MapperScan(basePackages = {"org.scoula.security.account.mapper"})
+// (3) 매퍼 스캔 경로 확장
+@MapperScan(basePackages = {
+        "org.scoula.security.account.mapper",
+        "org.scoula.coin.mapper",
+        "org.scoula.challenge.rank.mapper"
+})
 @ComponentScan(basePackages = {"org.scoula.security"})
 @RequiredArgsConstructor
+@SuppressWarnings("deprecation")
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -68,16 +77,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         CorsConfiguration config = new CorsConfiguration();
 
         config.setAllowCredentials(true);
-
-        // TODO: 실제 프론트 도메인으로 교체
+        // TODO: 운영 도메인 추가
         config.setAllowedOrigins(List.of(
                 "http://localhost:5173"
         ));
-
-        // config.addAllowedOriginPattern("*");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
-
+        // AT 전달용
         config.setExposedHeaders(List.of("Authorization"));
 
         source.registerCorsConfiguration("/**", config);
@@ -99,10 +105,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) {
-        // 정적/스웨거만 시큐리티 무시 (절대 "/*" 같은 광역 제외 쓰지 말기)
+        // 정적/스웨거만 시큐리티 무시
         web.ignoring().antMatchers(
                 "/assets/**",
-                // "/*",
                 "/favicon.ico",
                 "/swagger-ui.html", "/swagger-ui/**",
                 "/swagger-resources/**",
@@ -117,32 +122,43 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilterBefore(encodingFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(authenticationErrorFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtEmailPasswordAuthenticationFilter(loginSuccessHandler, loginFailureHandler, authenticationManagerBean()), UsernamePasswordAuthenticationFilter.class)
-
+                .addFilterBefore(
+                        jwtEmailPasswordAuthenticationFilter(
+                                loginSuccessHandler, loginFailureHandler, authenticationManagerBean()
+                        ),
+                        UsernamePasswordAuthenticationFilter.class
+                )
                 .exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint)
                 .accessDeniedHandler(accessDeniedHandler)
-
                 .and()
                 .authorizeRequests()
-                    .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                    .antMatchers(HttpMethod.POST, "/api/user/signup").permitAll()
-                    .antMatchers(HttpMethod.GET,  "/api/user/email-check").permitAll()
-                    .antMatchers(HttpMethod.POST, "/api/user/password-reset").permitAll()
-                    .antMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                    .antMatchers(HttpMethod.POST,  "/api/auth/test-login").permitAll()
-                    .antMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
+                // 인증 불필요 경로
+                .antMatchers(HttpMethod.POST, "/api/user/signup").permitAll()
+                .antMatchers(HttpMethod.GET,  "/api/user/email-check").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/user/password-reset").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/auth/test-login").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
 
-                    .antMatchers(HttpMethod.GET, "/api/challenge/scheduler/**").permitAll()
+                // 스케줄러 테스트/조회 등
+                .antMatchers(HttpMethod.GET, "/api/challenge/scheduler/**").permitAll()
 
-                    // 그 외는 기본 차단(로그인 필요)
-                    .anyRequest().authenticated()
+                // (1) 코인 랭킹 관련은 인증 필요
+                .antMatchers("/api/challenge/rank/coin/**").authenticated()
 
+                // (1) 코인 랭킹 산정 트리거(프론트가 호출) - 임시로 인증만 요구
+                // 운영 전환 시: .antMatchers(HttpMethod.POST, "/api/challenge/rank/test/coin/calc").hasRole("ADMIN")
+                .antMatchers(HttpMethod.POST, "/api/challenge/rank/test/coin/calc").authenticated()
+
+                // 그 외는 기본 차단(로그인 필요)
+                .anyRequest().authenticated()
                 .and()
-                .cors() // 아래 corsFilter() Bean과 연결
+                .cors()
                 .and()
-                .csrf().disable()     // FE에서 /csrf 호출 제거
+                .csrf().disable()
                 .httpBasic().disable()
                 .formLogin().disable()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
@@ -157,10 +173,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         JwtEmailPasswordAuthenticationFilter filter =
                 new JwtEmailPasswordAuthenticationFilter(loginSuccessHandler, loginFailureHandler);
         filter.setAuthenticationManager(authenticationManager);
-
-        // 로그인 요청 URL을 명확히 고정 (FE 호출 경로와 반드시 동일)
+        // 로그인 URL (FE와 동일)
         filter.setFilterProcessesUrl("/api/auth/login");
-
         return filter;
     }
 }

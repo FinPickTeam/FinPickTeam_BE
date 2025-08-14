@@ -77,6 +77,7 @@ public class UserServiceImpl implements UserService {
         user.setUpdatedAt(LocalDateTime.now());
         user.setIsVerified(false); // default 값 (인증 미완료)
         user.setLastPwChangeAt(LocalDateTime.now());
+        user.setRole(org.scoula.user.enums.UserRole.USER); // ← 기본 USER
 
         try {
             userMapper.save(user); // 1. 유저 저장

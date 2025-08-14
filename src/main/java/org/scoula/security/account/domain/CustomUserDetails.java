@@ -20,7 +20,8 @@ public class CustomUserDetails implements UserDetails {
     // 권한이 여러 개인 경우 확장 가능
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(() -> "ROLE_USER");
+        String roleName = (user.getRole() != null) ? user.getRole().name() : "USER";
+        return Collections.singleton(() -> "ROLE_" + roleName);
     }
 
     @Override

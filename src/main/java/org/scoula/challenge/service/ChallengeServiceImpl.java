@@ -15,6 +15,7 @@ import org.scoula.coin.mapper.CoinMapper;
 import org.scoula.finance.dto.stock.StockListDto;
 import org.scoula.finance.service.stock.StockService;
 import org.scoula.user.mapper.UserMapper;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,10 @@ import org.springframework.http.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 @Service
 @RequiredArgsConstructor
 public class ChallengeServiceImpl implements ChallengeService {
@@ -43,6 +48,19 @@ public class ChallengeServiceImpl implements ChallengeService {
 
     @Override
     public ChallengeCreateResponseDTO createChallenge(Long userId, ChallengeCreateRequestDTO req) {
+        // 0. 권한 제한
+        if (req.getType() == ChallengeType.COMMON) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            boolean isAdmin = auth != null && auth.isAuthenticated() &&
+                    auth.getAuthorities().stream()
+                            .map(GrantedAuthority::getAuthority)
+                            .anyMatch("ROLE_ADMIN"::equals);
+
+            if (!isAdmin) {
+                throw new AccessDeniedException("COMMON 챌린지는 관리자만 생성할 수 있습니다.");
+            }
+        }
+
         // 1. 챌린지 참여 제한
         int count = challengeMapper.countUserOngoingChallenges(userId, req.getType().name());
         if (count >= 3) throw new ChallengeLimitExceededException(req.getType().name());

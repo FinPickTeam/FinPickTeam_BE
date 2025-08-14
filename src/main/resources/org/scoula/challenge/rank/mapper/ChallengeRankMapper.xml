@@ -5,19 +5,21 @@
 
 <mapper namespace="org.scoula.challenge.rank.mapper.ChallengeRankMapper">
 
-    <!-- 현재 랭킹 조회 -->
+    <!-- 현재 랭킹 조회 (관리자/생성자 제외) -->
     <select id="getCurrentChallengeRanks"
             resultType="org.scoula.challenge.rank.dto.ChallengeRankResponseDTO">
         SELECT
-            u.id                               AS userId,
-            IFNULL(us.nickname, CONCAT('user#', u.id)) AS nickname,
-            cr.`rank`                          AS `rank`,
-            uc.actual_value                    AS actualValue
+        u.id                                        AS userId,
+        IFNULL(us.nickname, CONCAT('user#', u.id))  AS nickname,
+        cr.`rank`                                   AS `rank`,
+        uc.actual_value                             AS actualValue
         FROM challenge_rank cr
-                 JOIN user_challenge uc ON uc.id = cr.user_challenge_id
-                 JOIN user u            ON u.id = uc.user_id
-                 LEFT JOIN user_status us ON us.id = u.id
+        JOIN user_challenge uc ON uc.id = cr.user_challenge_id
+        JOIN user u            ON u.id = uc.user_id
+        LEFT JOIN user_status us ON us.id = u.id
         WHERE uc.challenge_id = #{challengeId}
+        AND uc.is_creator = 0
+        AND (u.role IS NULL OR u.role != 'ADMIN')
         ORDER BY cr.`rank` ASC
     </select>
 
@@ -35,24 +37,25 @@
         VALUES (#{userChallengeId}, #{rank}, #{actualValue}, NOW())
     </insert>
 
-    <!-- 스냅샷 읽기 -->
+    <!-- 스냅샷 읽기 (관리자/생성자 제외) -->
     <select id="getChallengeRankSnapshots"
             resultType="org.scoula.challenge.rank.dto.ChallengeRankSnapshotResponseDTO">
         SELECT
-            u.id                                         AS userId,
-            IFNULL(us.nickname, CONCAT('user#', u.id))   AS nickname,
-            crs.`rank`                                   AS `rank`,
-            crs.actual_value                             AS actualValue,
-            crs.month                                    AS month,
-            crs.is_checked                               AS isChecked
+        u.id                                        AS userId,
+        IFNULL(us.nickname, CONCAT('user#', u.id))  AS nickname,
+        crs.`rank`                                  AS `rank`,
+        crs.actual_value                            AS actualValue,
+        crs.month                                   AS month,
+        crs.is_checked                              AS isChecked
         FROM challenge_rank_snapshot crs
-            JOIN user_challenge uc ON crs.user_challenge_id = uc.id
-            JOIN user u            ON u.id = uc.user_id
-            LEFT JOIN user_status us ON us.id = u.id
+        JOIN user_challenge uc ON crs.user_challenge_id = uc.id
+        JOIN user u            ON u.id = uc.user_id
+        LEFT JOIN user_status us ON us.id = u.id
         WHERE crs.month = #{month}
+        AND uc.is_creator = 0
+        AND (u.role IS NULL OR u.role != 'ADMIN')
         ORDER BY crs.`rank` ASC
     </select>
-
 
     <!-- 스냅샷 저장 -->
     <insert id="insertChallengeRankSnapshot">
@@ -69,28 +72,36 @@
         <result property="actualValue"     column="actual_value"/>
     </resultMap>
 
+    <!-- 랭크 계산용: 실제 참가자 정렬 (관리자/생성자 제외) -->
     <select id="getParticipantsSortedByActualValue" resultMap="participantInfoMap">
         SELECT
-            uc.id           AS user_challenge_id,
-            uc.actual_value
+        uc.id           AS user_challenge_id,
+        uc.actual_value
         FROM user_challenge uc
-                 JOIN challenge c ON uc.challenge_id = c.id
+        JOIN challenge c ON uc.challenge_id = c.id
+        JOIN user u      ON u.id = uc.user_id
         WHERE c.id = #{challengeId}
-          AND c.type = 'COMMON'
+        AND c.type = 'COMMON'
+        AND uc.is_creator = 0
+        AND (u.role IS NULL OR u.role != 'ADMIN')
         ORDER BY uc.actual_value ASC,
-                 (SELECT COUNT(*) FROM user_challenge sub WHERE sub.user_id = uc.user_id) DESC
+        (SELECT COUNT(*) FROM user_challenge sub WHERE sub.user_id = uc.user_id) DESC
     </select>
 
+    <!-- 월별 랭크 계산용 (관리자/생성자 제외) -->
     <select id="getParticipantsSortedByActualValueInMonth" resultMap="participantInfoMap">
         SELECT
-            uc.id           AS user_challenge_id,
-            uc.actual_value
+        uc.id           AS user_challenge_id,
+        uc.actual_value
         FROM user_challenge uc
-                 JOIN challenge c ON uc.challenge_id = c.id
+        JOIN challenge c ON uc.challenge_id = c.id
+        JOIN user u      ON u.id = uc.user_id
         WHERE c.type = 'COMMON'
-          AND DATE_FORMAT(c.start_date, '%Y-%m') = #{month}
+        AND DATE_FORMAT(c.start_date, '%Y-%m') = #{month}
+        AND uc.is_creator = 0
+        AND (u.role IS NULL OR u.role != 'ADMIN')
         ORDER BY uc.actual_value ASC,
-                 (SELECT COUNT(*) FROM user_challenge sub WHERE sub.user_id = uc.user_id) DESC
+        (SELECT COUNT(*) FROM user_challenge sub WHERE sub.user_id = uc.user_id) DESC
     </select>
 
     <!-- UPSERT: 삭제 없이 최신화 -->
@@ -98,9 +109,9 @@
         INSERT INTO challenge_rank (`user_challenge_id`, `rank`, `actual_value`, `updated_at`)
         VALUES (#{userChallengeId}, #{rank}, #{actualValue}, NOW())
             ON DUPLICATE KEY UPDATE
-                                 `rank`        = VALUES(`rank`),
-                                 `actual_value`= VALUES(`actual_value`),
-                                 `updated_at`  = NOW()
+                                 `rank`         = VALUES(`rank`),
+                                 `actual_value` = VALUES(`actual_value`),
+                                 `updated_at`   = NOW()
     </insert>
 
     <!-- 계산에서 빠진 기존 행 정리 -->
