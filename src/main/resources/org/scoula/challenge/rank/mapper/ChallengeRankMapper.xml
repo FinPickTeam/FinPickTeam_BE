@@ -9,10 +9,10 @@
     <select id="getCurrentChallengeRanks"
             resultType="org.scoula.challenge.rank.dto.ChallengeRankResponseDTO">
         SELECT
-            u.id                              AS userId,
-            COALESCE(us.nickname, u.nickname) AS nickname,
-            cr.`rank`                         AS rank,
-            uc.actual_value                   AS actualValue
+            u.id                               AS userId,
+            COALESCE(us.nickname, u.nickname)  AS nickname,
+            cr.`rank`                          AS `rank`,
+            uc.actual_value                    AS actualValue
         FROM challenge_rank cr
                  JOIN user_challenge uc ON uc.id = cr.user_challenge_id
                  JOIN user u            ON u.id = uc.user_id
@@ -39,12 +39,12 @@
     <select id="getChallengeRankSnapshots"
             resultType="org.scoula.challenge.rank.dto.ChallengeRankSnapshotResponseDTO">
         SELECT
-            u.id                              AS userId,
-            COALESCE(us.nickname, u.nickname) AS nickname,
-            crs.`rank`                        AS rank,
-            crs.actual_value                  AS actualValue,
-            crs.month                         AS month,
-            crs.is_checked                    AS isChecked
+            u.id                               AS userId,
+            COALESCE(us.nickname, u.nickname)  AS nickname,
+            crs.`rank`                         AS `rank`,
+            crs.actual_value                   AS actualValue,
+            crs.month                          AS month,
+        crs.is_checked                     AS isChecked
         FROM challenge_rank_snapshot crs
             JOIN user_challenge uc ON crs.user_challenge_id = uc.id
             JOIN user u            ON u.id = uc.user_id
@@ -52,6 +52,7 @@
         WHERE crs.month = #{month}
         ORDER BY crs.`rank` ASC
     </select>
+
 
     <!-- 스냅샷 저장 -->
     <insert id="insertChallengeRankSnapshot">
@@ -94,12 +95,12 @@
 
     <!-- UPSERT: 삭제 없이 최신화 -->
     <insert id="upsertChallengeRank">
-        INSERT INTO challenge_rank (user_challenge_id, `rank`, actual_value, updated_at)
+        INSERT INTO challenge_rank (`user_challenge_id`, `rank`, `actual_value`, `updated_at`)
         VALUES (#{userChallengeId}, #{rank}, #{actualValue}, NOW())
             ON DUPLICATE KEY UPDATE
-                                 `rank`       = VALUES(`rank`),
-                                 actual_value = VALUES(actual_value),
-                                 updated_at   = NOW()
+                                 `rank`        = VALUES(`rank`),
+                                 `actual_value`= VALUES(`actual_value`),
+                                 `updated_at`  = NOW()
     </insert>
 
     <!-- 계산에서 빠진 기존 행 정리 -->
