@@ -1,13 +1,12 @@
 package org.scoula.challenge.mapper;
 
-import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.scoula.challenge.domain.Challenge;
+import org.scoula.challenge.dto.ChallengeHistoryItemDTO;
 import org.scoula.challenge.dto.ChallengeMemberDTO;
 import org.scoula.challenge.dto.ChallengeSummaryResponseDTO;
 import org.scoula.challenge.enums.ChallengeStatus;
 import org.scoula.challenge.enums.ChallengeType;
-import org.scoula.challenge.dto.ChallengeHistoryItemDTO;
 
 import java.util.List;
 
@@ -44,9 +43,9 @@ public interface ChallengeMapper {
     void updateChallengeStatus(@Param("challengeId") Long challengeId,
                                @Param("status") String status);
 
-    List<Challenge> findAllChallenges(); // 모든 챌린지
+    List<Challenge> findAllChallenges();
 
-    void completeUserChallenges(@Param("challengeId") Long challengeId); // 유저 챌린지 완료 처리
+    void completeUserChallenges(@Param("challengeId") Long challengeId);
 
     List<Long> findUserIdsByChallengeId(@Param("challengeId") Long challengeId);
 
@@ -64,21 +63,16 @@ public interface ChallengeMapper {
 
     ChallengeSummaryResponseDTO getChallengeSummary(@Param("userId") Long userId);
 
-    // 유저별 참여 횟수, 성공률 등 계산하는 메서드
     void insertOrUpdateUserChallengeSummary(@Param("userId") Long userId);
     void incrementUserSuccessCount(@Param("userId") Long userId);
     void incrementUserTotalChallenges(@Param("userId") Long userId);
     void updateAchievementRate(@Param("userId") Long userId);
 
-
-    // 챌린지 결과 확인 관련 메서드
     int getActualValue(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
     Integer getActualRewardPoint(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
     void markResultChecked(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
     boolean existsUnconfirmedCompletedChallenge(@Param("userId") Long userId);
     Boolean isResultChecked(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
-
-    // 챌린지 결과 계산
 
     int countSuccessMembers(@Param("challengeId") Long challengeId);
 
@@ -88,7 +82,15 @@ public interface ChallengeMapper {
 
     List<ChallengeHistoryItemDTO> findCompletedHistoryByUser(@Param("userId") Long userId);
 
-    // 성공 여부 조회
     Boolean getIsSuccess(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
-}
 
+    // ====== ⬇️ 추가 메서드(평가/상태 일괄 처리용) ⬇️ ======
+    List<Challenge> findInProgressChallenges();
+    List<Long> findActiveUsers(@Param("challengeId") Long challengeId);
+
+    List<Challenge> findEndedChallengesNeedingEvaluation();
+
+    void setTodayToInProgress();
+    void setEndedToCompleted();
+    void completeUserChallengesByCompletedChallenge();
+}
