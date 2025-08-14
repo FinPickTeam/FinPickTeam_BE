@@ -6,13 +6,14 @@ import org.json.JSONObject;
 import org.scoula.nhapi.client.NHApiClient;
 import org.scoula.nhapi.dto.NhCardTransactionResponseDto;
 import org.scoula.nhapi.exception.NHApiException;
-import org.scoula.nhapi.parser.NhCardParser; // 이미 있다면 사용, 없으면 아래 주석 블록 참고
+import org.scoula.nhapi.parser.NhCardParser;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.*;
+
+import static java.util.Map.entry;
 
 @Slf4j
 @Service
@@ -21,6 +22,11 @@ public class NhCardServiceImpl implements NhCardService {
 
     private final NHApiClient nhApiClient;
 
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final int CARD_DUMMY_MONTHS_BACK = 6; // ✅ 1년 고정
+    private static final int CARD_MIN_DAILY = 1;
+    private static final int CARD_MAX_DAILY = 8;          // ✅ 생성량 완화
+
     @Override
     public List<NhCardTransactionResponseDto> callCardTransactionList(Long userId, String finCard, String from, String to) {
         List<NhCardTransactionResponseDto> all = new ArrayList<>();
@@ -28,98 +34,124 @@ public class NhCardServiceImpl implements NhCardService {
 
         while (true) {
             JSONObject res = nhApiClient.callCardTransactionList(finCard, from, to, page);
-            String rpcd = res.getJSONObject("Header").optString("Rpcd", "");
+            JSONObject header = res.optJSONObject("Header");
+            String rpcd = header != null ? header.optString("Rpcd", "") : res.optString("Rpcd", "");
 
+            // ✅ A0090: 첫 페이지에서만 더미 리턴, 이후 페이지면 수집 종료(break)
             if ("A0090".equals(rpcd)) {
-                log.info("✅ 카드 승인내역 없음 → 더미 반환 (핀카드: {})", finCard);
-                return createDummyTransactions();
-            }
-            if (!"00000".equals(rpcd)) {
-                throw new NHApiException("카드 승인내역 조회 실패: " + rpcd);
+                if (page == 1 && all.isEmpty()) {
+                    log.info("✅ 카드 승인내역 없음(1st page) → 더미 생성 (finCard: {}, {}~{})", finCard, from, to);
+                    return createCardDummyTransactions(userId, finCard, from, to);
+                } else {
+                    log.info("ℹ️ 후속 페이지 A0090 → 페이징 종료 (수집건수: {})", all.size());
+                    break;
+                }
             }
 
-            // 파서가 있으면 사용
+            if (!"00000".equals(rpcd)) throw new NHApiException("카드 승인내역 조회 실패: " + rpcd);
+
             List<NhCardTransactionResponseDto> parsed = NhCardParser.parse(res);
-            // 파서가 없다면 아래 주석 참고해서 간단 파싱 구현 가능
-            // List<NhCardTransactionResponseDto> parsed = simpleParse(res);
+            if (parsed != null && !parsed.isEmpty()) all.addAll(parsed);
 
-            all.addAll(parsed);
+            // ✅ CtntDataYn을 Header/루트 둘 다 체크
+            String more = header != null ? header.optString("CtntDataYn", null) : null;
+            if (more == null) more = res.optString("CtntDataYn", "N");
+            if (!"Y".equalsIgnoreCase(more)) break;
 
-            // 더보기 여부
-            if (!"Y".equalsIgnoreCase(res.optString("CtntDataYn"))) break;
             page++;
+            if (page > 200) break; // 안전장치
         }
 
-        return all.isEmpty() ? createDummyTransactions() : all;
+        return all.isEmpty() ? createCardDummyTransactions(userId, finCard, from, to) : all;
     }
 
-    // 필요 시 간단 파서 (NhCardParser 없으면 사용)
-    /*
-    private List<NhCardTransactionResponseDto> simpleParse(JSONObject res) {
-        List<NhCardTransactionResponseDto> list = new ArrayList<>();
-        var arr = res.optJSONArray("Rec");
-        if (arr == null) return list;
-        for (int i = 0; i < arr.length(); i++) {
-            list.add(NhCardTransactionResponseDto.from(arr.getJSONObject(i)));
-        }
-        return list;
-    }
-    */
 
-    // 샘플/데모용 더미 데이터
-    private List<NhCardTransactionResponseDto> createDummyTransactions() {
+    // ✅ 날짜별 고정 시드 → 기간 창이 달라도 동일 승인 생성(중복 방지)
+    private List<NhCardTransactionResponseDto> createCardDummyTransactions(
+            Long userId, String finCard, String from, String to
+    ) {
         List<NhCardTransactionResponseDto> list = new ArrayList<>();
 
         String[][] merchants = {
-                {"스타벅스", "커피전문점"}, {"맥도날드", "패스트푸드"}, {"올리브영", "화장품"},
-                {"GS25", "편의점"}, {"넷플릭스", "정기결제"}, {"카카오모빌리티", "택시"},
-                {"이마트", "마트"}, {"메가박스", "영화관"}, {"LG유플러스", "통신비"}, {"삼성생명", "보험"}
+                {"스타벅스","커피전문점"}, {"맥도날드","패스트푸드"}, {"올리브영","화장품"},
+                {"GS25","편의점"}, {"넷플릭스","정기결제"}, {"카카오모빌리티","택시"},
+                {"이마트","마트"}, {"메가박스","영화관"}, {"LG유플러스","통신비"},
+                {"삼성생명","보험"}, {"무신사","쇼핑"}, {"마켓컬리","식자재"},
+                {"배달의민족","배달"}, {"쿠팡","쇼핑"}
         };
-
-        Map<String, String> mcc = Map.of(
-                "커피전문점", "D101","패스트푸드", "D102","화장품", "D103","편의점", "D104",
-                "정기결제", "D105","택시", "D106","마트", "D107","영화관", "D108",
-                "통신비", "D109","보험", "D110"
+        Map<String,String> mcc = Map.ofEntries(
+                entry("커피전문점","D101"), entry("패스트푸드","D102"), entry("화장품","D103"),
+                entry("편의점","D104"), entry("정기결제","D105"), entry("택시","D106"),
+                entry("마트","D107"), entry("영화관","D108"), entry("통신비","D109"),
+                entry("보험","D110"), entry("쇼핑","D111"), entry("식자재","D112"),
+                entry("배달","D113")
         );
 
-        LocalDate base = LocalDate.of(2025, 4, 1);
-        int total = 40;
+        // ✅ 기간 계산: to 없으면 오늘, from 없으면 6개월 전
+        LocalDate end = (to != null && !to.isBlank())
+                ? parseYYYYMMDD(to, LocalDate.now(KST))
+                : LocalDate.now(KST);
+        LocalDate start = (from != null && !from.isBlank())
+                ? parseYYYYMMDD(from, end.minusMonths(CARD_DUMMY_MONTHS_BACK))
+                : end.minusMonths(CARD_DUMMY_MONTHS_BACK);
 
-        for (int i = 0; i < total; i++) {
-            int month = 4 + (i % 4); // 4~7월 분산
-            int day = ((i * 3) % 27) + 1;
-            int hour = 10 + (i * 5) % 10;
-            int minute = (i * 7) % 60;
+        String[] salesTypes = {"1","2","3","6","7","8"};
 
-            LocalDateTime approvedAt = LocalDateTime.of(2025, month, day, hour, minute, 0);
-            LocalDate paymentDate = LocalDate.of(2025, month, Math.min(day + 2, 28));
+        for (LocalDate d = start; !d.isAfter(end); d = d.plusDays(1)) {
+            Random dayRnd = new Random(Objects.hash(userId, finCard, d)); // ✅ 날짜별 고정 시드(중복 방지)
+            int base = CARD_MIN_DAILY + dayRnd.nextInt(CARD_MAX_DAILY - CARD_MIN_DAILY + 1);
+            if (d.getDayOfWeek() == DayOfWeek.FRIDAY || d.getDayOfWeek() == DayOfWeek.SATURDAY) {
+                base += dayRnd.nextInt(4);
+            }
 
-            String[] entry = merchants[i % merchants.length];
-            String merchantName = entry[0];
-            String tpbcdNm = entry[1];
-            String tpbcd = mcc.getOrDefault(tpbcdNm, "D999");
+            for (int i = 0; i < base; i++) {
+                String[] entry = merchants[dayRnd.nextInt(merchants.length)];
+                String merchantName = entry[0];
+                String tpbcdNm = entry[1];
+                String tpbcd = mcc.getOrDefault(tpbcdNm, "D999");
 
-            BigDecimal amount = BigDecimal.valueOf(3000 + (i * 1500 % 25000));
-            boolean cancelled = (i % 6 == 0);
+                int hour = 8 + dayRnd.nextInt(16);
+                int minute = dayRnd.nextInt(60);
+                LocalDateTime approvedAt = d.atTime(hour, minute, dayRnd.nextInt(60));
 
-            list.add(NhCardTransactionResponseDto.builder()
-                    .authNumber("AUTH" + (10000 + i))
-                    .salesType(new String[]{"1","2","3","6","7","8"}[i % 6])
-                    .approvedAt(approvedAt)
-                    .paymentDate(paymentDate)
-                    .amount(amount)
-                    .cancelled(cancelled)
-                    .cancelAmount(cancelled ? amount : BigDecimal.ZERO)
-                    .cancelledAt(cancelled ? approvedAt.plusMinutes(5) : null)
-                    .merchantName(merchantName)
-                    .tpbcd(tpbcd)
-                    .tpbcdNm(tpbcdNm)
-                    .installmentMonth(0)
-                    .currency("KRW")
-                    .foreignAmount(BigDecimal.ZERO)
-                    .build());
+                LocalDate paymentDate = d.plusDays(2 + dayRnd.nextInt(4));
+
+                BigDecimal amount = BigDecimal.valueOf(3_000 + dayRnd.nextInt(250_000));
+                boolean cancelled = dayRnd.nextInt(8) == 0;
+                BigDecimal cancelAmt = cancelled ? amount : BigDecimal.ZERO;
+
+                String salesType = salesTypes[dayRnd.nextInt(salesTypes.length)];
+
+                long authSeq = Math.abs(31L * approvedAt.toEpochSecond(ZoneOffset.ofHours(9)) + i);
+                String authNumber = "DUM" + authSeq;
+
+                list.add(NhCardTransactionResponseDto.builder()
+                        .authNumber(authNumber)
+                        .salesType(salesType)
+                        .approvedAt(approvedAt)
+                        .paymentDate(paymentDate)
+                        .amount(amount)
+                        .cancelled(cancelled)
+                        .cancelAmount(cancelAmt)
+                        .cancelledAt(cancelled ? approvedAt.plusMinutes(5) : null)
+                        .merchantName(merchantName)
+                        .tpbcd(tpbcd)
+                        .tpbcdNm(tpbcdNm)
+                        .installmentMonth(salesType.equals("2") ? (1 + dayRnd.nextInt(12)) : 0)
+                        .currency("KRW")
+                        .foreignAmount(BigDecimal.ZERO)
+                        .build());
+            }
         }
 
         return list;
     }
+    private static LocalDate parseYYYYMMDD(String yyyymmdd, LocalDate fallback) {
+        try {
+            return LocalDate.parse(yyyymmdd, java.time.format.DateTimeFormatter.BASIC_ISO_DATE);
+        } catch (Exception e) {
+            return fallback;
+        }
+    }
+
 }

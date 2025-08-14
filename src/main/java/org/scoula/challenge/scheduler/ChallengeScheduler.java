@@ -3,14 +3,14 @@ package org.scoula.challenge.scheduler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.scoula.challenge.domain.Challenge;
-import org.scoula.challenge.enums.ChallengeStatus;
 import org.scoula.challenge.mapper.ChallengeMapper;
+import org.scoula.transactions.mapper.LedgerMapper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.scoula.common.client.LedgerClient;
+import org.springframework.transaction.annotation.Transactional;
 
-//import javax.annotation.PostConstruct;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -19,108 +19,100 @@ import java.util.List;
 public class ChallengeScheduler {
 
     private final ChallengeMapper challengeMapper;
-    private final LedgerClient ledgerClient;
+    private final LedgerMapper ledgerMapper;
 
-    // 🧪 개발 중엔 서버 켜질 때마다 실행도 가능 (원하면 주석 제거)
-    /*
-    @PostConstruct
-    public void initOnStartup() {
-        processChallengeStatusUpdate("🚀 [서버 기동시 초기 실행]");
-        processChallengeSuccessCheck("🕒 [챌린지 성공/실패 자동 평가]");
-    }
-    */
-
-    // 🚀 운영 시 실제 사용: 매일 새벽 4시
-    @Scheduled(cron = "0 0 4 * * *")
+    // 운영: 매일 KST 새벽 4시 실행
+    @Transactional
+    @Scheduled(cron = "0 0 4 * * *", zone = "Asia/Seoul")
     public void runDailyChallengeScheduler() {
-        // 1. 성공/실패 먼저 판단
-        processChallengeSuccessCheck("🕒 [챌린지 성공/실패 판별]");
+        // 1) 성공/실패 먼저 (조기 실패 + 종료 후 최종 평가)
+        evaluateEarlyFailsForInProgress();
+        evaluateFinalForEndedChallenges();
 
-        // 2. 상태 업데이트 (COMPLETED 처리)
+        // 2) 상태 업데이트 (IN_PROGRESS/COMPLETED 및 user_challenge 완료 안전망)
         processChallengeStatusUpdate("🕒 [챌린지 상태 업데이트]");
     }
 
+    /** 진행 중(IN_PROGRESS) 챌린지 대상 조기 실패 평가 */
+    private void evaluateEarlyFailsForInProgress() {
+        LocalDate today = LocalDate.now(); // KST 기준
+        LocalDateTime to = today.atStartOfDay(); // 오늘 00:00 (스케줄은 04:00에 돎)
 
-    // ✅ 로컬에서 수동 호출용: 테스트할 수 있게 만든 메서드
-    public void updateChallengeStatusesNow() {
-        processChallengeStatusUpdate("🧪 [수동 호출 실행]");
-    }
+        List<Challenge> inProgress = challengeMapper.findInProgressChallenges();
+        log.info("🔎 조기 실패 평가 대상 챌린지 수: {}", inProgress.size());
 
-    private void processChallengeStatusUpdate(String mode) {
-        LocalDate today = LocalDate.now();
-        log.info("{} 챌린지 상태 업데이트 시작 - {}", mode, today);
+        for (Challenge ch : inProgress) {
+            LocalDateTime from = ch.getStartDate().atStartOfDay();
+            if (!to.isAfter(from)) continue; // 아직 기간 시작 전/동일 시점이면 스킵
 
-        List<Challenge> challenges = challengeMapper.findAllChallenges();
+            String categoryName = challengeMapper.getCategoryNameById(ch.getCategoryId());
+            List<Long> users = challengeMapper.findActiveUsers(ch.getId()); // 미완료만
+            for (Long userId : users) {
+                int actual = ledgerMapper.sumExpenseByUserAndCategoryBetween(
+                        userId, categoryName, from, to);
+                challengeMapper.updateActualValue(userId, ch.getId(), actual);
 
-        for (Challenge challenge : challenges) {
-            Long id = challenge.getId();
-            ChallengeStatus currentStatus = challenge.getStatus();
-            LocalDate startDate = challenge.getStartDate();
-            LocalDate endDate = challenge.getEndDate();
-
-            if (currentStatus != ChallengeStatus.IN_PROGRESS && today.isEqual(startDate)) {
-                challengeMapper.updateChallengeStatus(id, ChallengeStatus.IN_PROGRESS.name());
-                log.info("🔄 챌린지 시작 처리 - ID: {}", id);
-            }
-
-            if (currentStatus != ChallengeStatus.COMPLETED && today.isAfter(endDate)) {
-                challengeMapper.updateChallengeStatus(id, ChallengeStatus.COMPLETED.name());
-                log.info("✅ 챌린지 완료 처리 - ID: {}", id);
-
-                // 유저 챌린지도 완료 처리
-                challengeMapper.completeUserChallenges(id);
+                if (actual > ch.getGoalValue()) {
+                    challengeMapper.failUserChallenge(userId, ch.getId()); // is_success=false, is_completed=true
+                    log.info("❌ 조기 실패 처리 - userId={}, challengeId={}, actual={}, goal={}",
+                            userId, ch.getId(), actual, ch.getGoalValue());
+                }
             }
         }
-
-        log.info("{} 챌린지 상태 업데이트 완료", mode);
+        log.info("✅ 조기 실패 평가 완료");
     }
 
-    public void evaluateChallengeSuccessesNow() {
-        processChallengeSuccessCheck("🧪 [수동 챌린지 평가 테스트]");
-    }
+    /** 종료된 챌린지(어제까지 끝난) 최종 평가 */
+    private void evaluateFinalForEndedChallenges() {
+        List<Challenge> ended = challengeMapper.findEndedChallengesNeedingEvaluation(); // end_date < CURDATE()
+        log.info("🔎 최종 평가 대상(종료) 챌린지 수: {}", ended.size());
 
-    private void processChallengeSuccessCheck(String mode) {
-        LocalDate today = LocalDate.now();
-        log.info("{} 챌린지 성공/실패 평가 시작 - {}", mode, today);
+        for (Challenge ch : ended) {
+            String categoryName = challengeMapper.getCategoryNameById(ch.getCategoryId());
+            List<Long> users = challengeMapper.findActiveUsers(ch.getId()); // 아직 미완료만
+            LocalDateTime from = ch.getStartDate().atStartOfDay();
+            LocalDateTime to = ch.getEndDate().plusDays(1).atStartOfDay(); // 기간 전체 포함
 
-        List<Challenge> allChallenges = challengeMapper.findAllChallenges();
+            for (Long userId : users) {
+                int actual = ledgerMapper.sumExpenseByUserAndCategoryBetween(
+                        userId, categoryName, from, to);
+                challengeMapper.updateActualValue(userId, ch.getId(), actual);
 
-        for (Challenge challenge : allChallenges) {
-            if (challenge.getStatus() != ChallengeStatus.IN_PROGRESS) continue;
-
-            List<Long> userIds = challengeMapper.findUserIdsByChallengeId(challenge.getId());
-            String categoryName = challengeMapper.getCategoryNameById(challenge.getCategoryId());
-
-            for (Long userId : userIds) {
-                int actualAmount = ledgerClient.getTotalExpense(
-                        userId,
-                        categoryName,
-                        challenge.getStartDate(),
-                        challenge.getEndDate()
-                );
-
-                // actual_value 업데이트
-                challengeMapper.updateActualValue(userId, challenge.getId(), actualAmount);
-
-                if (actualAmount > challenge.getGoalValue()) {
-                    // 실패 처리
-                    challengeMapper.failUserChallenge(userId, challenge.getId());
-                    log.info("❌ 조기 실패 처리 - 유저ID: {}, 챌린지ID: {}", userId, challenge.getId());
-                } else if (today.isAfter(challenge.getEndDate())) {
-                    // 성공 처리
-                    challengeMapper.succeedUserChallenge(userId, challenge.getId());
-                    log.info("🎉 성공 처리 - 유저ID: {}, 챌린지ID: {}", userId, challenge.getId());
-
-                    // ✅ 성공 횟수 +1 및 성공률 갱신
+                if (actual > ch.getGoalValue()) {
+                    challengeMapper.failUserChallenge(userId, ch.getId());
+                    log.info("❌ 최종 실패 - userId={}, challengeId={}, actual={}, goal={}",
+                            userId, ch.getId(), actual, ch.getGoalValue());
+                } else {
+                    challengeMapper.succeedUserChallenge(userId, ch.getId());
                     challengeMapper.insertOrUpdateUserChallengeSummary(userId);
                     challengeMapper.incrementUserSuccessCount(userId);
                     challengeMapper.updateAchievementRate(userId);
+                    log.info("🎉 최종 성공 - userId={}, challengeId={}, actual={}, goal={}",
+                            userId, ch.getId(), actual, ch.getGoalValue());
                 }
-
             }
         }
-
-        log.info("{} 챌린지 성공/실패 평가 완료", mode);
+        log.info("✅ 종료 챌린지 최종 평가 완료");
     }
 
+    /** 상태 업데이트(멱등 집합 쿼리) + user_challenge 완료 안전망 */
+    private void processChallengeStatusUpdate(String mode) {
+        log.info("{} 시작", mode);
+        challengeMapper.setTodayToInProgress();                 // 오늘 시작 → IN_PROGRESS
+        challengeMapper.setEndedToCompleted();                  // 종료 지난 챌린지 → COMPLETED
+        challengeMapper.completeUserChallengesByCompletedChallenge(); // COMPLETED 챌린지 사용자 완료 반영
+        log.info("{} 완료", mode);
+    }
+
+    // === 수동 테스트용 메서드 (Controller에서 호출) ===
+    @Transactional
+    public void updateChallengeStatusesNow() {
+        processChallengeStatusUpdate("🧪 [수동 상태 업데이트]");
+    }
+
+    @Transactional
+    public void evaluateChallengeSuccessesNow() {
+        evaluateEarlyFailsForInProgress();
+        evaluateFinalForEndedChallenges();
+    }
 }

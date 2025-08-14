@@ -61,11 +61,6 @@
         WHERE uc.challenge_id = #{challengeId}
     </select>
 
-    <select id="getParticipantsCount" resultType="int">
-        SELECT COUNT(*) FROM user_challenge
-        WHERE challenge_id = #{challengeId}
-    </select>
-
     <select id="findChallengeById" resultType="org.scoula.challenge.domain.Challenge">
         SELECT * FROM challenge WHERE id = #{challengeId}
     </select>
@@ -78,22 +73,21 @@
     <select id="getGroupMembersWithAvatar"
             resultType="org.scoula.challenge.dto.ChallengeMemberDTO">
         SELECT
-        u.id  AS userId,
-        us.nickname AS nickname,
-        CASE
-        WHEN c.goal_value IS NULL OR c.goal_value = 0 THEN 0
-        ELSE uc.actual_value * 1.0 / c.goal_value
-        END AS progress,
-        a.level_id     AS levelId,
-        a.top_id       AS topId,
-        a.shoes_id     AS shoesId,
-        a.accessory_id AS accessoryId,
-        a.gift_card_id AS giftCardId
+            u.id  AS userId,
+            us.nickname AS nickname,
+            CASE WHEN c.goal_value IS NULL OR c.goal_value = 0 THEN 0
+                 ELSE uc.actual_value * 1.0 / c.goal_value
+                END AS progress,
+            a.level_id     AS levelId,
+            a.top_id       AS topId,
+            a.shoes_id     AS shoesId,
+            a.accessory_id AS accessoryId,
+            a.gift_card_id AS giftCardId
         FROM user_challenge uc
-        JOIN user u        ON uc.user_id = u.id
-        JOIN user_status us ON us.id = u.id
-        JOIN challenge c    ON c.id = uc.challenge_id
-        LEFT JOIN avatar a  ON a.id = u.id
+                 JOIN user u        ON uc.user_id = u.id
+                 JOIN user_status us ON us.id = u.id
+                 JOIN challenge c    ON c.id = uc.challenge_id
+                 LEFT JOIN avatar a  ON a.id = u.id
         WHERE uc.challenge_id = #{challengeId}
     </select>
 
@@ -209,20 +203,17 @@
         WHERE user_id = #{userId} AND challenge_id = #{challengeId}
     </select>
 
-    <!-- 성공한 유저 수 조회 -->
     <select id="countSuccessMembers" resultType="int">
         SELECT COUNT(*) FROM user_challenge
         WHERE challenge_id = #{challengeId} AND is_success = 1
     </select>
 
-    <!-- actual_reward_point 저장 -->
     <update id="saveActualRewardPoint">
         UPDATE user_challenge
         SET actual_reward_point = #{actualRewardPoint}
         WHERE user_id = #{userId} AND challenge_id = #{challengeId}
     </update>
 
-    <!-- 완료된(is_completed=1) 챌린지 히스토리: resultType 그대로 사용 -->
     <select id="findCompletedHistoryByUser" resultType="org.scoula.challenge.dto.ChallengeHistoryItemDTO">
         SELECT
             uc.challenge_id              AS challengeId,
@@ -237,12 +228,10 @@
             c.goal_value                 AS goalValue,
             uc.actual_reward_point       AS actualRewardPoint,
             uc.result_checked            AS resultChecked,
-            DATE(uc.updated_at)          AS completedAt     -- ✅ LocalDate 매핑용으로 DATE() 처리
+            DATE(uc.updated_at)          AS completedAt
         FROM user_challenge uc
-            JOIN challenge c
-        ON uc.challenge_id = c.id
-            LEFT JOIN challenge_category cc
-            ON c.category_id = cc.id
+            JOIN challenge c ON uc.challenge_id = c.id
+            LEFT JOIN challenge_category cc ON c.category_id = cc.id
         WHERE uc.user_id = #{userId}
           AND uc.is_completed = 1
         ORDER BY uc.updated_at DESC
@@ -254,5 +243,52 @@
         WHERE uc.user_id = #{userId} AND uc.challenge_id = #{challengeId}
     </select>
 
+    <!-- ====== ⬇️ 추가: 평가/상태 일괄 처리용 쿼리들 ⬇️ ====== -->
 
+    <!-- 진행 중 챌린지 -->
+    <select id="findInProgressChallenges" resultType="org.scoula.challenge.domain.Challenge">
+        SELECT * FROM challenge
+        WHERE status = 'IN_PROGRESS'
+    </select>
+
+    <!-- 해당 챌린지에서 아직 미완료인 사용자 -->
+    <select id="findActiveUsers" resultType="long">
+        SELECT uc.user_id
+        FROM user_challenge uc
+        WHERE uc.challenge_id = #{challengeId}
+          AND uc.is_completed = 0
+    </select>
+
+    <!-- 어제 기준 종료된 챌린지 (최종 평가 필요) -->
+    <select id="findEndedChallengesNeedingEvaluation" resultType="org.scoula.challenge.domain.Challenge">
+        SELECT c.*
+        FROM challenge c
+        WHERE c.end_date &lt; CURDATE()
+    </select>
+
+    <!-- 오늘 시작 챌린지 IN_PROGRESS -->
+    <update id="setTodayToInProgress">
+        UPDATE challenge
+        SET status = 'IN_PROGRESS'
+        WHERE status IN ('RECRUITING','CLOSED')
+          AND start_date = CURDATE()
+    </update>
+
+    <!-- 종료 지난 챌린지 COMPLETED -->
+    <update id="setEndedToCompleted">
+        UPDATE challenge
+        SET status = 'COMPLETED'
+        WHERE status &lt;&gt; 'COMPLETED'
+        AND end_date &lt; CURDATE()
+    </update>
+
+    <!-- COMPLETED 챌린지의 user_challenge 완료 처리(안전망) -->
+    <update id="completeUserChallengesByCompletedChallenge">
+        UPDATE user_challenge uc
+            JOIN challenge c ON uc.challenge_id = c.id
+            SET uc.is_completed = 1,
+                uc.updated_at = NOW()
+        WHERE c.status = 'COMPLETED'
+          AND uc.is_completed = 0
+    </update>
 </mapper>

@@ -6,6 +6,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class ChallengeRankSnapshotResponseDTO {
+    private Long userId;
     private String nickname;
     private int rank;
     private int actualValue;
