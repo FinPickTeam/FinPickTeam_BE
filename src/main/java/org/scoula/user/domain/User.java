@@ -1,6 +1,7 @@
 package org.scoula.user.domain;
 
 import lombok.Data;
+import org.scoula.user.enums.UserRole;
 
 import java.time.LocalDateTime;
 
@@ -19,4 +20,5 @@ public class User {
     private Boolean isVerified;
     private Boolean isActive;
     private String authPw;
+    private UserRole role;
 }

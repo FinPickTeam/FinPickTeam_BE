@@ -74,7 +74,6 @@ import javax.sql.DataSource;
         "org.scoula.agree.service",
         "org.scoula.challenge.rank.scheduler",
         "org.scoula.challenge.rank.service",
-        "org.scoula.challenge.rank.util",
         "org.scoula.common.aop",
         "org.scoula.summary.service",
         "org.scoula.coin.service"

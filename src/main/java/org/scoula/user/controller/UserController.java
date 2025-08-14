@@ -10,6 +10,10 @@ import org.scoula.user.dto.*;
 import org.scoula.user.service.UserService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.GrantedAuthority;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -74,6 +78,18 @@ public class UserController {
     public CommonResponseDTO<Boolean> isPinCreated (@AuthenticationPrincipal CustomUserDetails userDetails) {
         Boolean isPin=userService.isPin(userDetails.getUserId());
         return CommonResponseDTO.success("간편비밀번호 설정여부 조회가 완료되었습니다.",isPin);
+    }
+
+    @GetMapping("/me")
+    public CommonResponseDTO<Map<String, Object>> me(@AuthenticationPrincipal CustomUserDetails p) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("id", p.getUserId());
+        body.put("email", p.getUsername());
+        body.put("role", p.getUser().getRole() != null ? p.getUser().getRole().name() : "USER");
+        body.put("authorities", p.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toArray(String[]::new));
+        return CommonResponseDTO.success("ok", body);
     }
 
 
