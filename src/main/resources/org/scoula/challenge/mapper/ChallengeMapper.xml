@@ -14,15 +14,19 @@
 
     <insert id="insertUserChallenge">
         INSERT INTO user_challenge (user_id, challenge_id, is_creator, is_completed, actual_value, is_success)
-        VALUES (#{userId}, #{challengeId}, #{isCreator}, #{isCompleted}, #{actualValue}, #{isSuccess});
+        VALUES (#{userId}, #{challengeId}, #{isCreator}, #{isCompleted}, #{actualValue}, #{isSuccess,jdbcType=TINYINT});
     </insert>
 
     <select id="countUserOngoingChallenges" resultType="int">
-        SELECT COUNT(*) FROM user_challenge uc
-                                 JOIN challenge c ON uc.challenge_id = c.ID
+        SELECT COUNT(1)
+        FROM user_challenge uc
+                 JOIN challenge c ON c.id = uc.challenge_id
         WHERE uc.user_id = #{userId}
           AND c.type = #{type}
-          AND c.status IN ('RECRUITING', 'IN_PROGRESS')
+          AND (
+            c.status IN ('RECRUITING','IN_PROGRESS', 'CLOSED')
+                OR (c.status = 'COMPLETED' AND uc.result_checked = 0)
+            )
     </select>
 
     <select id="findChallenges" resultType="org.scoula.challenge.domain.Challenge">
@@ -37,14 +41,21 @@
     </select>
 
     <select id="getUserProgress" resultType="double">
-        SELECT actual_value * 1.0 / goal_value
+        SELECT CASE
+                   WHEN c.goal_value IS NULL OR c.goal_value = 0 THEN NULL
+                   ELSE uc.actual_value * 1.0 / c.goal_value
+                   END
         FROM user_challenge uc
                  JOIN challenge c ON uc.challenge_id = c.id
         WHERE uc.user_id = #{userId} AND uc.challenge_id = #{challengeId}
     </select>
 
     <select id="getGroupAverageProgress" resultType="double">
-        SELECT AVG(actual_value * 1.0 / c.goal_value)
+        SELECT AVG(
+                       CASE WHEN c.goal_value IS NULL OR c.goal_value = 0 THEN NULL
+                            ELSE uc.actual_value * 1.0 / c.goal_value
+                           END
+               )
         FROM user_challenge uc
                  JOIN challenge c ON uc.challenge_id = c.id
         WHERE uc.challenge_id = #{challengeId}
@@ -64,16 +75,25 @@
         WHERE user_id = #{userId} AND challenge_id = #{challengeId}
     </select>
 
-    <select id="getGroupMembersWithAvatar" resultType="org.scoula.challenge.dto.ChallengeMemberDTO">
-        SELECT u.id AS userId,
-               us.nickname AS nickname,
-               (uc.actual_value * 1.0 / c.goal_value) AS progress,
-               a.avatar_image AS avatarImage
+    <select id="getGroupMembersWithAvatar"
+            resultType="org.scoula.challenge.dto.ChallengeMemberDTO">
+        SELECT
+        u.id  AS userId,
+        us.nickname AS nickname,
+        CASE
+        WHEN c.goal_value IS NULL OR c.goal_value = 0 THEN 0
+        ELSE uc.actual_value * 1.0 / c.goal_value
+        END AS progress,
+        a.level_id     AS levelId,
+        a.top_id       AS topId,
+        a.shoes_id     AS shoesId,
+        a.accessory_id AS accessoryId,
+        a.gift_card_id AS giftCardId
         FROM user_challenge uc
-                 JOIN user u ON uc.user_id = u.id
-                 JOIN user_status us ON u.id = us.id
-                 JOIN challenge c ON uc.challenge_id = c.id
-                 LEFT JOIN avatar a ON u.id = a.id
+        JOIN user u        ON uc.user_id = u.id
+        JOIN user_status us ON us.id = u.id
+        JOIN challenge c    ON c.id = uc.challenge_id
+        LEFT JOIN avatar a  ON a.id = u.id
         WHERE uc.challenge_id = #{challengeId}
     </select>
 
@@ -163,7 +183,7 @@
         WHERE user_id = #{userId} AND challenge_id = #{challengeId}
     </select>
 
-    <select id="getActualRewardPoint" resultType="int">
+    <select id="getActualRewardPoint" resultType="java.lang.Integer">
         SELECT actual_reward_point FROM user_challenge
         WHERE user_id = #{userId} AND challenge_id = #{challengeId}
     </select>
@@ -226,6 +246,12 @@
         WHERE uc.user_id = #{userId}
           AND uc.is_completed = 1
         ORDER BY uc.updated_at DESC
+    </select>
+
+    <select id="getIsSuccess" resultType="java.lang.Boolean">
+        SELECT uc.is_success
+        FROM user_challenge uc
+        WHERE uc.user_id = #{userId} AND uc.challenge_id = #{challengeId}
     </select>
 
 

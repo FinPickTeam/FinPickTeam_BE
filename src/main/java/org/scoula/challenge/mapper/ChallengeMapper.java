@@ -19,7 +19,7 @@ public interface ChallengeMapper {
                              @Param("isCreator") boolean isCreator,
                              @Param("isCompleted") boolean isCompleted,
                              @Param("actualValue") int actualValue,
-                             @Param("isSuccess") boolean isSuccess);
+                             @Param("isSuccess") Boolean isSuccess);
 
     int countUserOngoingChallenges(@Param("userId") Long userId, @Param("type") String type);
 
@@ -73,7 +73,7 @@ public interface ChallengeMapper {
 
     // 챌린지 결과 확인 관련 메서드
     int getActualValue(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
-    int getActualRewardPoint(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
+    Integer getActualRewardPoint(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
     void markResultChecked(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
     boolean existsUnconfirmedCompletedChallenge(@Param("userId") Long userId);
     Boolean isResultChecked(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
@@ -87,5 +87,8 @@ public interface ChallengeMapper {
                                @Param("actualRewardPoint") int actualRewardPoint);
 
     List<ChallengeHistoryItemDTO> findCompletedHistoryByUser(@Param("userId") Long userId);
+
+    // 성공 여부 조회
+    Boolean getIsSuccess(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
 }
 

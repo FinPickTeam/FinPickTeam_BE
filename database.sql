@@ -43,6 +43,12 @@ CREATE TABLE `investment_types` (
                                     `question3` VARCHAR(255) NOT NULL,
                                     `question4` VARCHAR(255)NOT NULL,
                                     `question5` VARCHAR(255) NOT NULL,
+                                    `question6` VARCHAR(255) NULL,
+                                    `question7` VARCHAR(255) NULL,
+                                    `question8` VARCHAR(255) NULL,
+                                    `question9` VARCHAR(255) NULL,
+                                    `question10` VARCHAR(255) NULL,
+
                                     PRIMARY KEY (`id`),
                                     FOREIGN KEY (`id`) REFERENCES `user`(`id`) ON DELETE CASCADE
 );

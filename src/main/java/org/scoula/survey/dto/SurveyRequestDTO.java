@@ -1,20 +1,23 @@
 package org.scoula.survey.dto;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.scoula.survey.domain.SurveyVO; // SurveyVO 임포트
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
-@Data // Getter, Setter, equals, hashCode, toString 자동 생성
-@NoArgsConstructor // 기본 생성자 자동 생성
-@AllArgsConstructor // 모든 필드를 포함하는 생성자 자동 생성
-@Builder // 빌더 패턴 사용
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class SurveyRequestDTO {
-    private List<String> answers; // 질문 답변들을 List<String>으로 받음
+    private String question1;
+    private String question2;
+    private String question3;
+    private String question4;
+    private String question5;
+    private String question6;
+    private String question7;
+    private String question8;
+    private String question9;
+    private String question10;
 }

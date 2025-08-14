@@ -4,10 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.scoula.challenge.rank.dto.ChallengeCoinRankResponseDTO;
 import org.scoula.challenge.rank.dto.ChallengeCoinRankSnapshotResponseDTO;
 import org.scoula.challenge.rank.service.ChallengeCoinRankService;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Component
 @RestController
 @RequestMapping("/api/challenge/rank/coin")
 @RequiredArgsConstructor
@@ -29,5 +31,4 @@ public class ChallengeCoinRankController {
     public void markCoinRankSnapshotChecked(@RequestParam String month, @RequestParam Long userId) {
         rankService.markSnapshotAsChecked(month, userId);
     }
-
 }

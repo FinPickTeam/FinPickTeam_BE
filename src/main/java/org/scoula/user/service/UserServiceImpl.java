@@ -49,6 +49,8 @@ public class UserServiceImpl implements UserService {
     private final Logger log = LoggerFactory.getLogger(UserService.class);
     private final AvatarService avatarService;
 
+    private static final int WELCOME_BONUS = 100; // ★ 축하금
+
     // mysql 연결 테스트용
     public User getTestUser() {
         return userMapper.selectFirstUser();
@@ -98,6 +100,13 @@ public class UserServiceImpl implements UserService {
 
         // 3. coin row 초기화
         coinMapper.insertInitialCoin(user.getId());
+
+        // ★ 3-1. 회원가입 축하금 지급 (월누적 미반영)
+        coinMapper.addCoinAmountExceptMonthly(user.getId(), WELCOME_BONUS);
+        coinMapper.insertCoinHistory(user.getId(), WELCOME_BONUS, "plus", "WELCOME");
+
+        // (선택) 누적 포인트에 따른 레벨업 체크까지 즉시 반영하려면 아래 한 줄 활성화
+        // checkAndLevelUp(user.getId());
 
         // 4. 챌린지 요약 초기화
         userMapper.insertUserChallengeSummary(user.getId());

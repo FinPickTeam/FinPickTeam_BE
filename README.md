@@ -87,6 +87,7 @@ Docker 컨테이너(SPRING)와 내부 네트워크로 안정적인 통신이 가
 ### 실제 사용 파일
 Dockerfile
 - Tomcat 9 + JDK 17 기반
+- python 라이브러리 설치
 - .war 파일을 복사한 뒤 수동 압축 해제하여 루트 컨텍스트에 배포
 
 deploy.yml
