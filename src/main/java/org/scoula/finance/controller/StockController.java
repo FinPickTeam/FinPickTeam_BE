@@ -131,4 +131,16 @@ public class StockController {
 
         return CommonResponseDTO.success("`${stockCode}`의 수익률을 가져오는데 성공했습니다.", result);
     }
+    
+    //투자 지표 가져오기
+    @ApiOperation(value = "주식 투자 지표 가져오기", notes = "주식의 투자 지표 데이터를 가져옵니다.")
+    @GetMapping("/stockCompare")
+    public CommonResponseDTO<StockCompareDataDto> getStockCompareData(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestParam String stockCode){
+        Long userId = user.getUserId();
+        StockCompareDataDto dtos = stockService.getStockCompareData(userId, stockCode);
+
+        return CommonResponseDTO.success("비교 데이터를 가져오는데 성공했습니다.", dtos);
+    }
 }

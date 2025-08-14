@@ -9,9 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StockCompareDataDto {
     private String stockCode;
-    private String stockDividendYield;
+    private String stockBps;
+    private String stockEps;
+    private String stockDiv;
     private String stockRoe;
-    private String stockRoa;
-    private String stockDebtRatio;
-    private String stockCurrentRatio;
+    private String stockPbr;
 }

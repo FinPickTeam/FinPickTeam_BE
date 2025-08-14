@@ -426,6 +426,7 @@ CREATE TABLE `stock_list` (
                               `stock_returns_data` TEXT NULL,
                               `market_type` ENUM('KOSPI', 'KOSDAQ') NOT NULL,
                               `stock_summary` VARCHAR(20) NOT NULL,
+                              `stock_div` VARCHAR(100) NULL,
                               PRIMARY KEY (`id`)
 );
 

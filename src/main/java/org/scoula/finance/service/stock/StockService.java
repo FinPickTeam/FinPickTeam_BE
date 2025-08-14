@@ -27,4 +27,6 @@ public interface StockService {
     List<StockListDto> getStockRecommendationList(Long userId, int limit, Integer amount);
 
     String getStockReturn(String stockCode, String startDate, String endDate);
+
+    StockCompareDataDto getStockCompareData(Long userId, String stockCode);
 }
