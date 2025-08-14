@@ -84,7 +84,7 @@ public interface ChallengeMapper {
 
     Boolean getIsSuccess(@Param("userId") Long userId, @Param("challengeId") Long challengeId);
 
-    // ====== ⬇️ 추가 메서드(평가/상태 일괄 처리용) ⬇️ ======
+    // ====== 추가 메서드(평가/상태 일괄 처리용) ======
     List<Challenge> findInProgressChallenges();
     List<Long> findActiveUsers(@Param("challengeId") Long challengeId);
 
