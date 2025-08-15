@@ -17,12 +17,13 @@
         <result property="updatedAt" column="updated_at"/>
         <result property="lastPwChangeAt" column="last_pw_change_at"/>
         <result property="isActive" column="is_active"/>
+        <result property="role"      column="role" javaType="org.scoula.user.enums.UserRole"/>
     </resultMap>
 
     <select id="get" resultMap="userMap">
         SELECT
             id, email, password, user_name, phone_num, gender,
-            birthday, created_at, updated_at, last_pw_change_at, is_active
+            birthday, created_at, updated_at, last_pw_change_at, is_active, role
         FROM user
         WHERE email = #{email}
     </select>
