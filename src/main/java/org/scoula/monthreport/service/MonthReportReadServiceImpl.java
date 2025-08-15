@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,51 +26,51 @@ public class MonthReportReadServiceImpl implements MonthReportReadService {
     @Override
     public MonthReportDetailDto getReport(Long userId, String month) {
         MonthReport report = monthReportMapper.findMonthReport(userId, month);
-        if (report == null) {
-            throw new IllegalArgumentException("리포트가 존재하지 않습니다.");
-        }
+        if (report == null) throw new IllegalArgumentException("리포트가 존재하지 않습니다.");
 
         MonthReportDetailDto dto = new MonthReportDetailDto();
         dto.setMonth(month);
-        dto.setTotalExpense(report.getTotalExpense());
+        dto.setTotalExpense(nz(report.getTotalExpense()));
 
-        dto.setCategoryChart(parseJson(report.getCategoryChart(), new TypeReference<List<CategoryRatioDto>>() {}));
-        dto.setSixMonthChart(parseJson(report.getSixMonthChart(), new TypeReference<List<MonthExpenseDto>>() {}));
+        // 차트 파싱
+        List<CategoryRatioDto> categoryChart =
+                parseJson(report.getCategoryChart(), new TypeReference<List<CategoryRatioDto>>() {});
+        List<MonthExpenseDto> sixMonthChart =
+                parseJson(report.getSixMonthChart(), new TypeReference<List<MonthExpenseDto>>() {});
+        dto.setCategoryChart(categoryChart);
+        dto.setSixMonthChart(sixMonthChart);
 
-        // top 3 카테고리는 categoryChart에서 상위 3개 추출
-        List<CategoryRatioDto> categoryChart = dto.getCategoryChart();
+
+        // ✅ top3: amount 기준, 재계산 금지
         List<CategoryAmountDto> top3 = categoryChart.stream()
-                .sorted((a, b) -> b.getRatio().compareTo(a.getRatio()))
+                .sorted(Comparator.comparing(CategoryRatioDto::getAmount).reversed())
                 .limit(3)
                 .map(c -> {
                     CategoryAmountDto a = new CategoryAmountDto();
                     a.setCategory(c.getCategory());
-                    a.setAmount(calculateAmountFromRatio(report.getTotalExpense(), c.getRatio()));
-                    a.setRatio(c.getRatio());
+                    a.setAmount(nz(c.getAmount()));
+                    a.setRatio(nz(c.getRatio()));
                     return a;
-                }).toList();
+                })
+                .toList();
         dto.setTop3Spending(top3);
 
-        // 평균 비교(벤치마크)
-        Map<String, BigDecimal> myCatTotals = toCategoryAmountMap(dto.getCategoryChart());
+        // 평균 비교(벤치마크) — 기존 구현 그대로
+        Map<String, BigDecimal> myCatTotals = toCategoryAmountMap(categoryChart);
         dto.setAverageComparison(
-                buildAverageComparisonFromKosis(myCatTotals, report.getTotalExpense())
+                buildAverageComparisonFromKosis(myCatTotals, nz(report.getTotalExpense()))
         );
 
-        // 🔄 월 거래를 엔진 도메인으로 바로 조회(어댑터 제거)
+        // 패턴/추천 기존 로직 유지
         java.time.YearMonth ym = java.time.YearMonth.parse(month);
         var ledgers = monthReportMapper.findExpenseLedgersForReport(userId, ym.atDay(1), ym.atEndOfMonth());
-
         var pc = new PatternClassifier().classify(
-                ledgers, report.getSavingRate(), BigDecimal.ZERO, report.getTotalExpense(), BigDecimal.ZERO);
+                ledgers, nz(report.getSavingRate()), BigDecimal.ZERO, nz(report.getTotalExpense()), BigDecimal.ZERO);
 
-        dto.setSpendingPatterns(List.of(
-                new org.scoula.monthreport.dto.SpendingPatternDto(pc.getOverall(), pc.getPatterns())
-        ));
+        dto.setSpendingPatterns(List.of(new SpendingPatternDto(pc.getOverall(), pc.getPatterns())));
 
-        // 추천 컨텍스트 구성
-        var ratioMap = toCategoryRatioMap(dto.getCategoryChart()); // categoryChart의 ratio 사용
-        var ctx = new org.scoula.monthreport.dto.RecommendationContext();
+        var ratioMap = toCategoryRatioMap(categoryChart);
+        var ctx = new RecommendationContext();
         ctx.overall = pc.getOverall();
         ctx.patterns = pc.getPatterns();
         ctx.categoryRatios = ratioMap;
@@ -77,38 +78,24 @@ public class MonthReportReadServiceImpl implements MonthReportReadService {
 
         dto.setRecommendedChallenges(org.scoula.monthreport.util.ChallengeRecommenderEngine.recommend(ctx));
         dto.setNextGoal(report.getNextGoal());
-
-        // feedback은 DB 저장값 그대로 사용
         dto.setSpendingPatternFeedback(report.getFeedback());
         return dto;
     }
 
     private <T> List<T> parseJson(String json, TypeReference<List<T>> typeRef) {
-        try {
-            return objectMapper.readValue(json, typeRef);
-        } catch (Exception e) {
-            return Collections.emptyList();
-        }
+        try { return objectMapper.readValue(json, typeRef); }
+        catch (Exception e) { return Collections.emptyList(); }
     }
 
-    private BigDecimal calculateAmountFromRatio(BigDecimal total, BigDecimal ratio) {
-        // 레거시 상수 대신 RoundingMode 사용
-        return total.multiply(ratio).divide(BigDecimal.valueOf(100), 0, RoundingMode.HALF_UP);
-    }
+    private BigDecimal nz(BigDecimal v){ return v==null? BigDecimal.ZERO : v; }
 
-    private String generateSpendingAdvice(String feedback) {
-        if (feedback.contains("식비") || feedback.contains("카페")) {
-            return "다음 달 식비와 카페 지출을 약 15% 줄여보는 걸 추천드려요.";
-        }
-        return "안정적인 소비를 유지해보세요.";
-    }
-
-    private List<RecommendedChallengeDto> buildRecommendedChallenges(String feedback, BigDecimal totalExpense) {
-        return List.of(
-                new RecommendedChallengeDto("저축률 회복하기", "최소 450,000원 저축해보아요."),
-                new RecommendedChallengeDto("식비 + 카페 지출 줄이기", "총합 350,000원 이하로 유지해보세요."),
-                new RecommendedChallengeDto("무지출 데이 도전!", "‘무지출 데이’를 2회 이상 가져보세요.")
-        );
+    private String deriveMainCategory(List<CategoryRatioDto> chart){
+        if (chart == null || chart.isEmpty()) return "";
+        return chart.stream()
+                .filter(c -> c.getCategory()!=null && !c.getCategory().isBlank())
+                .max(Comparator.comparing(CategoryRatioDto::getAmount))
+                .map(CategoryRatioDto::getCategory)
+                .orElse("");
     }
 
     private Map<String, BigDecimal> toCategoryAmountMap(List<CategoryRatioDto> chart){

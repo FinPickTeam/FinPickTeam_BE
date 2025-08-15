@@ -15,8 +15,6 @@ import java.util.List;
 public class MonthReportDetailDto {
     private String month;
     private BigDecimal totalExpense;
-    private CompareExpenseDto compareExpense; // <--- 객체로 확장
-    private MainCategoryDto mainCategory;     // <--- 주 소비 카테고리 추가
 
     private List<MonthExpenseDto> sixMonthChart;
     private List<CategoryRatioDto> categoryChart;

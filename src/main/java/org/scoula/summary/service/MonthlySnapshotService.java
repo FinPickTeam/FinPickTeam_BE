@@ -7,4 +7,7 @@ import java.time.YearMonth;
 public interface MonthlySnapshotService {
     MonthlySnapshotDto getOrCompute(Long userId, YearMonth month);
     MonthlySnapshotDto recomputeAndUpsert(Long userId, YearMonth month);
+
+    int backfillFromEarliest(Long userId);
+    int backfillRange(Long userId, YearMonth from, YearMonth to);
 }
