@@ -124,7 +124,7 @@
         LIMIT 13
     </select>
 
-    <select id="getStockDivByStockCode" resultType="org.scoula.finance.dto.stock.StockCompareDataDto">
+    <select id="getStockDivByStockCode" resultType="java.lang.String">
         SELECT stock_div
         FROM stock_list
         WHERE stock_code = #{stockCode}
