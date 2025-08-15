@@ -46,20 +46,35 @@ public class ChallengeCoinRankServiceImpl implements ChallengeCoinRankService {
         //  - cumulativePoint: coin.monthly_cumulative_amount
         //  - challengeCount: user_challenge_summary.total_challenges
         //  - successRate: summary 기반 계산
+        // coin.monthly_cumulative_amount > 0 대상 조회
         List<ChallengeCoinRankResponseDTO> stats = rankMapper.selectCurrentMonthCoinStats();
 
-        // 내림차순 정렬: 포인트 → 참여수
+        // 정렬: 포인트 내림차순 → 참여수 내림차순 (부 비교기만 reversed)
         List<ChallengeCoinRankResponseDTO> sorted = stats.stream()
-                .sorted(Comparator
-                        .comparingLong(ChallengeCoinRankResponseDTO::getCumulativePoint).reversed()
-                        .thenComparingInt(ChallengeCoinRankResponseDTO::getChallengeCount).reversed())
+                .sorted(
+                        Comparator
+                                .comparingLong(ChallengeCoinRankResponseDTO::getCumulativePoint).reversed()
+                                .thenComparing(
+                                        Comparator.comparingInt(ChallengeCoinRankResponseDTO::getChallengeCount).reversed()
+                                )
+                )
                 .collect(Collectors.toList());
 
-        // 순위 매겨 upsert
-        for (int i = 0; i < sorted.size(); i++) {
-            ChallengeCoinRankResponseDTO r = sorted.get(i);
-            int rank = i + 1;
-            rankMapper.insertOrUpdateRank(r.getUserId(), month, r.getCumulativePoint(), r.getChallengeCount(), rank);
+        // 랭킹: DENSE_RANK (동점자는 같은 랭크)
+        int currentRank = 0;
+        Long lastCP = null;
+        Integer lastCC = null;
+
+        for (ChallengeCoinRankResponseDTO r : sorted) {
+            if (!Objects.equals(lastCP, r.getCumulativePoint()) ||
+                    !Objects.equals(lastCC, r.getChallengeCount())) {
+                currentRank++;                       // 새로운 값 조합 → 다음 랭크
+                lastCP = r.getCumulativePoint();
+                lastCC = r.getChallengeCount();
+            }
+            rankMapper.insertOrUpdateRank(
+                    r.getUserId(), month, r.getCumulativePoint(), r.getChallengeCount(), currentRank
+            );
         }
     }
 
