@@ -15,7 +15,6 @@ public interface CardTransactionMapper {
                                                @Param("from") String from,
                                                @Param("to") String to);
     void insert(CardTransaction tx);
-    void insertCardTransactions(List<CardTransaction> list);
     boolean existsByUserIdAndCardIdAndKey(
             @Param("userId") Long userId,
             @Param("cardId") Long cardId,
