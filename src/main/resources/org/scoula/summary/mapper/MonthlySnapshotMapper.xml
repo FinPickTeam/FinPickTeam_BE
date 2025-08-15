@@ -4,61 +4,83 @@
 
 <mapper namespace="org.scoula.summary.mapper.MonthlySnapshotMapper">
 
+    <!-- DTO 필드 매핑 -->
     <resultMap id="MonthlySnapshotMap" type="org.scoula.summary.dto.MonthlySnapshotDto">
-        <result property="userId" column="user_id"/>
-        <result property="month" column="month"/>
-        <result property="totalAsset" column="total_asset"/>
-        <result property="balance" column="balance"/>
-        <result property="totalAmount" column="total_amount"/>
-        <result property="computedAt" column="computed_at"/>
+        <result property="userId"      column="user_id"/>
+        <result property="month"       column="month"/>
+        <result property="totalAsset"  column="total_asset"/>
+        <result property="income"      column="income"/>
+        <result property="expense"     column="expense"/>
+        <result property="computedAt"  column="computed_at"/>
     </resultMap>
 
     <select id="findSnapshot" resultMap="MonthlySnapshotMap">
-        SELECT user_id, month, total_asset, income, total_amount, computed_at
+        <!-- total_amount를 DTO.expense로 매핑 -->
+        SELECT
+        user_id,
+        month,
+        total_asset,
+        income,
+        total_amount AS expense,
+        computed_at
         FROM monthly_snapshot
-        WHERE user_id = #{userId} AND month = #{month}
+        WHERE user_id = #{userId}
+        AND month   = #{month}
     </select>
 
     <insert id="upsertSnapshot">
         INSERT INTO monthly_snapshot(user_id, month, total_asset, income, total_amount, computed_at)
         VALUES(#{userId}, #{month}, #{totalAsset}, #{income}, #{expense}, NOW())
         ON DUPLICATE KEY UPDATE
-                             total_asset = VALUES(total_asset),
-                             income     = VALUES(income),
-                             total_amount= VALUES(total_amount),
-                             computed_at = NOW()
+                             total_asset  = VALUES(total_asset),
+                             income       = VALUES(income),
+                             total_amount = VALUES(total_amount),
+                             computed_at  = NOW()
     </insert>
 
-    <!-- 기준월 월말(23:59:59)까지 계좌별 마지막 거래 잔액 합 -->
     <select id="sumMonthEndAsset" resultType="java.math.BigDecimal">
-        SELECT COALESCE(SUM(t.balance),0)
-        FROM account_transaction t
-        JOIN (
-        SELECT account_id, MAX(date) AS max_date
-        FROM account_transaction
-        WHERE user_id = #{userId}
-        AND date &lt;= #{monthEnd}
-        GROUP BY account_id
-        ) x ON x.account_id = t.account_id AND x.max_date = t.date
-        WHERE t.user_id = #{userId}
-    </select>
-
-    <!-- 거래 테이블이 없거나 과거 데이터가 없을 때(현재월만) fallback -->
-    <select id="sumAccountsBalanceNow" resultType="java.math.BigDecimal">
-        SELECT COALESCE(SUM(a.balance),0)
+        SELECT COALESCE(SUM(t.balance), 0)
         FROM account a
-        WHERE a.user_id = #{userId} AND a.is_active = 1
+                 LEFT JOIN (
+            SELECT at1.account_id, at1.balance
+            FROM account_transaction at1
+                     JOIN (
+                SELECT account_id, MAX(date) AS max_date
+                FROM account_transaction
+                WHERE user_id = #{userId}
+                  AND date    &lt;= #{monthEnd, jdbcType=TIMESTAMP}
+                GROUP BY account_id
+            ) m ON m.account_id = at1.account_id AND m.max_date = at1.date
+            WHERE at1.user_id = #{userId}
+        ) t ON t.account_id = a.id
+        WHERE a.user_id = #{userId}
+          AND a.is_active = 1
     </select>
 
-    <!-- ledger 월간 INCOME/EXPENSE 합계 (항상 1행 보장) -->
+    <!-- 현재월 fallback: 계좌 현재 잔액 합 -->
+    <select id="sumAccountsBalanceNow" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(a.balance), 0)
+        FROM account a
+        WHERE a.user_id = #{userId}
+          AND a.is_active = 1
+    </select>
+
+    <!-- ledger 월간 INCOME/EXPENSE 합계 -->
     <select id="sumLedgerIncomeExpense" resultType="map">
         SELECT
-            COALESCE(SUM(CASE WHEN l.type='INCOME'  THEN l.amount END),0)  AS income,
-            COALESCE(SUM(CASE WHEN l.type='EXPENSE' THEN l.amount END),0)  AS expense
+            COALESCE(SUM(CASE WHEN l.type = 'INCOME'  THEN l.amount END), 0) AS income,
+            COALESCE(SUM(CASE WHEN l.type = 'EXPENSE' THEN l.amount END), 0) AS expense
         FROM (SELECT 1) one
                  LEFT JOIN ledger l
                            ON l.user_id = #{userId}
-                               AND DATE_FORMAT(l.date,'%Y-%m') = #{month}
+                               AND DATE_FORMAT(l.date, '%Y-%m') = #{month}
+    </select>
+
+    <!-- 백필 시작 월 -->
+    <select id="findEarliestLedgerYm" resultType="string">
+        SELECT DATE_FORMAT(MIN(l.date), '%Y-%m')
+        FROM ledger l
+        WHERE l.user_id = #{userId}
     </select>
 
 </mapper>

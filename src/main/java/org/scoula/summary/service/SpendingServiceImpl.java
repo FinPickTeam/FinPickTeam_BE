@@ -1,4 +1,3 @@
-
 package org.scoula.summary.service;
 
 import lombok.RequiredArgsConstructor;
@@ -19,8 +18,8 @@ public class SpendingServiceImpl implements SpendingService {
     @Override
     public BigDecimal getMonthlySpending(Long userId, YearMonth month) {
         LocalDateTime start = month.atDay(1).atStartOfDay();
-        LocalDateTime end = month.atEndOfMonth().atTime(LocalTime.MAX);
+        LocalDateTime end   = month.atEndOfMonth().atTime(LocalTime.MAX);
         BigDecimal v = cardTransactionMapper.sumMonthlySpending(userId, start, end);
-        return v != null ? v : BigDecimal.ZERO; // ✅ null-safe
+        return v != null ? v : BigDecimal.ZERO;
     }
 }

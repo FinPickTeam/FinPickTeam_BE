@@ -1,4 +1,3 @@
-
 package org.scoula.summary.service;
 
 import java.math.BigDecimal;

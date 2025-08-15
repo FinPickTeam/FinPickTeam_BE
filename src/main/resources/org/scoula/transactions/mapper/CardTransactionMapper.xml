@@ -39,27 +39,6 @@
                  )
     </insert>
 
-
-
-
-
-    <!-- ✔️ 카드 승인내역 대량 accountInsert -->
-    <insert id="insertCardTransactions" parameterType="list">
-        INSERT INTO card_transaction (
-        user_id, card_id, auth_number, sales_type, approved_at, payment_date,
-        amount, is_cancelled, cancel_amount, cancelled_at, merchant_name,
-        tpbcd, tpbcd_nm, installment_month, currency, foreign_amount, created_at
-        )
-        VALUES
-        <foreach collection="list" item="tx" separator=",">
-            (
-            #{tx.userId}, #{tx.cardId}, #{tx.authNumber}, #{tx.salesType}, #{tx.approvedAt}, #{tx.paymentDate},
-            #{tx.amount}, #{tx.isCancelled}, #{tx.cancelAmount}, #{tx.cancelledAt}, #{tx.merchantName},
-            #{tx.tpbcd}, #{tx.tpbcdNm}, #{tx.installmentMonth}, #{tx.currency}, #{tx.foreignAmount}, #{tx.createdAt}
-            )
-        </foreach>
-    </insert>
-
     <!-- 중복 체크 -->
     <select id="existsByUserIdAndCardIdAndKey" resultType="boolean">
         SELECT COUNT(1)

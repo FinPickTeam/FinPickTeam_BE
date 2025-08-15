@@ -27,7 +27,7 @@ public class AssetSummaryController {
     private final SpendingService spendingService;
     private final MonthlySnapshotService monthlySnapshotService;
 
-    // 총자산: 스냅샷 기반 (month 미지정 시 현재월)
+    /** 총자산: 스냅샷 기반 (month 미지정 시 현재월) */
     @GetMapping("/asset-total")
     public ResponseEntity<CommonResponseDTO<AssetTotalDto>> getAssetTotal(
             @AuthenticationPrincipal CustomUserDetails user,
@@ -36,13 +36,11 @@ public class AssetSummaryController {
         Long userId = user.getUserId();
         YearMonth target = (month != null) ? month : YearMonth.now();
         MonthlySnapshotDto snap = monthlySnapshotService.getOrCompute(userId, target);
-        BigDecimal totalAsset = snap.getTotalAsset();
-        return ResponseEntity.ok(
-                CommonResponseDTO.success("총 자산 조회 성공", new AssetTotalDto(totalAsset))
-        );
+        BigDecimal totalAsset = snap.getTotalAsset() == null ? BigDecimal.ZERO : snap.getTotalAsset();
+        return ResponseEntity.ok(CommonResponseDTO.success("총 자산 조회 성공", new AssetTotalDto(totalAsset)));
     }
 
-    // 월간 소비 합계: 기존과 동일(카드 거래 합) or 스냅샷 total_amount로 대체 가능
+    /** 월간 소비 합계: 카드 거래 합산(요구사항 유지) */
     @GetMapping("/monthly-spending")
     public ResponseEntity<CommonResponseDTO<MonthlySpendingDto>> getMonthlySpending(
             @AuthenticationPrincipal CustomUserDetails user,
@@ -50,30 +48,23 @@ public class AssetSummaryController {
     ) {
         Long userId = user.getUserId();
         YearMonth targetMonth = (month != null) ? month : YearMonth.now();
-        // 스냅샷의 total_amount(지출)를 신뢰하고 싶다면 아래 2줄로 교체:
-        // MonthlySnapshotDto snap = monthlySnapshotService.getOrCompute(userId, targetMonth);
-        // BigDecimal spent = snap.getTotalAmount();
-
         BigDecimal spent = spendingService.getMonthlySpending(userId, targetMonth);
-        return ResponseEntity.ok(
-                CommonResponseDTO.success("월간 소비 합계 조회 성공", new MonthlySpendingDto(spent))
-        );
+        return ResponseEntity.ok(CommonResponseDTO.success("월간 소비 합계 조회 성공", new MonthlySpendingDto(spent)));
     }
 
-    // 전월 대비 비교: 스냅샷 기반(기준월 파라미터 추가)
+    /** 전월 대비 비교: 기준월 파라미터 받아서 무조건 (기준월 vs 전월) */
     @GetMapping("/compare")
     public ResponseEntity<CommonResponseDTO<AssetSummaryCompareDto>> getAssetSummaryCompare(
             @AuthenticationPrincipal CustomUserDetails user,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth month
     ) {
         Long userId = user.getUserId();
-        // 기존 서비스는 현재월 기준이지만, 파라미터 받도록 서비스 내부를 유지/확장해도 됨.
-        // 여기서는 기존 메서드 재사용(현재월 기준) – 필요시 서비스 확장 권장.
-        AssetSummaryCompareDto dto = assetSummaryService.getAssetSummaryCompare(userId);
+        YearMonth target = (month != null) ? month : YearMonth.now();
+        AssetSummaryCompareDto dto = assetSummaryService.getAssetSummaryCompare(userId, target);
         return ResponseEntity.ok(CommonResponseDTO.success("자산/소비 증감 조회 성공", dto));
     }
 
-    // 개발용: 강제 재계산 & upsert
+    /** 강제 재계산(개발/운영툴용) */
     @PostMapping("/recompute")
     public ResponseEntity<CommonResponseDTO<MonthlySnapshotDto>> recompute(
             @AuthenticationPrincipal CustomUserDetails user,
@@ -82,5 +73,15 @@ public class AssetSummaryController {
         Long userId = user.getUserId();
         MonthlySnapshotDto snap = monthlySnapshotService.recomputeAndUpsert(userId, month);
         return ResponseEntity.ok(CommonResponseDTO.success("스냅샷 재계산/저장 완료", snap));
+    }
+
+    /** 제일 옛날 달부터 현재까지 전부 계산/업서트 (백필) */
+    @PostMapping("/backfill")
+    public ResponseEntity<CommonResponseDTO<Integer>> backfillAll(
+            @AuthenticationPrincipal CustomUserDetails user
+    ) {
+        Long userId = user.getUserId();
+        int count = monthlySnapshotService.backfillFromEarliest(userId);
+        return ResponseEntity.ok(CommonResponseDTO.success("스냅샷 백필 완료", count));
     }
 }

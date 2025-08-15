@@ -22,11 +22,6 @@ public class NhCardServiceImpl implements NhCardService {
 
     private final NHApiClient nhApiClient;
 
-    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
-    private static final int CARD_DUMMY_MONTHS_BACK = 6; // ✅ 1년 고정
-    private static final int CARD_MIN_DAILY = 1;
-    private static final int CARD_MAX_DAILY = 8;          // ✅ 생성량 완화
-
     @Override
     public List<NhCardTransactionResponseDto> callCardTransactionList(Long userId, String finCard, String from, String to) {
         List<NhCardTransactionResponseDto> all = new ArrayList<>();
@@ -64,6 +59,12 @@ public class NhCardServiceImpl implements NhCardService {
 
         return all.isEmpty() ? createCardDummyTransactions(userId, finCard, from, to) : all;
     }
+
+
+    private static final ZoneId KST = ZoneId.of("Asia/Seoul");
+    private static final int CARD_DUMMY_MONTHS_BACK = 6;
+    private static final int CARD_MIN_DAILY = 1;
+    private static final int CARD_MAX_DAILY = 8;          // ✅ 생성량 완화
 
 
     // ✅ 날짜별 고정 시드 → 기간 창이 달라도 동일 승인 생성(중복 방지)

@@ -22,21 +22,14 @@ public class AssetSummaryServiceImpl implements AssetSummaryService {
 
     @Override
     public BigDecimal getAccountTotal(Long userId) {
-        // 기존: accountMapper.sumBalanceByUserId(userId)
-        // 변경: 월 스냅샷의 total_asset 사용(기본 현재월)
         YearMonth now = YearMonth.now();
         MonthlySnapshotDto snap = monthlySnapshotService.getOrCompute(userId, now);
-        return snap.getTotalAsset() != null ? snap.getTotalAsset() : ZERO;
+        return nvl(snap.getTotalAsset());
     }
 
     @Override
     public BigDecimal getCardTotal(Long userId) {
-        // 기존 구현 유지(카드 월간 소비 = card_transaction 기반)
-        YearMonth currentMonth = YearMonth.now();
-        LocalDateTime start = currentMonth.atDay(1).atStartOfDay();
-        LocalDateTime end = currentMonth.atEndOfMonth().atTime(LocalTime.MAX);
-        BigDecimal spending = cardTransactionMapper.sumMonthlySpending(userId, start, end);
-        return spending != null ? spending : ZERO;
+        return nvl(getCardTotalForMonth(userId, YearMonth.now()));
     }
 
     @Override
@@ -45,29 +38,39 @@ public class AssetSummaryServiceImpl implements AssetSummaryService {
     }
 
     @Override
-    public AssetSummaryCompareDto getAssetSummaryCompare(Long userId) {
-        YearMonth now = YearMonth.now();
-        YearMonth prev = now.minusMonths(1);
+    public BigDecimal getAssetChange(Long userId, YearMonth month) {
+        MonthlySnapshotDto cur  = monthlySnapshotService.getOrCompute(userId, month);
+        MonthlySnapshotDto prev = monthlySnapshotService.getOrCompute(userId, month.minusMonths(1));
+        return nvl(cur.getTotalAsset()).subtract(nvl(prev.getTotalAsset()));
+    }
 
-        MonthlySnapshotDto curr = monthlySnapshotService.getOrCompute(userId, now);
+    @Override
+    public AssetSummaryCompareDto getAssetSummaryCompare(Long userId, YearMonth month) {
+        YearMonth prev = month.minusMonths(1);
+        MonthlySnapshotDto curSnap  = monthlySnapshotService.getOrCompute(userId, month);
         MonthlySnapshotDto prevSnap = monthlySnapshotService.getOrCompute(userId, prev);
 
-        BigDecimal currentAsset = nvl(curr.getTotalAsset());
+        BigDecimal currentAsset = nvl(curSnap.getTotalAsset());
         BigDecimal prevAsset    = nvl(prevSnap.getTotalAsset());
-        BigDecimal assetDiff    = currentAsset.subtract(prevAsset);
+        BigDecimal assetDiff    = currentAsset.subtract(prevAsset); // ← 누나가 말한 그 공식
 
-        // 카드 소비는 card_transaction 기준(요구사항 유지)
-        BigDecimal currentCardSpent = getCardTotal(userId);
-
-        LocalDateTime prevStart = prev.atDay(1).atStartOfDay();
-        LocalDateTime prevEnd   = prev.atEndOfMonth().atTime(LocalTime.MAX);
-        BigDecimal prevCardSpent = nvl(cardTransactionMapper.sumMonthlySpending(userId, prevStart, prevEnd));
-        BigDecimal spendingDiff  = currentCardSpent.subtract(prevCardSpent);
+        // 소비는 그대로 거래 합(원래 요구대로)
+        BigDecimal currentCardSpent = nvl(getCardTotalForMonth(userId, month));
+        BigDecimal prevCardSpent    = nvl(getCardTotalForMonth(userId, prev));
+        BigDecimal spendingDiff     = currentCardSpent.subtract(prevCardSpent);
 
         return new AssetSummaryCompareDto(
                 currentAsset, prevAsset, assetDiff,
                 currentCardSpent, prevCardSpent, spendingDiff
         );
+    }
+
+    /* ----- 내부 헬퍼 ----- */
+    private BigDecimal getCardTotalForMonth(Long userId, YearMonth month) {
+        LocalDateTime start = month.atDay(1).atStartOfDay();
+        LocalDateTime end   = month.atEndOfMonth().atTime(LocalTime.MAX);
+        BigDecimal v = cardTransactionMapper.sumMonthlySpending(userId, start, end);
+        return nvl(v);
     }
 
     private static BigDecimal nvl(BigDecimal v) { return v == null ? ZERO : v; }
