@@ -71,11 +71,11 @@
         INSERT INTO monthreport (
             user_id, month, total_expense, total_saving, saving_rate,
             compare_expense, compare_saving, category_chart, six_month_chart,
-            pattern_label, feedback, next_goal
+            feedback, next_goal, pattern_label
         ) VALUES (
-                     #{userId}, #{month}, #{totalExpense}, #{totalSaving}, #{savingRate},
-                     #{compareExpense}, #{compareSaving}, #{categoryChart}, #{sixMonthChart},
-                     #{patternLabel}, #{feedback}, #{nextGoal}
+                    #{userId}, #{month}, #{totalExpense}, #{totalSaving}, #{savingRate},
+                    #{compareExpense}, #{compareSaving}, #{categoryChart}, #{sixMonthChart},
+                    #{feedback}, #{nextGoalsJson}, #{patternLabel}
                  )
     </insert>
 

@@ -27,18 +27,21 @@ public interface MonthReportMapper {
                                                       @Param("currentMonth") String currentMonth,
                                                       @Param("limit") int limit);
 
-    void insertMonthReport(@Param("userId") Long userId,
-                           @Param("month") String month,
-                           @Param("totalExpense") BigDecimal totalExpense,
-                           @Param("totalSaving") BigDecimal totalSaving,
-                           @Param("savingRate") BigDecimal savingRate,
-                           @Param("compareExpense") BigDecimal compareExpense,
-                           @Param("compareSaving") BigDecimal compareSaving,
-                           @Param("categoryChart") String categoryChart,
-                           @Param("sixMonthChart") String sixMonthChart,
-                           @Param("patternLabel") String patternLabel,
-                           @Param("feedback") String feedback,
-                           @Param("nextGoal") String nextGoal);
+    void insertMonthReport(
+            @Param("userId") Long userId,
+            @Param("month") String month,
+            @Param("totalExpense") BigDecimal totalExpense,
+            @Param("totalSaving") BigDecimal totalSaving,
+            @Param("savingRate") BigDecimal savingRate,
+            @Param("compareExpense") BigDecimal compareExpense,
+            @Param("compareSaving") BigDecimal compareSaving,
+            @Param("categoryChart") String categoryChart,
+            @Param("sixMonthChart") String sixMonthChart,
+            @Param("feedback") String feedback,              // ← 한 줄 텍스트
+            @Param("nextGoalsJson") String nextGoalsJson,    // ← JSON
+            @Param("patternLabel") String patternLabel
+    );
+
 
 
     List<Long> findUsersWithCardTransactions();
