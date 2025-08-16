@@ -24,6 +24,8 @@ public class MonthReportDetailDto {
 
     private org.scoula.monthreport.dto.AverageComparisonDto averageComparison;
 
+    private org.scoula.monthreport.dto.PatternBannerDto patternBanner;
+
     private List<SpendingPatternDto> spendingPatterns; // 복수 패턴
     private String spendingPatternFeedback;
 

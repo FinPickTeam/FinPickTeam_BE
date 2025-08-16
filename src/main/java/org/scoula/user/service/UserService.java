@@ -18,4 +18,9 @@ public interface UserService {
     void resetPin(Long userId, PinRequestDTO pinRequestDTO);
     void pinLogin(String email, Long userId, PinRequestDTO pinRequestDTO);
     Boolean isPin(Long userId);
+
+    // 이메일 인증
+    void requestEmailVerification(String email);
+    void confirmEmailVerification(String email, String code);
+    boolean isEmailVerifiedNow(String email);
 }

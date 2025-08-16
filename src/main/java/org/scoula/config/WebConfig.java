@@ -1,6 +1,7 @@
 package org.scoula.config;
 
 import lombok.extern.log4j.Log4j2;
+import org.scoula.common.mail.MailConfig;
 import org.scoula.common.redis.RedisConfig;
 import org.scoula.security.config.SecurityConfig;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +16,7 @@ import javax.servlet.ServletRegistration;
 public class WebConfig extends AbstractAnnotationConfigDispatcherServletInitializer {
     @Override
     protected Class<?>[] getRootConfigClasses() {
-        return new Class[] { RootConfig.class, SecurityConfig.class, RedisConfig.class , SchedulerConfig.class};
+        return new Class[] { RootConfig.class, SecurityConfig.class, RedisConfig.class , SchedulerConfig.class, MailConfig.class};
     }
 
     @Override

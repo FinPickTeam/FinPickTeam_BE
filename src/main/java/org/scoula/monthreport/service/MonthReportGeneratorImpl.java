@@ -66,25 +66,26 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
                         Collectors.reducing(ZERO, LedgerTransaction::getAmount, BigDecimal::add)
                 ));
 
-        // DB/응답용: 한글 라벨 유지한 차트
+        // DB/응답용: 한글 라벨 유지한 차트 (transfer/없음/이체 제외)
         String categoryChart = buildCategoryChartJson(rawCategoryMap, totalExpense);
 
-        // 비교/분류용: KOSIS 키로 정규화
+        // 비교/분류용: KOSIS 키로 정규화 (transfer/없음/이체 제외)
         Map<String, BigDecimal> kosisCategoryMap = normalizeToKosisKeys(rawCategoryMap);
 
-        // 비중(%)
+        // ★ 비중(%) — 분모는 "분석 포함 카테고리 합계"로 사용해야 왜곡 없음
+        BigDecimal includedTotal = kosisCategoryMap.values().stream().reduce(ZERO, BigDecimal::add);
         Map<String, BigDecimal> ratioMap = kosisCategoryMap.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        e -> totalExpense.signum() == 0 ? ZERO :
+                        e -> includedTotal.signum() == 0 ? ZERO :
                                 e.getValue().multiply(BigDecimal.valueOf(100))
-                                        .divide(totalExpense, 1, RoundingMode.HALF_UP)
+                                        .divide(includedTotal, 1, RoundingMode.HALF_UP)
                 ));
 
         // 2) 6개월 차트
         String sixMonthChart = buildSixMonthChartJson(userId, month, totalExpense);
 
-        // 3) 분류 입력
+        // 3) 분류 입력(원장 기반)
         List<org.scoula.transactions.domain.Ledger> ledgersForEngine =
                 monthReportMapper.findExpenseLedgersForReport(userId, from, to);
 
@@ -117,9 +118,9 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
 
         // 5) 평균 비교
         AverageComparisonDto averageComparison =
-                buildAverageComparisonFromKosis(kosisCategoryMap, totalExpense);
+                buildAverageComparisonFromKosis(kosisCategoryMap, includedTotal); // ★ 포함합계를 분모로
 
-        // 6) 피드백(한 줄) — 패턴/증가율/평균비교/과다카테고리 반영
+        // 6) 피드백(한 줄)
         String baseFeedback = buildOneLineFeedback(overall, pc.getPatterns(), savingRate, incPct, averageComparison);
 
         // 7) 추천 컨텍스트
@@ -131,14 +132,12 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
         List<RecommendedChallengeDto> rec = ChallengeRecommenderEngine.recommend(ctx);
         String nextGoalsJson = toJson(rec);
 
-        // 8) 저장
+        // 8) 저장 (overall만 저장, 읽기에서 배너 조립)
         monthReportMapper.insertMonthReport(
                 userId, monthStr, totalExpense, totalSaving, savingRate,
                 compareExpense, compareSaving, categoryChart, sixMonthChart,
                 baseFeedback, nextGoalsJson, overall.name()
         );
-
-        // 평균 비교/서브패턴을 DB에 따로 저장하고 싶으면 컬럼 추가로 확장해.
     }
 
     private BigDecimal calcSavingRate(BigDecimal expense, BigDecimal saving) {
@@ -153,15 +152,14 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
                                         BigDecimal incPct,
                                         AverageComparisonDto avg) {
 
-        // 서브패턴에서 과다형들만 추림
         List<String> overLabels = new ArrayList<>();
-        for (SpendingPatternType t : sub) {
-            if (t.name().endsWith("_OVER")) {
-                overLabels.add(t.getLabel()); // 예: "간식 과다형"
-            }
-        }
-        String overPart = overLabels.isEmpty() ? ""
-                : " 특히 " + String.join(", ", overLabels) + " 비중이 높아요.";
+        for (SpendingPatternType t : sub) if (t.name().endsWith("_OVER")) overLabels.add(t.getLabel());
+        String overPart = overLabels.isEmpty() ? "" : " 특히 " + String.join(", ", overLabels) + " 비중이 높아요.";
+
+        List<String> timeFlags = new ArrayList<>();
+        if (sub.contains(SpendingPatternType.LATE_NIGHT)) timeFlags.add("심야 지출");
+        if (sub.contains(SpendingPatternType.WEEKEND))    timeFlags.add("주말 지출");
+        String timePart = timeFlags.isEmpty() ? "" : " 특히 " + String.join("·", timeFlags) + "이 높아요.";
 
         String avgPart = (avg != null && avg.getComment() != null && !avg.getComment().isBlank())
                 ? " " + avg.getComment()
@@ -181,9 +179,10 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
                 msg = "이번 달 지출 변동성이 커요." + overPart + avgPart;
             }
             default -> {
-                // STABLE이더라도 과다 카테고리 잡히면 그걸 말해줌
                 if (!overLabels.isEmpty()) {
-                    msg = overPart.substring(1); // "특히 ..." 앞 공백 제거
+                    msg = overPart.substring(1) + timePart; // “특히 …” 시작
+                } else if (!timeFlags.isEmpty()) {
+                    msg = timePart.substring(1);
                 } else {
                     msg = "이번 달 소비 패턴이 안정적이에요." + avgPart;
                 }
@@ -223,7 +222,12 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
     /** 카테고리 차트(JSON, 한글 라벨 유지) */
     private String buildCategoryChartJson(Map<String, BigDecimal> categoryMap, BigDecimal total) {
         Map<String, BigDecimal> filtered = categoryMap.entrySet().stream()
-                .filter(e -> !isUncategorized(e.getKey()))
+                .filter(e -> {
+                    String k = e.getKey();
+                    // ★ '이체' 한글 라벨도 확실히 제외
+                    if ("이체".equals(k)) return false;
+                    return !org.scoula.monthreport.util.CategoryMapper.excludeOnCharts(k);
+                })
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         BigDecimal filteredTotal = filtered.values().stream().reduce(ZERO, BigDecimal::add);
@@ -231,7 +235,7 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
         List<Map<String, Object>> chart = filtered.entrySet().stream()
                 .map(e -> {
                     Map<String, Object> obj = new LinkedHashMap<>();
-                    obj.put("category", e.getKey());
+                    obj.put("category", e.getKey());              // 한글 라벨 그대로 노출
                     obj.put("amount", e.getValue());
                     obj.put("ratio",
                             filteredTotal.compareTo(ZERO) == 0 ? ZERO :
@@ -246,9 +250,9 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
         return toJson(chart);
     }
 
-    /** 평균 비교: KOSIS 벤치마크와 비교 */
+    /** 평균 비교: KOSIS 벤치마크와 비교 (정규화 키 사용) */
     private AverageComparisonDto buildAverageComparisonFromKosis(
-            Map<String, BigDecimal> myCatTotalsKosis, BigDecimal myTotalExpense) {
+            Map<String, BigDecimal> myCatTotalsKosis, BigDecimal includedTotal) {
 
         Map<String, BigDecimal> bm = KosisFileBenchmarkProvider
                 .load("external/KOSISAverageMonthlyHousehold.json", "external/kosis_mapping.json");
@@ -257,7 +261,7 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
 
         BigDecimal avgTotal = bm.getOrDefault("total", ZERO);
         int totalDiff = avgTotal.signum() == 0 ? 0 :
-                myTotalExpense.subtract(avgTotal)
+                includedTotal.subtract(avgTotal)  // ★ 동일 기준 비교
                         .multiply(BigDecimal.valueOf(100))
                         .divide(avgTotal, 0, RoundingMode.HALF_UP).intValue();
 
@@ -280,11 +284,6 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
     }
 
     // ===== 유틸 =====
-    private static boolean isUncategorized(String name) {
-        if (name == null) return true;
-        String n = name.trim();
-        return n.isEmpty() || n.equalsIgnoreCase("uncategorized") || n.equals("카테고리 없음");
-    }
 
     private String toJson(Object obj) {
         try { return objectMapper.writeValueAsString(obj); }
@@ -294,20 +293,14 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
     private static String safe(String s) { return s == null ? "" : s; }
     private static BigDecimal nvl(BigDecimal v) { return v == null ? ZERO : v; }
 
-    /** 한글 라벨 → KOSIS 키 정규화 */
+    /** 한글 라벨 → KOSIS 키 정규화(생성용) */
     private Map<String, BigDecimal> normalizeToKosisKeys(Map<String, BigDecimal> raw) {
         Map<String, BigDecimal> out = new LinkedHashMap<>();
         raw.forEach((k, v) -> {
-            String kk = (k == null ? "" : k.trim());
-            String key;
-            if (kk.contains("식비")) key = "food";
-            else if (kk.contains("카페") || kk.contains("간식")) key = "cafe";
-            else if (kk.contains("쇼핑") || kk.contains("미용")) key = "shopping";
-            else if (kk.contains("편의점") || kk.contains("마트") || kk.contains("잡화")) key = "mart";
-            else if (kk.contains("주거") || kk.contains("통신") || kk.contains("보험")) key = "house";
-            else if (kk.contains("교통") || kk.contains("자동차")) key = "transport";
-            else if (kk.contains("구독")) key = "subscription";
-            else key = "etc";
+            // ★ 한글 '이체'도 제외
+            if ("이체".equals(k)) return;
+            if (org.scoula.monthreport.util.CategoryMapper.excludeOnAnalysis(k)) return;
+            String key = org.scoula.monthreport.util.CategoryMapper.fromAny(k);
             out.merge(key, v, BigDecimal::add);
         });
         return out;
@@ -315,7 +308,6 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
 
     /** 최근 3개월(현월 제외) 평균/표준편차 */
     private Stat recent3Stats(Long userId, YearMonth currentMonth) {
-        // 최근 4개월(현월 포함) 가져와서 현월 제외 3개만 사용
         List<MonthReport> recentIncl = monthReportMapper.findRecentMonthReportsInclusive(
                 userId, currentMonth.toString(), 4
         );

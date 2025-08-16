@@ -53,4 +53,13 @@
         SELECT EXISTS (SELECT 1 FROM user WHERE id = #{userId} AND auth_pw IS NOT NULL);
     </select>
 
+    <update id="updateIsVerifiedByEmail">
+        UPDATE user SET is_verified = #{isVerified}
+        WHERE email = #{email}
+    </update>
+
+    <select id="selectIsVerifiedByEmail" resultType="java.lang.Boolean">
+        SELECT is_verified FROM user WHERE email = #{email}
+    </select>
+
 </mapper>
