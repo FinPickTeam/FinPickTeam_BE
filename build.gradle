@@ -18,8 +18,11 @@ ext {
   log4j2Version = '2.24.1'
 }
 
-sourceCompatibility = '1.17'
-targetCompatibility = '1.17'
+java {
+  // Java 17 표기 수정
+  sourceCompatibility = JavaVersion.VERSION_17
+  targetCompatibility = JavaVersion.VERSION_17
+}
 
 tasks.withType(JavaCompile) {
   options.encoding = 'UTF-8'
@@ -36,6 +39,14 @@ dependencies {
     exclude group: 'commons-logging', module: 'commons-logging'
   }
   implementation "org.springframework:spring-webmvc:${springVersion}"
+
+  // JavaMailSender 지원 (메일 기능)
+  implementation "org.springframework:spring-context-support:${springVersion}"
+
+  // Javax Mail & Activation (Spring 5.x는 javax.* 라인 사용)
+  implementation 'com.sun.mail:javax.mail:1.6.2'
+  implementation 'com.sun.activation:javax.activation:1.2.0'
+
   implementation 'javax.inject:javax.inject:1'
 
   // DB
@@ -53,7 +64,8 @@ dependencies {
   implementation 'org.aspectj:aspectjweaver:1.9.20'
 
   // Servlet/JSP
-  implementation 'javax.servlet:javax.servlet-api:4.0.1'
+  // 컨테이너 제공 라이브러리이므로 compileOnly 권장
+  compileOnly 'javax.servlet:javax.servlet-api:4.0.1'
   compileOnly 'javax.servlet.jsp:jsp-api:2.1'
   implementation 'javax.servlet:jstl:1.2'
 
@@ -63,12 +75,13 @@ dependencies {
   implementation "org.apache.logging.log4j:log4j-slf4j-impl:${log4j2Version}"
   implementation 'org.bgee.log4jdbc-log4j2:log4jdbc-log4j2-jdbc4:1.16'
 
-  //json
+  // JSON (한 번만)
   implementation 'org.json:json:20240303'
 
   // 기타
   implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
   implementation 'xerces:xercesImpl:2.12.2'
+  // jackson-databind는 한 버전만 유지 (중복 제거)
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.4'
 
   // Lombok
@@ -104,8 +117,7 @@ dependencies {
   implementation 'org.springframework.data:spring-data-redis:2.7.18'
   implementation 'io.lettuce:lettuce-core:6.1.10.RELEASE'
 
-
-  // commons-te
+  // commons-text
   implementation 'org.apache.commons:commons-text:1.10.0'
 
   // openCSV
@@ -114,19 +126,14 @@ dependencies {
   //Swagger UI WebJar 리소스를 수동으로 추가
   add("swaggerUI", "org.webjars:swagger-ui:3.52.5")
 
-  // Jackson이 Java 8 날짜/시간 API를 인식하도록
-  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+  // Jackson이 Java 8 날짜/시간 API를 인식하도록 (중복 제거했으면 생략 가능)
+  // implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 
-  // GPT 활용 관련 okhttp3 라이브러리 추가
+  // GPT 활용 관련 okhttp3 라이브러리 추가 (org.json은 위에서 이미 추가되어 있음)
   implementation 'com.squareup.okhttp3:okhttp:4.12.0'
-  implementation 'org.json:json:20240303'
 
   //PDF 생성용 HTML → PDF 변환기
   implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'
-
-  // 내부 API 호출
-  implementation 'com.fasterxml.jackson.core:jackson-databind'
-
 }
 
 // 정적 리소스 복사 작업 (최신 Gradle 스타일)

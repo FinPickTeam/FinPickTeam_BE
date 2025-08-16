@@ -138,10 +138,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // 인증 불필요 경로
                 .antMatchers(HttpMethod.POST, "/api/user/signup").permitAll()
                 .antMatchers(HttpMethod.GET,  "/api/user/email-check").permitAll()
+
                 .antMatchers(HttpMethod.POST, "/api/user/password-reset").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/auth/test-login").permitAll()
                 .antMatchers(HttpMethod.POST, "/api/auth/refresh").permitAll()
+                .antMatchers("/api/user/email/verify/**").permitAll()
 
                 // 스케줄러 테스트/조회 등
                 .antMatchers(HttpMethod.GET, "/api/challenge/scheduler/**").permitAll()

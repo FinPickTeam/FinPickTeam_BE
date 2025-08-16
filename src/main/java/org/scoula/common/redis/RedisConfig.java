@@ -3,6 +3,7 @@ package org.scoula.common.redis;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.redis.connection.RedisPassword;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
@@ -42,7 +43,14 @@ public class RedisConfig {
      * 문자열 기반 RedisTemplate
      */
     @Bean
+    @Primary
     public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory factory) {
+        return new StringRedisTemplate(factory);
+    }
+
+    // 선택: 블랙리스트 용 별칭 템플릿(같은 팩토리)
+    @Bean(name = "blackListRedisTemplate")
+    public StringRedisTemplate blackListRedisTemplate(RedisConnectionFactory factory) {
         return new StringRedisTemplate(factory);
     }
 

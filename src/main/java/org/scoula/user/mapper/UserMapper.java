@@ -18,4 +18,8 @@ public interface UserMapper {
 
     void updatePin(User user);
     String getPin(@Param("userId") Long userId);
+
+    // 이메일 인증
+    void updateIsVerifiedByEmail(@Param("email") String email, @Param("isVerified") boolean isVerified);
+    Boolean selectIsVerifiedByEmail(@Param("email") String email);
 }
