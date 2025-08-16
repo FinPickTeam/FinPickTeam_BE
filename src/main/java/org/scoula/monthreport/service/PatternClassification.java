@@ -9,6 +9,6 @@ import java.util.Set;
 @Getter
 @AllArgsConstructor
 public class PatternClassification {
-    private final SpendingPatternType overall;     // FRUGAL/STABLE/OVERSPENDER/VOLATILE
-    private final Set<SpendingPatternType> patterns; // 행동/카테고리 패턴 집합
+    private final SpendingPatternType overall;          // FRUGAL/STABLE/OVERSPENDER/VOLATILE
+    private final Set<SpendingPatternType> patterns;    // IMPULSE / *_OVER 등 서브 패턴
 }
