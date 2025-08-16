@@ -6,6 +6,7 @@ import org.scoula.agree.mapper.AgreeMapper;
 import org.scoula.avatar.mapper.AvatarMapper;
 import org.scoula.avatar.service.AvatarService;
 import org.scoula.coin.mapper.CoinMapper;
+import org.scoula.common.mail.MailService;
 import org.scoula.common.redis.RedisService;
 import org.scoula.user.domain.User;
 import org.scoula.user.domain.UserStatus;
@@ -15,6 +16,10 @@ import org.scoula.user.enums.UserLevel;
 import org.scoula.user.exception.auth.*;
 import org.scoula.user.exception.signup.DuplicateEmailException;
 import org.scoula.user.exception.signup.NicknameGenerationException;
+import org.scoula.user.exception.verify.VerificationCodeExpiredException;
+import org.scoula.user.exception.verify.VerificationCodeMismatchException;
+import org.scoula.user.exception.verify.VerificationRateLimitException;
+import org.scoula.user.exception.verify.VerificationTooManyAttemptsException;
 import org.scoula.user.mapper.UserMapper;
 import org.scoula.security.util.JwtUtil;
 import org.scoula.user.mapper.UserStatusMapper;
@@ -45,11 +50,16 @@ public class UserServiceImpl implements UserService {
     private final NicknameGenerator nicknameGenerator;
     private final AvatarMapper avatarMapper;
     private final AgreeMapper agreeMapper;
+    private final AvatarService avatarService;
+    private final MailService mailService;
 
     private final Logger log = LoggerFactory.getLogger(UserService.class);
-    private final AvatarService avatarService;
 
     private static final int WELCOME_BONUS = 100; // ★ 축하금
+
+    // 이메일 인증 정책
+    private static final int VERIFY_MAX_TRIES = 5;
+    private static final int DAILY_LIMIT = 10;
 
     // mysql 연결 테스트용
     public User getTestUser() {
@@ -60,33 +70,113 @@ public class UserServiceImpl implements UserService {
         return userMapper.findByEmail(email) != null;
     }
 
+    // ===== 이메일 인증 요청 =====
+    @Override
+    public void requestEmailVerification(String email) {
+        // 이미 가입된 메일 검사
+        if (userMapper.findByEmail(email) != null) {
+            throw new DuplicateEmailException();
+        }
+        // DB에서 이미 인증된 메일일 경우(기존 가입 이력) - 선택적으로 제한
+        Boolean dbVerified = userMapper.selectIsVerifiedByEmail(email);
+        if (Boolean.TRUE.equals(dbVerified)) {
+            // 필요시 별도 예외로 막아도 되고, 그냥 코드 발송 허용도 가능
+            // throw new EmailAlreadyVerifiedException();
+        }
+
+        // 일일 전송 제한
+        long dailyCnt = redisService.incrDailyAndSetExpireIfNew(email);
+        if (dailyCnt > DAILY_LIMIT) {
+            throw new VerificationRateLimitException();
+        }
+
+        // 재전송 쿨타임
+        if (redisService.hasEvCooldown(email)) {
+            throw new VerificationRateLimitException();
+        }
+
+        // 6자리 코드 생성
+        String code = org.apache.commons.lang3.RandomStringUtils.randomNumeric(6);
+
+        // Redis 저장(코드/tries 초기화)
+        redisService.saveEvCode(email, code);
+        // 쿨타임 60초
+        redisService.setEvCooldown(email);
+
+        // 메일 발송
+        mailService.sendVerificationCode(email, code);
+    }
+
+    // ===== 인증 코드 확인 =====
+    @Override
+    public void confirmEmailVerification(String email, String code) {
+        String saved = redisService.getEvCode(email);
+        if (saved == null) {
+            throw new VerificationCodeExpiredException();
+        }
+
+        int tries = redisService.getEvTries(email);
+        if (tries >= VERIFY_MAX_TRIES) {
+            throw new VerificationTooManyAttemptsException();
+        }
+
+        if (!saved.equals(code)) {
+            redisService.incEvTries(email);
+            throw new VerificationCodeMismatchException();
+        }
+
+        // 성공: 가입 허용 플래그(30분) 세팅
+        redisService.setEvOk(email);
+
+        // (선택) 만약 이미 유저가 DB에 있다면 is_verified=true로 올려도 됨
+        // userMapper.updateIsVerifiedByEmail(email, true);
+
+        // 사용한 코드/시도정보 정리
+        redisService.clearEvCodeState(email);
+    }
+
+    // ===== 현재 인증여부 판단 (가입 전/후 공용) =====
+    @Override
+    public boolean isEmailVerifiedNow(String email) {
+        if (redisService.hasEvOk(email)) return true;
+        Boolean v = userMapper.selectIsVerifiedByEmail(email);
+        return Boolean.TRUE.equals(v);
+    }
+
+    // ===== 회원가입 시 인증검사 + is_verified=true 저장 =====
+    @Override
     public UserResponseDTO registerUser(UserJoinRequestDTO req) {
         log.info("🔒 회원가입 시도: {}", req.getEmail() + " , " + req.getPassword());
 
         // 이메일 중복 검사
         if (userMapper.findByEmail(req.getEmail()) != null) {
-            throw new DuplicateEmailException();  // 이 부분 추가
+            throw new DuplicateEmailException();
+        }
+
+        // 인증 완료 플래그 확인(필수)
+        if (!isEmailVerifiedNow(req.getEmail())) {
+            throw new org.scoula.common.exception.BaseException("이메일 인증이 완료되지 않았습니다.", 400);
         }
 
         User user = req.toUser(); // DTO → 도메인 객체
         user.setPassword(encoder.encode(user.getPassword())); // 비밀번호 암호화
 
-        // 기본값 설정 (선택 사항)
+        // 기본값 설정
+        user.setIsVerified(true); // 가입 시 true로 저장
         user.setIsActive(true);
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
-        user.setIsVerified(false); // default 값 (인증 미완료)
         user.setLastPwChangeAt(LocalDateTime.now());
-        user.setRole(org.scoula.user.enums.UserRole.USER); // ← 기본 USER
+        user.setRole(org.scoula.user.enums.UserRole.USER);
 
+        // 저장
         try {
-            userMapper.save(user); // 1. 유저 저장
+            userMapper.save(user);
         } catch (DuplicateKeyException e) {
-            log.warn("❌ DB 이메일 중복 에러 발생: {}", user.getEmail());
             throw new DuplicateEmailException();
         }
 
-        // 닉네임 생성 (중복 피해서 생성)
+        // (이하 기존 초기화 로직 그대로)
         String nickname;
         do {
             nickname = nicknameGenerator.generateNickname();
@@ -119,10 +209,13 @@ public class UserServiceImpl implements UserService {
         avatarMapper.insertClothe(user.getId(), 1L);
 
         // 7. 옷장에 상태 바꿔주기
-        avatarMapper.updateClotheByItemId(user.getId(),true,1L);
+        avatarMapper.updateClotheByItemId(user.getId(), true, 1L);
 
         // 8. 동의정보 초기화
         agreeMapper.insert(user.getId());
+
+        // 가입 완료 후 ok 플래그 제거(선택)
+        redisService.delete(redisService.evOkKey(req.getEmail()));
 
         return UserResponseDTO.builder()
                 .id(user.getId())
@@ -133,6 +226,7 @@ public class UserServiceImpl implements UserService {
                 .level(status.getLevel())
                 .build();
     }
+
 
     public TokenResponseDTO login(UserLoginRequestDTO req) {
         log.info("🔒 로그인 시도: {}", req.getEmail());

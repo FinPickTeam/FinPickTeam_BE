@@ -93,4 +93,24 @@ public class UserController {
     }
 
 
+    // 이메일 인증
+    @PostMapping("/email/verify/request")
+    public CommonResponseDTO<Void> emailVerifyRequest(@RequestBody EmailVerificationRequestDTO dto) {
+        userService.requestEmailVerification(dto.getEmail());
+        return CommonResponseDTO.success("인증 코드가 발송되었습니다.");
+    }
+
+    @PostMapping("/email/verify/confirm")
+    public CommonResponseDTO<Void> emailVerifyConfirm(@RequestBody EmailCodeConfirmDTO dto) {
+        userService.confirmEmailVerification(dto.getEmail(), dto.getCode());
+        return CommonResponseDTO.success("이메일 인증이 완료되었습니다.");
+    }
+
+    @GetMapping("/email/verify/status")
+    public CommonResponseDTO<Boolean> emailVerifyStatus(@RequestParam String email) {
+        return CommonResponseDTO.success("확인 완료", userService.isEmailVerifiedNow(email));
+    }
+
+
+
 }

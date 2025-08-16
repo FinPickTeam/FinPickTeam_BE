@@ -79,6 +79,7 @@ import javax.sql.DataSource;
         "org.scoula.summary.service",
         "org.scoula.coin.service",
         "org.scoula.ars.service",
+        "org.scoula.common.mail",
         })
 @EnableTransactionManagement
 @EnableAspectJAutoProxy
