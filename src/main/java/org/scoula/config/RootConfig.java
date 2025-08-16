@@ -40,7 +40,8 @@ import javax.sql.DataSource;
         "org.scoula.coin.mapper",
         "org.scoula.agree.mapper",
         "org.scoula.challenge.rank.mapper",
-        "org.scoula.summary.mapper"
+        "org.scoula.summary.mapper",
+        "org.scoula.ars.mapper",
 })
 @ComponentScan(basePackages = {
         "org.scoula.security",
@@ -76,7 +77,8 @@ import javax.sql.DataSource;
         "org.scoula.challenge.rank.service",
         "org.scoula.common.aop",
         "org.scoula.summary.service",
-        "org.scoula.coin.service"
+        "org.scoula.coin.service",
+        "org.scoula.ars.service",
         })
 @EnableTransactionManagement
 @EnableAspectJAutoProxy
