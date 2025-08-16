@@ -34,9 +34,11 @@ public interface AvatarMapper {
     void insertClothe(@Param("userId") Long userId,@Param("itemId") Long itemId);
 
     //clothe테이블의 is_wearing 한번에 갱신
-    void updateClothe(@Param("userId") Long userId, @Param("isWearing") Boolean isWearing, @Param("itemId") Long[] items);
+    void updateClothe(@Param("userId") Long userId, @Param("isWearing") Boolean isWearing, @Param("items") Long[] items);
 
     //clothe테이블의 is_wearing, 아이템 하나만 갱신
     void updateClotheByItemId(@Param("userId") Long userId, @Param("isWearing") Boolean isWearing, @Param("itemId") Long item);
 
+
+    void unequipAllItems(@Param("userId") Long userId);
 }
