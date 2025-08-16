@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.scoula.ars.mapper.ArsMapper">
+    <update id="update">
+        UPDATE user SET user_name=#{vo.userName}, phone_num=#{vo.phoneNum}, birthday=#{vo.birthday} WHERE id=#{userId}
+    </update>
+
+    <select id="findById" resultType="org.scoula.ars.domain.ArsVO">
+        SELECT user_name, phone_num, birthday from user where id=#{userId}
+    </select>
+</mapper>

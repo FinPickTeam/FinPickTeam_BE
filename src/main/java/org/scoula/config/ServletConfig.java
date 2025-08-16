@@ -43,7 +43,8 @@ import java.util.List;
         "org.scoula.agree.controller",
         "org.scoula.challenge.rank.controller",
         "org.scoula.summary.controller",
-        "org.scoula.coin.controller"
+        "org.scoula.coin.controller",
+        "org.scoula.ars.controller",
 })
 public class ServletConfig implements WebMvcConfigurer {
 
