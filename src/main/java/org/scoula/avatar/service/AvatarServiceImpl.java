@@ -71,23 +71,33 @@ public class AvatarServiceImpl implements AvatarService {
 
         // 현재 아바타 착장들을 옷장에서 '착용하지 않음(is_wearing=false)'으로 변경
         mapper.updateClothe(userId, false, curItems);
+        mapper.unequipAllItems(userId);
 
         //착용하려는 아이템들을 타입별로 분류
         Map<String,Long> itemsByType=new HashMap<>();
         for (Long item : items) {
-            String itemType = mapper.getItemType(item);
-            itemsByType.put(itemType, item);
+            if (item != null) { // 혹시 모를 null 아이템 방어
+                String itemType = mapper.getItemType(item);
+                if (itemType != null) { // 타입이 없는 아이템 방어
+                    itemsByType.put(itemType, item);
+                }
+            }
         }
 
-        //각 타입에 해당하는 아이템코드들을 avatarVO에 삽입
+        // 각 타입에 해당하는 아이템코드들을 avatarVO에 삽입
         AvatarVO avatarVO = new AvatarVO();
         avatarVO.setUserId(userId);
-        avatarVO.setLevelId(itemsByType.get("level"));
-        avatarVO.setTopId(itemsByType.get("top"));
-        avatarVO.setShoesId(itemsByType.get("shoes"));
-        avatarVO.setAccessoryId(itemsByType.get("accessory"));
-        avatarVO.setGiftCardId(itemsByType.get("giftCard"));
-        log.info(avatarVO);
+
+        // level키가 없으면, 기존 curAvatarVO의 levelId를 사용
+        avatarVO.setLevelId(itemsByType.getOrDefault("level", curAvatarVO.getLevelId()));
+
+        // 3. AvatarVO를 생성하고, 받은 아이템들로만 값을 설정 (나머지는 null)
+        avatarVO.setTopId(itemsByType.getOrDefault("top", null));
+        avatarVO.setShoesId(itemsByType.getOrDefault("shoes", null));
+        avatarVO.setAccessoryId(itemsByType.getOrDefault("accessory", null));
+        avatarVO.setGiftCardId(itemsByType.getOrDefault("giftCard", null));
+        log.info("새롭게 착용할 아바타 정보: " + avatarVO);
+
 
         //아바타 착장 및 옷장 착용여부 수정
         mapper.updateAvatar(avatarVO);

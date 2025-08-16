@@ -20,4 +20,6 @@ public interface AvatarService{
     int getCoin(Long userId);
 
     void updateAvatarByItemId(Long userId, Long itemId);
+
+
 }
