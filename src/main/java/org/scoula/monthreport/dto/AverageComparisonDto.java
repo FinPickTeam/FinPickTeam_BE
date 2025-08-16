@@ -2,8 +2,11 @@ package org.scoula.monthreport.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Data;
+
 import java.util.Map;
 
+@Data
 @ApiModel("AverageComparison")
 public class AverageComparisonDto {
     @ApiModelProperty("전체 소비 증감률(또래 평균 대비, %)")

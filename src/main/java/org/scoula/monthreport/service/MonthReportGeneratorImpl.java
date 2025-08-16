@@ -45,8 +45,6 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
             String sixMonthChart = buildSixMonthChartJson(userId, month, totalExpense);
             String feedback = "소비 데이터가 부족합니다.";
             String nextGoalsJson = toJson(ChallengeRecommenderEngine.recommend());
-
-            // 🔹 데이터 없으면 STABLE 저장
             String patternLabel = SpendingPatternType.STABLE.name();
 
             monthReportMapper.insertMonthReport(
@@ -57,83 +55,144 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
             return;
         }
 
-        // 3) 합계/카테고리 집계
+        // 1) 합계/카테고리 집계(원본 라벨)
         BigDecimal totalExpense = txList.stream()
                 .map(LedgerTransaction::getAmount)
                 .reduce(ZERO, BigDecimal::add);
 
-        Map<String, BigDecimal> categoryMap = txList.stream()
+        Map<String, BigDecimal> rawCategoryMap = txList.stream()
                 .collect(Collectors.groupingBy(
                         tx -> safe(tx.getCategoryName()),
                         Collectors.reducing(ZERO, LedgerTransaction::getAmount, BigDecimal::add)
                 ));
 
-        // 비중(%), uncategorized 제외
-        Map<String, BigDecimal> ratioMap = categoryMap.entrySet().stream()
-                .filter(e -> !isUncategorized(e.getKey()))
+        // DB/응답용: 한글 라벨 유지한 차트
+        String categoryChart = buildCategoryChartJson(rawCategoryMap, totalExpense);
+
+        // 비교/분류용: KOSIS 키로 정규화
+        Map<String, BigDecimal> kosisCategoryMap = normalizeToKosisKeys(rawCategoryMap);
+
+        // 비중(%)
+        Map<String, BigDecimal> ratioMap = kosisCategoryMap.entrySet().stream()
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
-                        e -> totalExpense.signum()==0 ? ZERO :
+                        e -> totalExpense.signum() == 0 ? ZERO :
                                 e.getValue().multiply(BigDecimal.valueOf(100))
                                         .divide(totalExpense, 1, RoundingMode.HALF_UP)
                 ));
 
-        String categoryChart = buildCategoryChartJson(categoryMap, totalExpense);
-
-        // 4) 6개월 차트
+        // 2) 6개월 차트
         String sixMonthChart = buildSixMonthChartJson(userId, month, totalExpense);
 
-        // 4-1) 거시라벨 + 서브패턴
+        // 3) 분류 입력
         List<org.scoula.transactions.domain.Ledger> ledgersForEngine =
                 monthReportMapper.findExpenseLedgersForReport(userId, from, to);
 
-        BigDecimal totalSaving = new BigDecimal("300000"); // TODO: 동적 계산
+        // TODO: 실제 적금/저축 합산으로 교체
+        BigDecimal totalSaving = new BigDecimal("300000");
         BigDecimal savingRate = calcSavingRate(totalExpense, totalSaving);
 
-        // 전월/3개월 평균/변동성은 필요 시 Mapper로 보강 — 일단 0으로
-        BigDecimal last3moAvgExpense = ZERO;
-        BigDecimal volatility = ZERO;
+        // 최근 3개월(현월 제외) 평균/표준편차
+        Stat recent3 = recent3Stats(userId, month);
+        BigDecimal last3moAvgExpense = recent3.avg;
+        BigDecimal volatility = recent3.stddev;
 
         PatternClassification pc = new PatternClassifier()
                 .classify(ledgersForEngine, savingRate, last3moAvgExpense, totalExpense, volatility);
         SpendingPatternType overall = pc.getOverall();
 
-        // 5) 전월 비교치
+        // 증가율(%) 계산
+        BigDecimal incPct = ZERO;
+        if (last3moAvgExpense != null && last3moAvgExpense.signum() > 0) {
+            incPct = totalExpense.subtract(last3moAvgExpense)
+                    .multiply(BigDecimal.valueOf(100))
+                    .divide(last3moAvgExpense, 0, RoundingMode.HALF_UP);
+        }
+
+        // 4) 전월 비교치
         YearMonth prevMonth = month.minusMonths(1);
         MonthReport prev = monthReportMapper.findMonthReport(userId, prevMonth.toString());
         BigDecimal compareExpense = (prev != null) ? totalExpense.subtract(nvl(prev.getTotalExpense())) : ZERO;
         BigDecimal compareSaving = (prev != null) ? totalSaving.subtract(nvl(prev.getTotalSaving())) : ZERO;
 
-        // 5-1) 벤치마크 비교(파일 기반, 39세이하가구 최신)
-        AverageComparisonDto averageComparison = buildAverageComparisonFromKosis(categoryMap, totalExpense);
+        // 5) 평균 비교
+        AverageComparisonDto averageComparison =
+                buildAverageComparisonFromKosis(kosisCategoryMap, totalExpense);
 
-        // 6) 피드백 + 추천
-        String baseFeedback = generateFeedback(categoryMap, totalExpense);
+        // 6) 피드백(한 줄) — 패턴/증가율/평균비교/과다카테고리 반영
+        String baseFeedback = buildOneLineFeedback(overall, pc.getPatterns(), savingRate, incPct, averageComparison);
 
+        // 7) 추천 컨텍스트
         RecommendationContext ctx = new RecommendationContext();
         ctx.overall = overall;
         ctx.patterns = pc.getPatterns();
         ctx.categoryRatios = ratioMap;
         ctx.averageDiffByCat = averageComparison.byCategory;
-
         List<RecommendedChallengeDto> rec = ChallengeRecommenderEngine.recommend(ctx);
         String nextGoalsJson = toJson(rec);
 
-        // 7) 저장 (🔹 pattern_label=overall)
+        // 8) 저장
         monthReportMapper.insertMonthReport(
                 userId, monthStr, totalExpense, totalSaving, savingRate,
                 compareExpense, compareSaving, categoryChart, sixMonthChart,
                 baseFeedback, nextGoalsJson, overall.name()
         );
+
+        // 평균 비교/서브패턴을 DB에 따로 저장하고 싶으면 컬럼 추가로 확장해.
     }
 
     private BigDecimal calcSavingRate(BigDecimal expense, BigDecimal saving) {
         BigDecimal denom = expense.add(saving);
-        return denom.compareTo(ZERO)==0 ? ZERO :
-                saving.divide(denom, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
+        return denom.compareTo(ZERO) == 0 ? ZERO
+                : saving.divide(denom, 4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
     }
 
-    /** 6개월 차트: currentMonth 기준 과거 5개월 + 현월(합계가 0이어도 포함) */
+    private String buildOneLineFeedback(SpendingPatternType overall,
+                                        Set<SpendingPatternType> sub,
+                                        BigDecimal savingRate,
+                                        BigDecimal incPct,
+                                        AverageComparisonDto avg) {
+
+        // 서브패턴에서 과다형들만 추림
+        List<String> overLabels = new ArrayList<>();
+        for (SpendingPatternType t : sub) {
+            if (t.name().endsWith("_OVER")) {
+                overLabels.add(t.getLabel()); // 예: "간식 과다형"
+            }
+        }
+        String overPart = overLabels.isEmpty() ? ""
+                : " 특히 " + String.join(", ", overLabels) + " 비중이 높아요.";
+
+        String avgPart = (avg != null && avg.getComment() != null && !avg.getComment().isBlank())
+                ? " " + avg.getComment()
+                : "";
+
+        String msg;
+        switch (overall) {
+            case FRUGAL -> {
+                String sr = savingRate == null ? "0" : savingRate.setScale(0, RoundingMode.HALF_UP).toPlainString();
+                msg = "저축률 " + sr + "%로 절약형이에요." + avgPart;
+            }
+            case OVERSPENDER -> {
+                String inc = incPct == null ? "0" : incPct.toPlainString();
+                msg = "최근 3개월 평균 대비 +" + inc + "% 지출했어요." + overPart + avgPart;
+            }
+            case VOLATILE -> {
+                msg = "이번 달 지출 변동성이 커요." + overPart + avgPart;
+            }
+            default -> {
+                // STABLE이더라도 과다 카테고리 잡히면 그걸 말해줌
+                if (!overLabels.isEmpty()) {
+                    msg = overPart.substring(1); // "특히 ..." 앞 공백 제거
+                } else {
+                    msg = "이번 달 소비 패턴이 안정적이에요." + avgPart;
+                }
+            }
+        }
+        return msg.trim();
+    }
+
+    /** 6개월 차트 JSON */
     private String buildSixMonthChartJson(Long userId, YearMonth currentMonth, BigDecimal currentTotalExpense) {
         List<MonthReport> recent = monthReportMapper.findRecentMonthReportsInclusive(
                 userId, currentMonth.toString(), SIX_MONTH_WINDOW
@@ -161,6 +220,7 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
         return toJson(chart);
     }
 
+    /** 카테고리 차트(JSON, 한글 라벨 유지) */
     private String buildCategoryChartJson(Map<String, BigDecimal> categoryMap, BigDecimal total) {
         Map<String, BigDecimal> filtered = categoryMap.entrySet().stream()
                 .filter(e -> !isUncategorized(e.getKey()))
@@ -173,10 +233,11 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
                     Map<String, Object> obj = new LinkedHashMap<>();
                     obj.put("category", e.getKey());
                     obj.put("amount", e.getValue());
-                    obj.put("ratio", filteredTotal.compareTo(ZERO) == 0 ? ZERO :
-                            e.getValue().divide(filteredTotal, 4, RoundingMode.HALF_UP)
-                                    .multiply(BigDecimal.valueOf(100))
-                                    .setScale(1, RoundingMode.HALF_UP));
+                    obj.put("ratio",
+                            filteredTotal.compareTo(ZERO) == 0 ? ZERO :
+                                    e.getValue().divide(filteredTotal, 4, RoundingMode.HALF_UP)
+                                            .multiply(BigDecimal.valueOf(100))
+                                            .setScale(1, RoundingMode.HALF_UP));
                     return obj;
                 })
                 .sorted((a, b) -> ((BigDecimal) b.get("amount")).compareTo((BigDecimal) a.get("amount")))
@@ -185,8 +246,9 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
         return toJson(chart);
     }
 
+    /** 평균 비교: KOSIS 벤치마크와 비교 */
     private AverageComparisonDto buildAverageComparisonFromKosis(
-            Map<String, BigDecimal> myCatTotals, BigDecimal myTotalExpense) {
+            Map<String, BigDecimal> myCatTotalsKosis, BigDecimal myTotalExpense) {
 
         Map<String, BigDecimal> bm = KosisFileBenchmarkProvider
                 .load("external/KOSISAverageMonthlyHousehold.json", "external/kosis_mapping.json");
@@ -194,7 +256,7 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
         if (bm.isEmpty()) return new AverageComparisonDto(0, Map.of(), "비교 기준이 부족합니다.");
 
         BigDecimal avgTotal = bm.getOrDefault("total", ZERO);
-        int totalDiff = avgTotal.signum()==0 ? 0 :
+        int totalDiff = avgTotal.signum() == 0 ? 0 :
                 myTotalExpense.subtract(avgTotal)
                         .multiply(BigDecimal.valueOf(100))
                         .divide(avgTotal, 0, RoundingMode.HALF_UP).intValue();
@@ -202,43 +264,22 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
         List<String> keys = List.of("food","cafe","shopping","mart","house","transport","subscription","etc");
         Map<String, Integer> byCat = new LinkedHashMap<>();
         for (String k : keys){
-            BigDecimal mine = myCatTotals.getOrDefault(k, ZERO);
+            BigDecimal mine = myCatTotalsKosis.getOrDefault(k, ZERO);
             BigDecimal avg  = bm.getOrDefault(k, ZERO);
-            int diff = avg.signum()==0 ? 0 :
+            int diff = avg.signum() == 0 ? 0 :
                     mine.subtract(avg).multiply(BigDecimal.valueOf(100))
                             .divide(avg, 0, RoundingMode.HALF_UP).intValue();
             byCat.put(k, diff);
         }
 
-        String comment = (totalDiff>0 ? "동일 연령대 평균보다 " + totalDiff + "% 더 썼어요."
-                : totalDiff<0 ? "동일 연령대 평균보다 " + Math.abs(totalDiff) + "% 덜 썼어요."
+        String comment = (totalDiff > 0 ? "동일 연령대 평균보다 " + totalDiff + "% 더 썼어요."
+                : totalDiff < 0 ? "동일 연령대 평균보다 " + Math.abs(totalDiff) + "% 덜 썼어요."
                 : "또래와 유사한 지출이에요.");
 
         return new AverageComparisonDto(totalDiff, byCat, comment);
     }
 
-    private String generateFeedback(Map<String, BigDecimal> categoryMap, BigDecimal totalExpense) {
-        Map<String, BigDecimal> filtered = categoryMap.entrySet().stream()
-                .filter(e -> !isUncategorized(e.getKey()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        if (filtered.isEmpty() || totalExpense.compareTo(ZERO) == 0)
-            return "소비 데이터가 부족합니다.";
-
-        Map.Entry<String, BigDecimal> max = filtered.entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .orElseThrow();
-
-        BigDecimal ratio = max.getValue().divide(
-                filtered.values().stream().reduce(ZERO, BigDecimal::add),
-                4, RoundingMode.HALF_UP).multiply(BigDecimal.valueOf(100));
-
-        if (ratio.compareTo(BigDecimal.valueOf(40)) > 0) {
-            return max.getKey() + " 지출 비중이 높습니다. 한도를 정해보세요.";
-        }
-        return "이번 달 소비 패턴이 안정적입니다.";
-    }
-
+    // ===== 유틸 =====
     private static boolean isUncategorized(String name) {
         if (name == null) return true;
         String n = name.trim();
@@ -252,4 +293,59 @@ public class MonthReportGeneratorImpl implements MonthReportGenerator {
 
     private static String safe(String s) { return s == null ? "" : s; }
     private static BigDecimal nvl(BigDecimal v) { return v == null ? ZERO : v; }
+
+    /** 한글 라벨 → KOSIS 키 정규화 */
+    private Map<String, BigDecimal> normalizeToKosisKeys(Map<String, BigDecimal> raw) {
+        Map<String, BigDecimal> out = new LinkedHashMap<>();
+        raw.forEach((k, v) -> {
+            String kk = (k == null ? "" : k.trim());
+            String key;
+            if (kk.contains("식비")) key = "food";
+            else if (kk.contains("카페") || kk.contains("간식")) key = "cafe";
+            else if (kk.contains("쇼핑") || kk.contains("미용")) key = "shopping";
+            else if (kk.contains("편의점") || kk.contains("마트") || kk.contains("잡화")) key = "mart";
+            else if (kk.contains("주거") || kk.contains("통신") || kk.contains("보험")) key = "house";
+            else if (kk.contains("교통") || kk.contains("자동차")) key = "transport";
+            else if (kk.contains("구독")) key = "subscription";
+            else key = "etc";
+            out.merge(key, v, BigDecimal::add);
+        });
+        return out;
+    }
+
+    /** 최근 3개월(현월 제외) 평균/표준편차 */
+    private Stat recent3Stats(Long userId, YearMonth currentMonth) {
+        // 최근 4개월(현월 포함) 가져와서 현월 제외 3개만 사용
+        List<MonthReport> recentIncl = monthReportMapper.findRecentMonthReportsInclusive(
+                userId, currentMonth.toString(), 4
+        );
+        if (recentIncl == null || recentIncl.isEmpty()) return new Stat(ZERO, ZERO);
+
+        String cur = currentMonth.toString();
+        List<BigDecimal> prev3 = recentIncl.stream()
+                .filter(r -> !Objects.equals(r.getMonth(), cur))
+                .sorted(Comparator.comparing(MonthReport::getMonth).reversed())
+                .limit(3)
+                .map(r -> nvl(r.getTotalExpense()))
+                .collect(Collectors.toList());
+
+        if (prev3.isEmpty()) return new Stat(ZERO, ZERO);
+
+        BigDecimal sum = prev3.stream().reduce(ZERO, BigDecimal::add);
+        BigDecimal avg = sum.divide(BigDecimal.valueOf(prev3.size()), 2, RoundingMode.HALF_UP);
+
+        // 표준편차(샘플)
+        BigDecimal variance = ZERO;
+        for (BigDecimal x : prev3) {
+            BigDecimal diff = x.subtract(avg);
+            variance = variance.add(diff.multiply(diff));
+        }
+        variance = variance.divide(BigDecimal.valueOf(Math.max(prev3.size() - 1, 1)), 4, RoundingMode.HALF_UP);
+        BigDecimal stddev = BigDecimal.valueOf(Math.sqrt(variance.doubleValue()))
+                .setScale(2, RoundingMode.HALF_UP);
+
+        return new Stat(avg, stddev);
+    }
+
+    private record Stat(BigDecimal avg, BigDecimal stddev) {}
 }
