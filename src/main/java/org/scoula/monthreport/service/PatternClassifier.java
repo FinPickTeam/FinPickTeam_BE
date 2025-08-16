@@ -2,6 +2,7 @@ package org.scoula.monthreport.service;
 
 import org.scoula.monthreport.enums.SpendingPatternType;
 import org.scoula.monthreport.util.SpendingAnalysisEngine;
+import org.scoula.monthreport.util.CategoryMapper; // ★ 공용 매퍼 사용
 import org.scoula.transactions.domain.Ledger;
 
 import java.math.BigDecimal;
@@ -22,7 +23,7 @@ public class PatternClassifier {
      * @param savingRate 저축률(%) 0~100
      * @param last3moAvgExpense 직전 3개월 평균 지출 (현월 제외)
      * @param thisMonthExpense 이번달 지출
-     * @param volatility 변동성 지표(표준편차, 통화 단위 or %, 내부 로직은 %로 쓰지 않음)
+     * @param volatility 변동성 지표(표준편차, "금액" 단위)
      */
     public PatternClassification classify(List<Ledger> monthLedgers,
                                           BigDecimal savingRate,
@@ -33,49 +34,57 @@ public class PatternClassifier {
             return new PatternClassification(SpendingPatternType.STABLE, Set.of());
         }
 
-        // 1) 행동 패턴(예: 충동구매) – 기존 엔진
-        var engine = SpendingAnalysisEngine.analyze(monthLedgers);
-        boolean impulse = engine.contains(SpendingPatternType.IMPULSE);
+        // 1) 행동/시간 패턴 (엔진 결과 그대로 반영)
+        var enginePatterns = SpendingAnalysisEngine.analyze(monthLedgers);
+        boolean impulse = enginePatterns.contains(SpendingPatternType.IMPULSE);
+        Set<SpendingPatternType> sub = new LinkedHashSet<>(enginePatterns); // ★ 중복 선언 금지
 
-        // 2) 카테고리 합계(정규화 키로 집계)
+        // 2) 카테고리 합계 (DB 키/한글 라벨 섞여도 CategoryMapper로 정규화)
         Map<String, BigDecimal> byCat = monthLedgers.stream()
-                .filter(l -> "EXPENSE".equalsIgnoreCase(l.getType()))
+                .filter(l -> "EXPENSE".equalsIgnoreCase(safe(l.getType())))
+                .map(l -> {
+                    String key = CategoryMapper.fromAny(safe(l.getCategory())); // food/cafe/... 로 변환
+                    return Map.entry(key, nvl(l.getAmount()));
+                })
+                .filter(e -> !CategoryMapper.excludeOnAnalysis(e.getKey())) // transfer/없음 제거
                 .collect(Collectors.groupingBy(
-                        l -> mapToKosisKey(safe(l.getCategory())),
-                        Collectors.reducing(BigDecimal.ZERO, Ledger::getAmount, BigDecimal::add)
+                        Map.Entry::getKey,
+                        Collectors.reducing(BigDecimal.ZERO, Map.Entry::getValue, BigDecimal::add)
                 ));
 
         BigDecimal total = byCat.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
         if (total.signum() == 0) {
-            return new PatternClassification(SpendingPatternType.STABLE, Set.of());
+            return new PatternClassification(SpendingPatternType.STABLE, sub);
         }
-        java.util.function.Function<BigDecimal, BigDecimal> pct = v ->
-                v.multiply(BigDecimal.valueOf(100)).divide(total, 1, RoundingMode.HALF_UP);
+        var pct = (java.util.function.Function<BigDecimal, BigDecimal>)
+                v -> v.multiply(BigDecimal.valueOf(100)).divide(total, 1, RoundingMode.HALF_UP);
 
-        BigDecimal food = byCat.getOrDefault("food", BigDecimal.ZERO);
-        BigDecimal cafe = byCat.getOrDefault("cafe", BigDecimal.ZERO);
-        BigDecimal shopping = byCat.getOrDefault("shopping", BigDecimal.ZERO);
-        BigDecimal house = byCat.getOrDefault("house", BigDecimal.ZERO).add(byCat.getOrDefault("finance", BigDecimal.ZERO));
+        BigDecimal food      = byCat.getOrDefault("food", BigDecimal.ZERO);
+        BigDecimal cafe      = byCat.getOrDefault("cafe", BigDecimal.ZERO);
+        BigDecimal shopping  = byCat.getOrDefault("shopping", BigDecimal.ZERO);
+        BigDecimal house     = byCat.getOrDefault("house", BigDecimal.ZERO); // finance는 매퍼가 house로 합침
         BigDecimal transport = byCat.getOrDefault("transport", BigDecimal.ZERO);
-        BigDecimal subs = byCat.getOrDefault("subscription", BigDecimal.ZERO);
+        BigDecimal subs      = byCat.getOrDefault("subscription", BigDecimal.ZERO);
 
-        // 3) 서브 패턴
-        Set<SpendingPatternType> sub = new LinkedHashSet<>();
+        // 3) 서브 패턴 임계치 추가 (엔진 결과 + 카테고리 과다)
         if (impulse) sub.add(SpendingPatternType.IMPULSE);
-        if (pct.apply(food).compareTo(P20) >= 0) sub.add(SpendingPatternType.FOOD_OVER);
-        if (pct.apply(cafe).compareTo(P15) >= 0) sub.add(SpendingPatternType.CAFE_OVER);
-        if (pct.apply(shopping).compareTo(P15) >= 0) sub.add(SpendingPatternType.SHOPPING_OVER);
-        if (pct.apply(house).compareTo(P20) >= 0) sub.add(SpendingPatternType.HOUSE_OVER);
-        if (pct.apply(transport).compareTo(P15) >= 0) sub.add(SpendingPatternType.TRANSPORT_OVER);
-        if (pct.apply(subs).compareTo(P10) >= 0) sub.add(SpendingPatternType.SUBSCRIPTION_OVER);
+        if (pct.apply(food).compareTo(P20) >= 0)       sub.add(SpendingPatternType.FOOD_OVER);
+        if (pct.apply(cafe).compareTo(P15) >= 0)       sub.add(SpendingPatternType.CAFE_OVER);
+        if (pct.apply(shopping).compareTo(P15) >= 0)   sub.add(SpendingPatternType.SHOPPING_OVER);
+        if (pct.apply(house).compareTo(P20) >= 0)      sub.add(SpendingPatternType.HOUSE_OVER);
+        if (pct.apply(transport).compareTo(P15) >= 0)  sub.add(SpendingPatternType.TRANSPORT_OVER);
+        if (pct.apply(subs).compareTo(P10) >= 0)       sub.add(SpendingPatternType.SUBSCRIPTION_OVER);
 
         // 4) 거시 라벨
         SpendingPatternType overall = SpendingPatternType.STABLE;
+
+        // 절약형
         if (savingRate != null && savingRate.compareTo(P30) >= 0) {
             overall = SpendingPatternType.FRUGAL;
         }
 
-        if (last3moAvgExpense != null && last3moAvgExpense.signum() > 0) {
+        // 과소비형
+        if (last3moAvgExpense != null && thisMonthExpense != null && last3moAvgExpense.signum() > 0) {
             BigDecimal incPct = thisMonthExpense.subtract(last3moAvgExpense)
                     .multiply(BigDecimal.valueOf(100))
                     .divide(last3moAvgExpense, 0, RoundingMode.HALF_UP);
@@ -84,29 +93,18 @@ public class PatternClassifier {
             }
         }
 
-        // 변동성 지표가 큰데 아직도 STABLE이면 VOLATILE로 승격
-        // (volatility가 금액 표준편차라면, 평균 대비 25%↑ 같은 %기준이 더 안정적이나,
-        //  여기서는 간단히 절대적 문턱값을 적용하거나 엔진 내부에서 %를 계산하도록 확장 가능)
-        if (volatility != null && volatility.compareTo(P25) >= 0) {
-            if (overall == SpendingPatternType.STABLE) overall = SpendingPatternType.VOLATILE;
+        // 변동형 (CV% = 표준편차 / 평균 × 100)
+        if (volatility != null && last3moAvgExpense != null && last3moAvgExpense.signum() > 0) {
+            BigDecimal cvPct = volatility.multiply(BigDecimal.valueOf(100))
+                    .divide(last3moAvgExpense, 0, RoundingMode.HALF_UP);
+            if (cvPct.compareTo(P25) >= 0 && overall == SpendingPatternType.STABLE) {
+                overall = SpendingPatternType.VOLATILE;
+            }
         }
 
         return new PatternClassification(overall, sub);
     }
 
     private static String safe(String s){ return s==null?"":s; }
-
-    /** 한글 라벨을 KOSIS 키로 맵핑 */
-    private static String mapToKosisKey(String label) {
-        if (label == null) return "etc";
-        String kk = label.trim();
-        if (kk.contains("식비")) return "food";
-        if (kk.contains("카페") || kk.contains("간식")) return "cafe";
-        if (kk.contains("쇼핑") || kk.contains("미용")) return "shopping";
-        if (kk.contains("편의점") || kk.contains("마트") || kk.contains("잡화")) return "mart";
-        if (kk.contains("주거") || kk.contains("통신") || kk.contains("보험")) return "house";
-        if (kk.contains("교통") || kk.contains("자동차")) return "transport";
-        if (kk.contains("구독")) return "subscription";
-        return "etc";
-    }
+    private static BigDecimal nvl(BigDecimal v){ return v==null? BigDecimal.ZERO : v; }
 }
