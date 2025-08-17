@@ -128,52 +128,53 @@ public class NHApiClient {
         String apiNm = body.optJSONObject("Header") != null
                 ? body.getJSONObject("Header").optString("ApiNm", "Mock")
                 : "Mock";
-        JSONObject headerWrap = new JSONObject().put("Header", okHeader(apiNm));
 
         switch (path) {
             // 계좌: 핀 발급 → Rgno
             case "/OpenFinAccountDirect.nh":
-                return headerWrap.put("Rgno", genRgno());
+                return new JSONObject().put("Header", okHeader("OpenFinAccountDirect"))
+                        .put("Rgno", genRgno());
 
             // 계좌: rgno 확인 → FinAcno
             case "/CheckOpenFinAccountDirect.nh":
-                return headerWrap
+                return new JSONObject().put("Header", okHeader("CheckOpenFinAccountDirect"))
                         .put("FinAcno", genFin("9"))
                         .put("Bncd", "011");
 
-            // 잔액 조회
+            // 잔액 조회 (정상)
             case "/InquireBalance.nh": {
                 long bal = 900_000L + rng("bal").nextInt(1_200_000);
-                return headerWrap.put("Ldbl", String.valueOf(bal)); // 너네 파서 키에 맞춰 사용
+                return new JSONObject().put("Header", okHeader("InquireBalance"))
+                        .put("Ldbl", String.valueOf(bal));
             }
 
-            // 계좌 거래 내역
+            // ✅ 계좌 거래 내역: 항상 "A0090"(거래없음) → 서비스가 더미 6개월 생성
             case "/InquireTransactionHistory.nh": {
-                JSONArray rec = new JSONArray()
-                        .put(new JSONObject().put("Trdd","20250812").put("Tram",1500000).put("MnrcDrot","1").put("Rmrk","급여").put("AftrBlnc",1500000))
-                        .put(new JSONObject().put("Trdd","20250813").put("Tram", 12000).put("MnrcDrot","2").put("Rmrk","김밥천국").put("AftrBlnc",1488000))
-                        .put(new JSONObject().put("Trdd","20250814").put("Tram",300000).put("MnrcDrot","2").put("Rmrk","정기적금").put("AftrBlnc",1188000));
-                return headerWrap.put("REC", rec).put("PageNo","1").put("Dmcnt", String.valueOf(rec.length()));
+                return new JSONObject()
+                        .put("Header", header("InquireTransactionHistory", "A0090"))
+                        .put("CtntDataYn", "N"); // 옵션(없어도 상관없음)
             }
 
             // 카드: 핀 발급 → Rgno
             case "/OpenFinCardDirect.nh":
-                return headerWrap.put("Rgno", genRgno());
+                return new JSONObject().put("Header", okHeader("OpenFinCardDirect"))
+                        .put("Rgno", genRgno());
 
             // 카드: rgno 확인 → FinCard
             case "/CheckOpenFinCardDirect.nh":
-                return headerWrap.put("FinCard", genFin("8"));
+                return new JSONObject().put("Header", okHeader("CheckOpenFinCardDirect"))
+                        .put("FinCard", genFin("8"));
 
-            // 카드 승인 내역
+            // ✅ 카드 승인 내역: 1페이지부터 "A0090" + 더 없음 → 카드 더미 생성
             case "/InquireCreditCardAuthorizationHistory.nh": {
-                JSONArray rec = new JSONArray()
-                        .put(new JSONObject().put("ApvYmdHms","2025-08-13T19:12:00").put("ApvAmt",18000).put("MrhstNm","맘스터치").put("TpbcdNm","외식/배달").put("SalesType","1").put("CnclYn","N"))
-                        .put(new JSONObject().put("ApvYmdHms","2025-08-14T22:05:00").put("ApvAmt", 4200).put("MrhstNm","GS25").put("TpbcdNm","편의점/마트").put("SalesType","1").put("CnclYn","N"));
-                return headerWrap.put("REC", rec).put("IsMore","N").put("TotCnt", rec.length());
+                return new JSONObject()
+                        .put("Header", header("InquireCreditCardAuthorizationHistory", "A0090"))
+                        .put("CtntDataYn", "N");
             }
 
             default:
-                return headerWrap;
+                // 혹시 모르는 기본값
+                return new JSONObject().put("Header", okHeader(apiNm));
         }
     }
 
@@ -203,6 +204,14 @@ public class NHApiClient {
                 .put("Rsms", "OK");
     }
 
+    // rpcd를 원하는 값으로 세팅하는 헤더
+    private static JSONObject header(String apiName, String rpcd) {
+        return new JSONObject()
+                .put("ApiNm", apiName)
+                .put("Rpcd", rpcd)
+                .put("Rsms", "OK");
+    }
+
     private static String genRgno() {
         return "RG" + Long.toString(System.nanoTime(), 36).toUpperCase();
     }
@@ -218,7 +227,8 @@ public class NHApiClient {
         return new Random(Objects.hash(seeds));
     }
 
-    // (원래 쓰던 fallback은 이제 필요 없음. 남겨두고 싶으면 아래처럼 써.)
+    // 필요하면 남겨
+    @SuppressWarnings("unused")
     private JSONObject createFallbackResponse() {
         JSONObject fallback = new JSONObject();
         fallback.put("Header", new JSONObject().put("Rpcd", "ERROR"));

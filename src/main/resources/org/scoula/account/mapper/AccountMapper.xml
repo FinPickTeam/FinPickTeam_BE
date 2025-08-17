@@ -76,4 +76,16 @@
           AND is_active = TRUE
     </select>
 
+    <select id="countByUserAndProductName" resultType="int">
+        SELECT COUNT(*) FROM account
+        WHERE user_id = #{userId}
+          AND is_active = 1
+          AND product_name = #{productName}
+    </select>
+
+    <select id="findProductNamesByUser" resultType="string">
+        SELECT product_name FROM account
+        WHERE user_id = #{userId} AND is_active = 1
+    </select>
+
 </mapper>
