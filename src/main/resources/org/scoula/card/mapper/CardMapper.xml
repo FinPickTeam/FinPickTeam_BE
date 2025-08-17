@@ -43,7 +43,7 @@
     </select>
 
     <select id="countByUser" resultType="int">
-        SELECT COUNT(1) FROM account WHERE user_id=#{userId} AND is_active = TRUE
+        SELECT COUNT(1) FROM card WHERE user_id=#{userId} AND is_active = TRUE
     </select>
 
     <select id="countByUserAndCardName" resultType="int">
