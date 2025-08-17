@@ -7,6 +7,8 @@ import org.scoula.finance.dto.fund.*;
 import org.scoula.finance.mapper.FundMapper;
 import org.scoula.finance.util.CsvUtils;
 import org.scoula.finance.util.PythonExecutorUtil;
+import org.scoula.survey.domain.SurveyVO;
+import org.scoula.survey.mapper.SurveyMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -21,6 +23,7 @@ public class FundServiceImpl  implements FundService {
     private final FundMapper fundMapper;
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final CsvUtils csvUtils;
+    private final SurveyMapper surveyMapper;
 
     // 펀드 리스트 조회 (필터 포함)
     @Override
@@ -35,7 +38,7 @@ public class FundServiceImpl  implements FundService {
     }
 
     @Override
-    public List<FundListDto> getFundRecommendation(){
+    public List<FundListDto> getFundRecommendation(Long userId){
         List<Map<String, Object>> resultList = new ArrayList<>();
         List<FundRecommendationDto> recommendationList = fundMapper.getFundRecommendationList();
         if (recommendationList.isEmpty()) return Collections.emptyList();
@@ -48,10 +51,32 @@ public class FundServiceImpl  implements FundService {
             File pyRoot = PythonExecutorUtil.getPyRootFrom(res);
             ws = PythonExecutorUtil.createJobWorkspace(pyRoot);
 
+            SurveyVO vo = surveyMapper.selectById(userId);
+
+            String userType = vo.getPropensityType();
+            String A;
+
+            if(userType.equals("안정형")){
+                A = "100";
+            }
+            else if(userType.equals("안전추구형")){
+                A = "75";
+            }
+            else if(userType.equals("위험중립형")){
+                A = "50";
+            }
+            else if(userType.equals("적극투자형")){
+                A = "25";
+            }
+            else if(userType.equals("공격투자형")){
+                A = "1";
+            } else {
+                A = "0";
+            }
             // 투자성향을 이용해 A값을 1 ~ 50?로 설정 안정형일수록 높음
             // 1. paylaod 생성
             List<FundRequestDto> productPayload = recommendationList.stream()
-                    .map(dto -> new FundRequestDto(dto.getId(), "25", dto.getFundReturnsData()))
+                    .map(dto -> new FundRequestDto(dto.getId(), A, dto.getFundReturnsData()))
                     .toList();
             
             // 2. input.json 저장
