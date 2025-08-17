@@ -62,6 +62,7 @@ import javax.sql.DataSource;
         "org.scoula.nhapi.service",
         "org.scoula.nhapi.client",
         "org.scoula.nhapi.parser",
+        "org.scoula.nhapi.util",
         "org.scoula.challenge.service",
         "org.scoula.challenge.scheduler",
         "org.scoula.user.util",

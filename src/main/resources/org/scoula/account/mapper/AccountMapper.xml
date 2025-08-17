@@ -42,6 +42,10 @@
         WHERE id = #{accountId}
     </select>
 
+    <select id="countByUserAndType" resultType="int">
+        SELECT COUNT(1) FROM account WHERE user_id=#{userId} AND account_type=#{type} AND is_active = TRUE
+    </select>
+
     <select id="findActiveByUserId" resultType="org.scoula.account.domain.Account">
         SELECT id, user_id, pin_account_number, bank_code, account_number,
                product_name, account_type, balance, created_at

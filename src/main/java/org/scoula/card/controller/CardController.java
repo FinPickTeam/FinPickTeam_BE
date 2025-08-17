@@ -25,7 +25,8 @@ public class CardController {
     @PostMapping("/register")
     public ResponseEntity<CommonResponseDTO<CardRegisterResponseDto>> registerCard(
             @AuthenticationPrincipal CustomUserDetails user,
-            @RequestBody FinCardRequestDto dto) {
+            @RequestBody(required = false) FinCardRequestDto dto // ★ 바디 옵셔널
+    ) {
         Long userId = user.getUserId();
         CardRegisterResponseDto response = cardService.registerCard(userId, dto);
         return ResponseEntity.ok(CommonResponseDTO.success("카드 등록 및 승인내역 저장 완료", response));
@@ -62,7 +63,7 @@ public class CardController {
             @AuthenticationPrincipal CustomUserDetails user,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM") YearMonth month) {
         Long userId = user.getUserId();
-        YearMonth targetMonth = month != null ? month : YearMonth.now();
+        YearMonth targetMonth = (month != null) ? month : YearMonth.now();
         List<CardDto> result = cardService.getCardsWithMonth(userId, targetMonth);
         return ResponseEntity.ok(CommonResponseDTO.success("카드 목록 조회 성공", result));
     }

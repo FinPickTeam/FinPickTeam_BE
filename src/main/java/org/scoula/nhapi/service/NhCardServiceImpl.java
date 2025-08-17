@@ -63,8 +63,8 @@ public class NhCardServiceImpl implements NhCardService {
 
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
     private static final int CARD_DUMMY_MONTHS_BACK = 6;
-    private static final int CARD_MIN_DAILY = 1;
-    private static final int CARD_MAX_DAILY = 8;          // ✅ 생성량 완화
+    private static final int CARD_MIN_DAILY = 0;
+    private static final int CARD_MAX_DAILY = 6;          // ✅ 생성량 완화
 
 
     // ✅ 날짜별 고정 시드 → 기간 창이 달라도 동일 승인 생성(중복 방지)

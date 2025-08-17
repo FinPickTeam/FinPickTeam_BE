@@ -4,7 +4,8 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="org.scoula.card.mapper.CardMapper">
-    <insert id="insertCard" parameterType="org.scoula.card.domain.Card">
+    <insert id="insertCard" parameterType="org.scoula.card.domain.Card"
+            useGeneratedKeys="true" keyProperty="id">
         INSERT INTO card (
             user_id, fin_card_number, back_code, bank_name, card_name,
             card_maskednum, card_member_type, card_type, is_active
@@ -40,5 +41,10 @@
             #{id}
         </foreach>
     </select>
+
+    <select id="countByUser" resultType="int">
+        SELECT COUNT(1) FROM account WHERE user_id=#{userId} AND is_active = TRUE
+    </select>
+
 
 </mapper>

@@ -39,7 +39,7 @@
     <select id="findLastTransactionDate" resultType="java.time.LocalDateTime">
         SELECT MAX(date)
         FROM account_transaction
-        WHERE account_id = #{accountId}
+        WHERE account_id = #{accountId} AND user_id = #{userId}
     </select>
 
     <insert id="bulkInsert" parameterType="list">

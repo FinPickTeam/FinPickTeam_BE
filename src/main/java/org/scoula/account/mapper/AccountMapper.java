@@ -21,4 +21,5 @@ public interface AccountMapper {
     List<Account> findActiveByUserId(Long userId);
     List<Account> findByIdList(List<Long> ids);
     BigDecimal sumBalanceByUserId(Long userId);
+    int countByUserAndType(@Param("userId") Long userId, @Param("type") String type);
 }
