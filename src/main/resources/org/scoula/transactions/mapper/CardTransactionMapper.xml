@@ -52,7 +52,7 @@
 
     <!-- 마지막 승인일 -->
     <select id="findLastTransactionDate" resultType="java.time.LocalDateTime">
-        SELECT MAX(approved_at) FROM card_transaction WHERE card_id = #{cardId} AND user_id = #{userId}
+        SELECT MAX(approved_at) FROM card_transaction WHERE card_id = #{cardId}
     </select>
 
     <select id="sumMonthlySpending" resultType="java.math.BigDecimal">
