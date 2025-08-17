@@ -46,5 +46,16 @@
         SELECT COUNT(1) FROM account WHERE user_id=#{userId} AND is_active = TRUE
     </select>
 
+    <select id="countByUserAndCardName" resultType="int">
+        SELECT COUNT(*) FROM card
+        WHERE user_id = #{userId}
+          AND is_active = 1
+          AND card_name = #{cardName}
+    </select>
+
+    <select id="findCardNamesByUser" resultType="string">
+        SELECT card_name FROM card
+        WHERE user_id = #{userId} AND is_active = 1
+    </select>
 
 </mapper>
