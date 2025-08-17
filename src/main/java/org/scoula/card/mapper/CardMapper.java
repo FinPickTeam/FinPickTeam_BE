@@ -14,4 +14,5 @@ public interface CardMapper {
     void updateIsActive(@Param("id") Long id, @Param("isActive") boolean isActive);
     List<Card> findActiveByUserId(Long userId);
     List<Card> findByIdList(List<Long> ids);
+    int countByUser(@Param("userId") Long userId);
 }
