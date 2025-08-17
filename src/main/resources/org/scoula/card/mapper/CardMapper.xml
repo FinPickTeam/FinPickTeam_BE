@@ -53,6 +53,7 @@
           AND card_name = #{cardName}
     </select>
 
+
     <select id="findCardNamesByUser" resultType="string">
         SELECT card_name FROM card
         WHERE user_id = #{userId} AND is_active = 1
