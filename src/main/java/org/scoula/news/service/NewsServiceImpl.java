@@ -26,6 +26,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Log4j2
 @Service
@@ -56,8 +57,25 @@ public class NewsServiceImpl implements NewsService {
         headers.set("X-Naver-Client-Secret", SECRET);
         headers.setAccept(List.of(new MediaType("application", "json", StandardCharsets.UTF_8)));
 
+        //전월달(코드 작성 기준 7월) 키워드
+        List<String> keywords = List.of(
+                "스테이블코인",
+                "(민생회복)소비쿠폰",
+                "대출규제",
+                "금리인하",
+                "배드뱅크",
+                "금융지원",
+                "가계부채",
+                "주주환원정책",
+                "코스피지수",
+                "내부통제"
+        );
 
-        String keyword = "금융";
+        // 키워드를 무작위로 선택합니다.
+        Random random = new Random();
+        String keyword = keywords.get(random.nextInt(keywords.size()));
+
+        log.info("오늘의 랜덤 키워드: {}", keyword);
 
         URI uri = UriComponentsBuilder.fromHttpUrl(URL)
                 .queryParam("query", keyword) // <--- 인코딩되지 않은 원본 'keyword' 변수를 그대로 전달
