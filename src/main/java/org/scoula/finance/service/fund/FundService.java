@@ -14,5 +14,5 @@ public interface FundService {
     //펀드 상품명으로 상세정보 조회하기
     FundDetailDto getFundDetail(Long productId);
 
-    List<FundListDto> getFundRecommendation();
+    List<FundListDto> getFundRecommendation(Long userId);
 }
