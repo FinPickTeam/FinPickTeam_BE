@@ -1,6 +1,7 @@
 package org.scoula.nhapi.client;
 
 import lombok.extern.slf4j.Slf4j;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.scoula.nhapi.exception.NHApiException;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
+import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -19,9 +22,12 @@ import java.util.stream.Collectors;
 @Component
 public class NHApiClient {
 
+    // ===== 설정 =====
     private static final String BASE_URL = "https://developers.nonghyup.com";
-    private static final String API_KEY = "97150a353857633d8d6d1963f03b293ac4d2b4dca758804ed0240896e469b818"; // 실제 사용 시 교체
+    private static final String API_KEY  = "DONT-CARE-IN-MOCK";
+    private static final boolean ALWAYS_MOCK = true; // ← 무조건 모크
 
+    // ===== 공개 메서드 (서비스에선 이거 그대로 호출) =====
     public JSONObject callOpenFinAccount(String accountNumber, String birthday) {
         JSONObject body = new JSONObject();
         body.put("Header", buildHeader("OpenFinAccountDirect"));
@@ -69,7 +75,6 @@ public class NHApiClient {
         return post("/OpenFinCardDirect.nh", body);
     }
 
-
     public JSONObject checkOpenFinCard(String rgno, String birthday) {
         JSONObject body = new JSONObject();
         body.put("Header", buildHeader("CheckOpenFinCardDirect"));
@@ -83,16 +88,17 @@ public class NHApiClient {
         body.put("Header", buildHeader("InquireCreditCardAuthorizationHistory"));
         body.put("FinCard", finCard);
         body.put("IousDsnc", "1"); // 고정값
-        body.put("Insymd", fromDate);  // 조회 시작일
-        body.put("Ineymd", toDate);    // 조회 종료일
+        body.put("Insymd", fromDate);
+        body.put("Ineymd", toDate);
         body.put("PageNo", String.valueOf(pageNo));
-        body.put("Dmcnt", "100"); // 한 번에 100건
+        body.put("Dmcnt", "100");
         return post("/InquireCreditCardAuthorizationHistory.nh", body);
     }
 
-
-
+    // ===== 공통 POST: 모크 우선, 실패시에도 모크 =====
     private JSONObject post(String path, JSONObject body) {
+        if (ALWAYS_MOCK) return mockFor(path, body); // 네트워크 자체 안 감
+
         HttpURLConnection conn = null;
         try {
             URL url = new URL(BASE_URL + path);
@@ -105,19 +111,73 @@ public class NHApiClient {
                 os.write(body.toString().getBytes(StandardCharsets.UTF_8));
             }
 
-            String res = new BufferedReader(new InputStreamReader(conn.getInputStream()))
+            String res = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))
                     .lines().collect(Collectors.joining());
             return new JSONObject(res);
 
         } catch (Exception e) {
-            log.error("❌ NH API 호출 실패 (Post 요청) - 경로: {}, 에러: {}", path, e.getMessage());
-            // 예외 발생 시 기본 응답
-            return createFallbackResponse();
+            log.warn("NH 호출 실패 -> mock fallback. path={}, err={}", path, e.getMessage());
+            return mockFor(path, body);
         } finally {
             if (conn != null) conn.disconnect();
         }
     }
 
+    // ===== 모크 응답 생성기 (API별 키 형태 맞춤) =====
+    private JSONObject mockFor(String path, JSONObject body) {
+        String apiNm = body.optJSONObject("Header") != null
+                ? body.getJSONObject("Header").optString("ApiNm", "Mock")
+                : "Mock";
+        JSONObject headerWrap = new JSONObject().put("Header", okHeader(apiNm));
+
+        switch (path) {
+            // 계좌: 핀 발급 → Rgno
+            case "/OpenFinAccountDirect.nh":
+                return headerWrap.put("Rgno", genRgno());
+
+            // 계좌: rgno 확인 → FinAcno
+            case "/CheckOpenFinAccountDirect.nh":
+                return headerWrap
+                        .put("FinAcno", genFin("9"))
+                        .put("Bncd", "011");
+
+            // 잔액 조회
+            case "/InquireBalance.nh": {
+                long bal = 900_000L + rng("bal").nextInt(1_200_000);
+                return headerWrap.put("Ldbl", String.valueOf(bal)); // 너네 파서 키에 맞춰 사용
+            }
+
+            // 계좌 거래 내역
+            case "/InquireTransactionHistory.nh": {
+                JSONArray rec = new JSONArray()
+                        .put(new JSONObject().put("Trdd","20250812").put("Tram",1500000).put("MnrcDrot","1").put("Rmrk","급여").put("AftrBlnc",1500000))
+                        .put(new JSONObject().put("Trdd","20250813").put("Tram", 12000).put("MnrcDrot","2").put("Rmrk","김밥천국").put("AftrBlnc",1488000))
+                        .put(new JSONObject().put("Trdd","20250814").put("Tram",300000).put("MnrcDrot","2").put("Rmrk","정기적금").put("AftrBlnc",1188000));
+                return headerWrap.put("REC", rec).put("PageNo","1").put("Dmcnt", String.valueOf(rec.length()));
+            }
+
+            // 카드: 핀 발급 → Rgno
+            case "/OpenFinCardDirect.nh":
+                return headerWrap.put("Rgno", genRgno());
+
+            // 카드: rgno 확인 → FinCard
+            case "/CheckOpenFinCardDirect.nh":
+                return headerWrap.put("FinCard", genFin("8"));
+
+            // 카드 승인 내역
+            case "/InquireCreditCardAuthorizationHistory.nh": {
+                JSONArray rec = new JSONArray()
+                        .put(new JSONObject().put("ApvYmdHms","2025-08-13T19:12:00").put("ApvAmt",18000).put("MrhstNm","맘스터치").put("TpbcdNm","외식/배달").put("SalesType","1").put("CnclYn","N"))
+                        .put(new JSONObject().put("ApvYmdHms","2025-08-14T22:05:00").put("ApvAmt", 4200).put("MrhstNm","GS25").put("TpbcdNm","편의점/마트").put("SalesType","1").put("CnclYn","N"));
+                return headerWrap.put("REC", rec).put("IsMore","N").put("TotCnt", rec.length());
+            }
+
+            default:
+                return headerWrap;
+        }
+    }
+
+    // ===== 헤더/헬퍼 =====
     private JSONObject buildHeader(String apiName) {
         JSONObject header = new JSONObject();
         header.put("ApiNm", apiName);
@@ -136,6 +196,29 @@ public class NHApiClient {
         return header;
     }
 
+    private static JSONObject okHeader(String apiName) {
+        return new JSONObject()
+                .put("ApiNm", apiName)
+                .put("Rpcd", "00000")
+                .put("Rsms", "OK");
+    }
+
+    private static String genRgno() {
+        return "RG" + Long.toString(System.nanoTime(), 36).toUpperCase();
+    }
+
+    private static String genFin(String prefix) {
+        Random r = rng(prefix, System.nanoTime());
+        StringBuilder sb = new StringBuilder(prefix);
+        for (int i = 1; i < 24; i++) sb.append(r.nextInt(10));
+        return sb.toString();
+    }
+
+    private static Random rng(Object... seeds) {
+        return new Random(Objects.hash(seeds));
+    }
+
+    // (원래 쓰던 fallback은 이제 필요 없음. 남겨두고 싶으면 아래처럼 써.)
     private JSONObject createFallbackResponse() {
         JSONObject fallback = new JSONObject();
         fallback.put("Header", new JSONObject().put("Rpcd", "ERROR"));

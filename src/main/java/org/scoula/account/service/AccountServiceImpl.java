@@ -9,6 +9,7 @@ import org.scoula.account.dto.AccountRegisterResponseDto;
 import org.scoula.account.mapper.AccountMapper;
 import org.scoula.common.exception.BaseException;
 import org.scoula.common.exception.ForbiddenException;
+import org.scoula.nhapi.client.NHApiClient;               // ★ 추가
 import org.scoula.nhapi.dto.FinAccountRequestDto;
 import org.scoula.nhapi.service.NhAccountService;
 import org.scoula.transactions.service.AccountTransactionService;
@@ -25,32 +26,71 @@ import java.util.stream.Collectors;
 public class AccountServiceImpl implements AccountService {
 
     private final NhAccountService nhAccountService;
+    private final NHApiClient nhApiClient;                            // ★ 추가 (MOCK 직행용)
     private final AccountMapper accountMapper;
     private final AccountTransactionService accountTransactionService;
+    private final org.scoula.nhapi.util.FirstLinkOnboardingService firstLinkOnboardingService;
 
     @Override
     public AccountRegisterResponseDto registerFinAccount(Long userId, FinAccountRequestDto dto) {
-        // NH API를 통해 핀어카운트 발급
-        String finAcno = nhAccountService.callOpenFinAccount(dto);
 
-        // NH API로 초기 잔액 조회
+        // ===== ① DTO 비거나 placeholder면 → MOCK 경로(검증 미탑)
+        if (isEmpty(dto)) {
+            var brand = org.scoula.nhapi.util.AccountBrandingUtil.pickDeposit(userId);
+
+            // validate 피하기: "발급" 대신 "확인"으로 바로 FinAcno 생성
+            String finAcno = nhApiClient
+                    .callCheckFinAccount("RG" + System.nanoTime(), "19900101")
+                    .optString("FinAcno");
+
+            BigDecimal balance = nhAccountService.callInquireBalance(finAcno);
+
+            Account account = Account.builder()
+                    .userId(userId)
+                    .pinAccountNumber(finAcno)
+                    .bankCode(brand.bankCode())
+                    .accountNumber(brand.accountNumber())
+                    .productName(brand.productName())
+                    .accountType("DEPOSIT")
+                    .balance(balance)
+                    .isActive(true)
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            accountMapper.insert(account);
+
+            // 초기 거래 더미 저장
+            accountTransactionService.syncAccountTransactions(account, true);
+
+            // 첫 연동 패키지(부족분 채우기)
+            firstLinkOnboardingService.runOnceOnFirstLink(userId);
+
+            log.info("✅ [MOCK] 계좌 등록 완료: {}", account);
+            return AccountRegisterResponseDto.builder()
+                    .accountId(account.getId())
+                    .finAccount(finAcno)
+                    .balance(balance)
+                    .build();
+        }
+
+        // ===== ② DTO 채워져 있으면 → 정상 경로(검증 타도 OK)
+        String finAcno = nhAccountService.callOpenFinAccount(dto);
         BigDecimal balance = nhAccountService.callInquireBalance(finAcno);
 
-        // 계좌 저장
         Account account = Account.builder()
-                .userId(userId) // 하드코딩 없이 로그인 유저ID
+                .userId(userId)
                 .pinAccountNumber(finAcno)
-                .bankCode("011")                   // 하드코딩된 은행코드
+                .bankCode("011")
                 .accountNumber(dto.getAccountNumber())
-                .productName("KB IT's Your Life 6기 통장") // 하드코딩된 상품명
-                .accountType("DEPOSIT")           // 기본값
-                .balance(balance)                 // 초기 잔액
+                .productName("KB IT's Your Life 6기 통장")
+                .accountType("DEPOSIT")
+                .balance(balance)
+                .isActive(true)
                 .createdAt(LocalDateTime.now())
                 .build();
 
         accountMapper.insert(account);
-
         accountTransactionService.syncAccountTransactions(account, true);
+        firstLinkOnboardingService.runOnceOnFirstLink(userId);
 
         log.info("✅ 계좌 등록 및 초기화 성공: {}", account);
         return AccountRegisterResponseDto.builder()
@@ -65,16 +105,12 @@ public class AccountServiceImpl implements AccountService {
         Account account = accountMapper.findById(accountId);
         if (account == null) throw new BaseException("해당 계좌가 존재하지 않습니다.", 404);
         if (!account.getUserId().equals(userId)) throw new ForbiddenException("본인 계좌만 동기화할 수 있습니다");
-        if (!Boolean.TRUE.equals(account.getIsActive())) {
-            throw new BaseException("비활성화된 계좌입니다.", 400);
-        }
-        // 거래내역 동기화 (isInitial = false)
+        if (!Boolean.TRUE.equals(account.getIsActive())) throw new BaseException("비활성화된 계좌입니다.", 400);
+
         accountTransactionService.syncAccountTransactions(account, false);
 
-        // 잔액 최신화
         BigDecimal newBalance = nhAccountService.callInquireBalance(account.getPinAccountNumber());
         accountMapper.updateBalanceByUser(account.getUserId(), account.getPinAccountNumber(), newBalance);
-
         log.info("✅ 계좌 {} 동기화 완료 (최신 잔액: {})", account.getId(), newBalance);
     }
 
@@ -91,24 +127,15 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public void deactivateAccount(Long accountId, Long userId) {
         Account account = accountMapper.findById(accountId);
-
-        if (account == null || !account.getUserId().equals(userId)) {
-            throw new ForbiddenException("본인 계좌만 삭제할 수 있습니다");
-        }
-
-        if (!Boolean.TRUE.equals(account.getIsActive())) {
-            return; // 이미 비활성화면 그냥 무시
-        }
-
+        if (account == null || !account.getUserId().equals(userId)) throw new ForbiddenException("본인 계좌만 삭제할 수 있습니다");
+        if (!Boolean.TRUE.equals(account.getIsActive())) return;
         accountMapper.updateIsActive(accountId, false);
     }
 
     @Override
     public AccountListWithTotalDto getAccountsWithTotal(Long userId) {
         List<Account> accounts = accountMapper.findActiveByUserId(userId);
-        List<AccountDto> dtoList = accounts.stream()
-                .map(AccountDto::from)
-                .collect(Collectors.toList());
+        List<AccountDto> dtoList = accounts.stream().map(AccountDto::from).collect(Collectors.toList());
         BigDecimal total = accountMapper.sumBalanceByUserId(userId);
         AccountListWithTotalDto dto = new AccountListWithTotalDto();
         dto.setAccountTotal(total);
@@ -116,4 +143,19 @@ public class AccountServiceImpl implements AccountService {
         return dto;
     }
 
+    /* ===== 헬퍼 ===== */
+    private static boolean isEmpty(FinAccountRequestDto dto) {
+        return dto == null
+                || blankLike(dto.getAccountNumber())
+                || blankLike(dto.getBirthday());
+    }
+
+    private static boolean blankLike(String s) {
+        if (s == null) return true;
+        String v = s.trim();
+        return v.isEmpty()
+                || v.equalsIgnoreCase("string")
+                || v.equalsIgnoreCase("null")
+                || v.equalsIgnoreCase("undefined");
+    }
 }
