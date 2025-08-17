@@ -9,9 +9,11 @@ import org.scoula.account.dto.AccountRegisterResponseDto;
 import org.scoula.account.mapper.AccountMapper;
 import org.scoula.common.exception.BaseException;
 import org.scoula.common.exception.ForbiddenException;
-import org.scoula.nhapi.client.NHApiClient;               // ★ 추가
+import org.scoula.nhapi.client.NHApiClient;
 import org.scoula.nhapi.dto.FinAccountRequestDto;
 import org.scoula.nhapi.service.NhAccountService;
+import org.scoula.nhapi.util.FirstLinkOnboardingService;
+import org.scoula.nhapi.util.MaskingUtil;
 import org.scoula.transactions.service.AccountTransactionService;
 import org.springframework.stereotype.Service;
 
@@ -26,30 +28,32 @@ import java.util.stream.Collectors;
 public class AccountServiceImpl implements AccountService {
 
     private final NhAccountService nhAccountService;
-    private final NHApiClient nhApiClient;                            // ★ 추가 (MOCK 직행용)
+    private final NHApiClient nhApiClient; // MOCK 직행용
     private final AccountMapper accountMapper;
     private final AccountTransactionService accountTransactionService;
-    private final org.scoula.nhapi.util.FirstLinkOnboardingService firstLinkOnboardingService;
+    private final FirstLinkOnboardingService firstLinkOnboardingService;
 
     @Override
     public AccountRegisterResponseDto registerFinAccount(Long userId, FinAccountRequestDto dto) {
 
-        // ===== ① DTO 비거나 placeholder면 → MOCK 경로(검증 미탑)
+        // ① DTO 비거나 placeholder면 → MOCK 경로(검증 미탑)
         if (isEmpty(dto)) {
             var brand = org.scoula.nhapi.util.AccountBrandingUtil.pickDeposit(userId);
 
-            // validate 피하기: "발급" 대신 "확인"으로 바로 FinAcno 생성
             String finAcno = nhApiClient
                     .callCheckFinAccount("RG" + System.nanoTime(), "19900101")
                     .optString("FinAcno");
 
             BigDecimal balance = nhAccountService.callInquireBalance(finAcno);
 
+            // 브랜드 제공 계좌번호도 가운데 마스킹해서 저장
+            String displayAccNo = MaskingUtil.maskAccount(brand.accountNumber());
+
             Account account = Account.builder()
                     .userId(userId)
                     .pinAccountNumber(finAcno)
                     .bankCode(brand.bankCode())
-                    .accountNumber(brand.accountNumber())
+                    .accountNumber(displayAccNo)     // 마스킹 저장
                     .productName(brand.productName())
                     .accountType("DEPOSIT")
                     .balance(balance)
@@ -57,9 +61,6 @@ public class AccountServiceImpl implements AccountService {
                     .createdAt(LocalDateTime.now())
                     .build();
             accountMapper.insert(account);
-
-            // 초기 거래 더미 저장
-            accountTransactionService.syncAccountTransactions(account, true);
 
             // 첫 연동 패키지(부족분 채우기)
             firstLinkOnboardingService.runOnceOnFirstLink(userId);
@@ -72,7 +73,7 @@ public class AccountServiceImpl implements AccountService {
                     .build();
         }
 
-        // ===== ② DTO 채워져 있으면 → 정상 경로(검증 타도 OK)
+        // ② 정상 경로
         String finAcno = nhAccountService.callOpenFinAccount(dto);
         BigDecimal balance = nhAccountService.callInquireBalance(finAcno);
 
@@ -80,7 +81,7 @@ public class AccountServiceImpl implements AccountService {
                 .userId(userId)
                 .pinAccountNumber(finAcno)
                 .bankCode("011")
-                .accountNumber(dto.getAccountNumber())
+                .accountNumber(MaskingUtil.maskAccount(dto.getAccountNumber())) // 입력값도 마스킹 저장
                 .productName("KB IT's Your Life 6기 통장")
                 .accountType("DEPOSIT")
                 .balance(balance)

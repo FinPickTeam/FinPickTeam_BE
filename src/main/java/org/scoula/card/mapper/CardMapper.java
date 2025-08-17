@@ -15,4 +15,6 @@ public interface CardMapper {
     List<Card> findActiveByUserId(Long userId);
     List<Card> findByIdList(List<Long> ids);
     int countByUser(@Param("userId") Long userId);
+    int countByUserAndCardName(Long userId, String cardName);
+    List<String> findCardNamesByUser(Long userId);
 }

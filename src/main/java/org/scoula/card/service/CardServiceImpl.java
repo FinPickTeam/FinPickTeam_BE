@@ -11,6 +11,8 @@ import org.scoula.common.exception.BaseException;
 import org.scoula.common.exception.ForbiddenException;
 import org.scoula.nhapi.client.NHApiClient;
 import org.scoula.nhapi.dto.FinCardRequestDto;
+import org.scoula.nhapi.util.FirstLinkOnboardingService;
+import org.scoula.nhapi.util.MaskingUtil;
 import org.scoula.transactions.mapper.CardTransactionMapper;
 import org.scoula.transactions.service.CardTransactionService;
 import org.springframework.stereotype.Service;
@@ -29,12 +31,12 @@ public class CardServiceImpl implements CardService {
     private final CardMapper cardMapper;
     private final CardTransactionMapper cardTransactionMapper;
     private final CardTransactionService cardTransactionService;
-    private final org.scoula.nhapi.util.FirstLinkOnboardingService firstLinkOnboardingService;
+    private final FirstLinkOnboardingService firstLinkOnboardingService;
 
     @Override
     public CardRegisterResponseDto registerCard(Long userId, FinCardRequestDto dto) {
 
-        // ===== ① DTO 비거나 placeholder면 → MOCK 경로
+        // ① DTO 비거나 placeholder면 → MOCK 경로
         if (isEmptyOrPlaceholder(dto)) {
             var brand = org.scoula.nhapi.util.CardBrandingUtil.pickForUser(userId, true); // 신용
 
@@ -42,33 +44,33 @@ public class CardServiceImpl implements CardService {
             String rgno = res1.optString("Rgno");
             String finCardNumber = nhApiClient.checkOpenFinCard(rgno, "19990101").optString("FinCard");
 
+            // 브랜드의 masked 값 대신 카드 규격 마스킹(앞4/뒤4만 노출)
+            String masked = MaskingUtil.maskCard(finCardNumber);
+
             Card card = Card.builder()
                     .userId(userId)
                     .finCardNumber(finCardNumber)
                     .backCode("00")
                     .bankName(brand.bankName())
                     .cardName(brand.cardName())
-                    .cardMaskednum(brand.masked())
+                    .cardMaskednum(masked)        // 마스킹 저장
                     .cardMemberType("SELF")
-                    .cardType(brand.cardType()) // "CREDIT"
+                    .cardType(brand.cardType())   // "CREDIT"
                     .isActive(true)
                     .build();
             cardMapper.insertCard(card);
 
-            // 승인 더미 저장
-            cardTransactionService.syncCardTransactions(userId, card.getId(), finCardNumber, true);
-
             // 첫 연동 패키지
             firstLinkOnboardingService.runOnceOnFirstLink(userId);
 
-            log.info("✅ [MOCK] 카드 등록 및 승인내역 동기화 완료: {}", card);
+            log.info("✅ [MOCK] 카드 등록 완료: {}", card);
             return CardRegisterResponseDto.builder()
                     .cardId(card.getId())
                     .finCardNumber(finCardNumber)
                     .build();
         }
 
-        // ===== ② DTO 채워져 있으면 → 정상 경로
+        // ② 정상 경로
         JSONObject res1 = nhApiClient.callOpenFinCard(dto.getCardNumber(), dto.getBirthday());
         log.info("📦 핀카드 발급 응답: {}", res1);
         if (!res1.has("Rgno")) throw new BaseException("핀카드 발급 실패: 'Rgno' 없음. 응답 = " + res1, 500);
@@ -82,7 +84,7 @@ public class CardServiceImpl implements CardService {
                 .backCode("00")
                 .bankName("KB국민")
                 .cardName("IT's Your Life 카드")
-                .cardMaskednum("7018-****-****-1234")
+                .cardMaskednum(MaskingUtil.maskCard(finCardNumber)) // 가운데 마스킹
                 .cardMemberType("SELF")
                 .cardType("DEBIT")
                 .isActive(true)
