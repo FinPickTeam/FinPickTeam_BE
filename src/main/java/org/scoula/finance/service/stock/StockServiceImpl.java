@@ -416,7 +416,11 @@ public class StockServiceImpl implements StockService {
                 .append("5) 산업군 과밀 회피(동일 산업군 과도한 편중 금지).\n")
                 .append("6) 중복 금지, 후보 리스트 바깥 종목 금지.\n")
                 .append("7) 동순위·판단이 애매하면 상위 순위 > 산업 다양성 > 유동성(시총 큰 종목) 순으로 타이브레이크.\n")
-                .append("8) 무작위성 사용 금지.\n\n")
+                .append("8) 무작위성 사용 금지.\n")
+                .append("9) 투자 성향별 섹터 우선순위 적용: 적극투자형은 성장 섹터 비중을 최우선 반영.\n")
+                .append("10) 시가총액 티어별 가산/감산 적용: 적극투자형은 중소형·미드캡 가산, 초대형주는 감점.\n")
+                .append("11) 최근 모멘텀/성장성 반영: 적극투자형은 최근 수익률·EPS 성장률·매출 성장률이 양호한 종목 가산.\n")
+                .append("12) 변동성 기준 최소조건 적용: 적극투자형은 변동성 상위 30% 내 포함, 안정형은 변동성 하위 30% 위주.\n\n")
 
                 .append("출력 형식:\n")
                 .append("- 오직 JSON 배열(길이 5).\n")
@@ -433,6 +437,9 @@ public class StockServiceImpl implements StockService {
                 .append("7) [투자 형태/금융 자산]: ").append(surveyVo.getQuestion8()).append("\n")
                 .append("8) [기대수익률 및 손실감내도]: ").append(surveyVo.getQuestion9()).append("\n")
                 .append("9) [총 자산(순자산)]: ").append(surveyVo.getQuestion10()).append("\n\n")
+
+                .append("투자자 투자 성향:\n")
+                .append(surveyVo.getPropensityType())
 
                 .append("후보 리스트(이 중에서만 선택):\n")
                 .append(stockCode).append("\n\n")
