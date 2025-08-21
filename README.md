@@ -5,7 +5,7 @@
 <table align="center">
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/0dc1260f-5525-4992-aed0-da08394cd918" width="180" alt="김민서"/><br/>
+      <img src="https://github.com/user-attachments/assets/0dc1260f-5525-4992-aed0-da08394cd918" width="150" alt="김민서"/><br/>
       <a href="https://github.com/meentho"><b>김민서</b></a><br/>
       각자역할
     </td>
@@ -25,7 +25,7 @@
       각자역할
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/51e2cbda-7616-4166-abfd-4f1ea5755d02" width="180" alt="조자영"/><br/>
+      <img src="https://github.com/user-attachments/assets/51e2cbda-7616-4166-abfd-4f1ea5755d02" width="190" alt="조자영"/><br/>
       <a href="https://github.com/cho-ja-young"><b>조자영</b></a><br/>
       각자역할
     </td>
