@@ -4,27 +4,27 @@
           
   <tr>
     <td align="center">
-><br/>
+<img width="200" height="253" alt="민서_미모티콘-removebg-preview" src="https://github.com/user-attachments/assets/0dc1260f-5525-4992-aed0-da08394cd918" /><br/>
       <a href="https://github.com/meentho"><b>김민서</b></a>
     </td>
     <td align="center">
-><br/>
+            <img width="257" height="249" alt="다빈_갤럭시아바타-removebg-preview" src="https://github.com/user-attachments/assets/809d67c5-e9cd-4415-bbaf-ba1ef9c8de4a" /><br/>
       <a href="https://github.com/lego812"><b>박다빈</b></a>
     </td>
     <td align="center">
-><br/>
+              <img width="239" height="249" alt="준영_미모티콘-removebg-preview" src="https://github.com/user-attachments/assets/6f20bbba-3258-43bf-a295-142d26b28c42" /><br/>
       <a href="https://github.com/Tarae0419"><b>박준영</b></a>
     </td>
     <td align="center">
-<br/>
+<img width="257" height="257" alt="주성_미모티콘-removebg-preview" src="https://github.com/user-attachments/assets/d04c965c-907a-49b6-bf51-bbe42caf7c43" /><br/>
       <a href="https://github.com/ShonJuSeong"><b>손주성</b></a>
     </td>
     <td align="center">
-<br/>
+<img width="258" height="255" alt="자영_미모티콘-removebg-preview" src="https://github.com/user-attachments/assets/51e2cbda-7616-4166-abfd-4f1ea5755d02" /><br/>
       <a href="https://github.com/cho-ja-young"><b>조자영</b></a>
     </td>
     <td align="center">
-<br/>
+<img width="245" height="243" alt="예림_미모티콘-removebg-preview" src="https://github.com/user-attachments/assets/e297a9fe-ae27-4649-bd0c-5e6a04e94289" /><br/>
       <a href="https://github.com/cocoaocean"><b>조예림</b></a>
     </td>
   </tr>
@@ -33,7 +33,7 @@
 
 
 
-# 💸 FinPickTeam_BE - 핀픽
+# 💸 사회초년생을 위한 금융 상품 비교 & 추천 플랫폼 - Finpick
 
 > **아직 금융과 안 친한 여러분들을 위한 픽! 핀픽 💡**  
 > _"금융 문맹을 깨우는 한 방울의 소리, 금맹정음 팀의 프로젝트입니다."_
