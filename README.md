@@ -1,3 +1,38 @@
+<div align="center">
+
+<table>
+          
+  <tr>
+    <td align="center">
+><br/>
+      <a href="https://github.com/dlekgus"><b>김민서</b></a>
+    </td>
+    <td align="center">
+><br/>
+      <a href="https://github.com/0woy"><b>박다빈</b></a>
+    </td>
+    <td align="center">
+><br/>
+      <a href="https://github.com/MeongW"><b>박준영</b></a>
+    </td>
+    <td align="center">
+<br/>
+      <a href="https://github.com/ParkPark8"><b>손주성</b></a>
+    </td>
+    <td align="center">
+<br/>
+      <a href="https://github.com/meentho"><b>조자영</b></a>
+    </td>
+    <td align="center">
+<br/>
+      <a href="https://github.com/meentho"><b>조예림</b></a>
+    </td>
+  </tr>
+</table>
+</div>
+
+
+
 # 💸 FinPickTeam_BE - 핀픽
 
 > **아직 금융과 안 친한 여러분들을 위한 픽! 핀픽 💡**  
