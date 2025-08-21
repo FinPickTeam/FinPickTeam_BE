@@ -5,34 +5,34 @@
 <table align="center">
   <tr>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/0dc1260f-5525-4992-aed0-da08394cd918" width="200" alt="김민서"/><br/>
+      <img src="https://github.com/user-attachments/assets/0dc1260f-5525-4992-aed0-da08394cd918" width="180" alt="김민서"/><br/>
       <a href="https://github.com/meentho"><b>김민서</b></a><br/>
-      BE - 계좌/거래내역, 배포 자동화
+      각자역할
     </td>
     <td align="center">
       <img src="https://github.com/user-attachments/assets/809d67c5-e9cd-4415-bbaf-ba1ef9c8de4a" width="200" alt="박다빈"/><br/>
       <a href="https://github.com/lego812"><b>박다빈</b></a><br/>
-      FE - 메인 UI, 챌린지 기능
+      각자역할
     </td>
     <td align="center">
       <img src="https://github.com/user-attachments/assets/6f20bbba-3258-43bf-a295-142d26b28c42" width="200" alt="박준영"/><br/>
       <a href="https://github.com/Tarae0419"><b>박준영</b></a><br/>
-      BE - 인증/인가, DB 관리
+      각자역할
     </td>
     <td align="center">
       <img src="https://github.com/user-attachments/assets/d04c965c-907a-49b6-bf51-bbe42caf7c43" width="200" alt="손주성"/><br/>
       <a href="https://github.com/ShonJuSeong"><b>손주성</b></a><br/>
-      FE - 금융 퀴즈, 캐릭터
+      각자역할
     </td>
     <td align="center">
-      <img src="https://github.com/user-attachments/assets/51e2cbda-7616-4166-abfd-4f1ea5755d02" width="200" alt="조자영"/><br/>
+      <img src="https://github.com/user-attachments/assets/51e2cbda-7616-4166-abfd-4f1ea5755d02" width="180" alt="조자영"/><br/>
       <a href="https://github.com/cho-ja-young"><b>조자영</b></a><br/>
-      기획/디자인 - 서비스 기획, UX 디자인
+      각자역할
     </td>
     <td align="center">
       <img src="https://github.com/user-attachments/assets/e297a9fe-ae27-4649-bd0c-5e6a04e94289" width="200" alt="조예림"/><br/>
       <a href="https://github.com/cocoaocean"><b>조예림</b></a><br/>
-      BE - 월간 리포트, 추천 로직
+      각자역할
     </td>
   </tr>
 </table>
